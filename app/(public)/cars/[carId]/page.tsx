@@ -1,4 +1,4 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { CarDetail } from "@/components/catalog/CarDetail";
 
 export default async function CarDetailPage({
   params,
@@ -6,10 +6,5 @@ export default async function CarDetailPage({
   params: Promise<{ carId: string }>;
 }) {
   const { carId } = await params;
-  return (
-    <Placeholder
-      title="Maşın detalı"
-      note={`carId (= trim_id alias): ${carId}`}
-    />
-  );
+  return <CarDetail carId={carId} />;
 }
