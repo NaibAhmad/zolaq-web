@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "brands": [
+    {"brand_id": "brand_byd", "name": "BYD", "country": "China", "status": "active"},
+    {"brand_id": "brand_volvo", "name": "Volvo", "country": "Sweden", "status": "active"},
+    {"brand_id": "brand_toyota", "name": "Toyota", "country": "Japan", "status": "active"},
+    {"brand_id": "brand_li_auto", "name": "Li Auto", "country": "China", "status": "active"},
+    {"brand_id": "brand_kia", "name": "Kia", "country": "Korea", "status": "active"},
+    {"brand_id": "brand_hyundai", "name": "Hyundai", "country": "Korea", "status": "active"},
+    {"brand_id": "brand_hongqi", "name": "Hongqi", "country": "China", "status": "active"}
+  ],
+  "trims": [
+    {"trim_id": "trim_byd_han_ev_premium_awd_2025", "brand_id": "brand_byd", "model_name": "Han", "year": 2025, "display_name": "BYD Han EV Premium AWD", "energy_type": "EV", "power_hp": 510, "range_km": 610, "status": "active"},
+    {"trim_id": "trim_volvo_xc60_t8_recharge_plus_2025", "brand_id": "brand_volvo", "model_name": "XC60", "year": 2025, "display_name": "Volvo XC60 T8 Recharge Plus", "energy_type": "PHEV", "power_hp": 455, "range_km": 78, "status": "active"},
+    {"trim_id": "trim_toyota_camry_25_hybrid_prestige_2025", "brand_id": "brand_toyota", "model_name": "Camry", "year": 2025, "display_name": "Toyota Camry 2.5 Hybrid Prestige", "energy_type": "HEV", "power_hp": 225, "range_km": null, "status": "active"},
+    {"trim_id": "trim_li_auto_l9_max_erev_6seat_2025", "brand_id": "brand_li_auto", "model_name": "L9", "year": 2025, "display_name": "Li Auto L9 Max EREV 6-seat", "energy_type": "EREV", "power_hp": 449, "range_km": 1315, "status": "active"},
+    {"trim_id": "trim_kia_ev6_gt_line_awd_2025", "brand_id": "brand_kia", "model_name": "EV6", "year": 2025, "display_name": "Kia EV6 GT-Line AWD", "energy_type": "EV", "power_hp": 320, "range_km": 506, "status": "active"},
+    {"trim_id": "trim_hyundai_tucson_16_tgdi_2025", "brand_id": "brand_hyundai", "model_name": "Tucson", "year": 2025, "display_name": "Hyundai Tucson 1.6 T-GDI", "energy_type": "ICE", "power_hp": 180, "range_km": null, "status": "active"},
+    {"trim_id": "trim_byd_seal_ev_long_range_2025", "brand_id": "brand_byd", "model_name": "Seal", "year": 2025, "display_name": "BYD Seal EV Long Range", "energy_type": "EV", "power_hp": 313, "range_km": 700, "status": "active"},
+    {"trim_id": "trim_hongqi_ehs9_ev_6year_2025", "brand_id": "brand_hongqi", "model_name": "E-HS9", "year": 2025, "display_name": "Hongqi E-HS9 EV 6-year", "energy_type": "EV", "power_hp": 551, "range_km": 510, "status": "active"}
+  ],
+  "dealers": [
+    {"dealer_id": "dealer_premium_auto_baku", "display_name": "Premium Auto Baku", "legal_name": "Premium Auto MMC", "verification_status": "official_dealer", "verified_brands": ["brand_byd", "brand_hongqi"], "city": "Bakı", "address": "Heydər Əliyev pr. 152", "working_hours": {"mon_fri": "09:00-20:00", "sat": "10:00-18:00", "sun": "test-drive only"}, "status": "active"},
+    {"dealer_id": "dealer_nordic_motors_azerbaijan", "display_name": "Nordic Motors Azerbaijan", "legal_name": "Nordic Motors MMC", "verification_status": "verified_partner", "verified_brands": ["brand_volvo"], "city": "Bakı", "address": "Nərimanov rayonu", "working_hours": {"mon_fri": "09:00-19:00", "sat": "10:00-16:00"}, "status": "active"},
+    {"dealer_id": "dealer_caspian_auto_group", "display_name": "Caspian Auto Group", "legal_name": "Caspian Auto Group MMC", "verification_status": "verified_partner", "verified_brands": ["brand_toyota", "brand_kia", "brand_hyundai"], "city": "Bakı", "address": "Yasamal rayonu", "working_hours": {"mon_fri": "09:00-19:00", "sat": "10:00-17:00"}, "status": "active"}
+  ],
+  "dealer_offers": [
+    {"offer_id": "offer_001", "dealer_id": "dealer_premium_auto_baku", "trim_id": "trim_byd_han_ev_premium_awd_2025", "amount": 89500, "currency": "AZN", "status": "dealer_official_offer", "stock_status": "available", "source_type": "official_dealer", "source_name": "Premium Auto Baku", "verification_status": "verified", "last_updated": "2026-05-04T10:00:00+04:00", "valid_from": "2026-05-04T10:00:00+04:00", "valid_until": "2026-05-07T23:59:00+04:00", "included_fees": ["ƏDV", "DYP", "Bakı təhvil"], "excluded_fees": [], "signed_pdf_url": null},
+    {"offer_id": "offer_002", "dealer_id": "dealer_nordic_motors_azerbaijan", "trim_id": "trim_volvo_xc60_t8_recharge_plus_2025", "amount": 101200, "currency": "AZN", "status": "dealer_official_offer", "stock_status": "order", "source_type": "official_dealer", "source_name": "Nordic Motors Azerbaijan", "verification_status": "verified", "last_updated": "2026-05-03T10:00:00+04:00", "valid_from": "2026-05-03T10:00:00+04:00", "valid_until": "2026-05-12T23:59:00+04:00", "included_fees": ["ƏDV", "DYP"], "excluded_fees": ["Sığorta"], "signed_pdf_url": null},
+    {"offer_id": "offer_003", "dealer_id": "dealer_caspian_auto_group", "trim_id": "trim_toyota_camry_25_hybrid_prestige_2025", "amount": 71200, "currency": "AZN", "status": "catalog_price", "stock_status": "available", "source_type": "partner", "source_name": "Caspian Auto Group", "verification_status": "pending", "last_updated": "2026-05-01T10:00:00+04:00", "valid_from": "2026-05-01T10:00:00+04:00", "valid_until": "2026-05-20T23:59:00+04:00", "included_fees": ["ƏDV"], "excluded_fees": ["DYP"], "signed_pdf_url": null},
+    {"offer_id": "offer_004", "dealer_id": "dealer_premium_auto_baku", "trim_id": "trim_byd_seal_ev_long_range_2025", "amount": 67400, "currency": "AZN", "status": "dealer_official_offer", "stock_status": "available", "source_type": "official_dealer", "source_name": "Premium Auto Baku", "verification_status": "verified", "last_updated": "2026-05-04T10:00:00+04:00", "valid_from": "2026-05-04T10:00:00+04:00", "valid_until": "2026-05-07T23:59:00+04:00", "included_fees": ["ƏDV", "DYP"], "excluded_fees": [], "signed_pdf_url": null},
+    {"offer_id": "offer_005", "dealer_id": "dealer_premium_auto_baku", "trim_id": "trim_hongqi_ehs9_ev_6year_2025", "amount": 168900, "currency": "AZN", "status": "dealer_quote_pending", "stock_status": "order", "source_type": "official_dealer", "source_name": "Premium Auto Baku", "verification_status": "pending", "last_updated": "2026-05-04T10:00:00+04:00", "valid_from": "2026-05-04T10:00:00+04:00", "valid_until": "2026-05-14T23:59:00+04:00", "included_fees": [], "excluded_fees": [], "signed_pdf_url": null},
+    {"offer_id": "offer_006", "dealer_id": "dealer_caspian_auto_group", "trim_id": "trim_kia_ev6_gt_line_awd_2025", "amount": 0, "currency": "AZN", "status": "price_unknown", "stock_status": "coming_soon", "source_type": "partner", "source_name": "Caspian Auto Group", "verification_status": "pending", "last_updated": "2026-05-05T10:00:00+04:00", "valid_from": "2026-05-05T10:00:00+04:00", "valid_until": null, "included_fees": [], "excluded_fees": [], "signed_pdf_url": null}
+  ],
+  "leads": [
+    {"lead_id": "L-2208", "trim_id": "trim_byd_han_ev_premium_awd_2025", "dealer_id": "dealer_premium_auto_baku", "state": "submitted", "phone_hash": "hash_demo_001", "created_from_surface": "car_detail"},
+    {"lead_id": "L-2209", "trim_id": "trim_volvo_xc60_t8_recharge_plus_2025", "dealer_id": "dealer_nordic_motors_azerbaijan", "state": "official_offer", "offer_id": "offer_002", "phone_hash": "hash_demo_001", "created_from_surface": "compare"},
+    {"lead_id": "L-2210", "trim_id": "trim_toyota_camry_25_hybrid_prestige_2025", "dealer_id": "dealer_caspian_auto_group", "state": "expired", "phone_hash": "hash_demo_002", "created_from_surface": "catalog"},
+    {"lead_id": "L-2211", "trim_id": "trim_hongqi_ehs9_ev_6year_2025", "dealer_id": "dealer_premium_auto_baku", "state": "no_response", "phone_hash": "hash_demo_003", "created_from_surface": "dealer_profile"}
+  ],
+  "decisions": [
+    {"decision_id": "D-114", "title": "BYD Han vs Volvo XC60", "candidates": ["trim_byd_han_ev_premium_awd_2025", "trim_volvo_xc60_t8_recharge_plus_2025"], "linked_leads": ["L-2208", "L-2209"], "readiness_score": 72, "status": "active"},
+    {"decision_id": "D-115", "title": "Camry vs Tucson vs XC60", "candidates": ["trim_toyota_camry_25_hybrid_prestige_2025", "trim_hyundai_tucson_16_tgdi_2025", "trim_volvo_xc60_t8_recharge_plus_2025"], "linked_leads": ["L-2210"], "readiness_score": 58, "status": "active"}
+  ],
+  "content": {
+    "news": [
+      {"content_id": "news_001", "slug": "2026-li-auto-l9-yenilendi", "title": "2026 Li Auto L9 yeniləndi", "related_trim_ids": ["trim_li_auto_l9_max_erev_6seat_2025"], "status": "published"},
+      {"content_id": "news_002", "slug": "byd-han-bakida-resmi-teklif", "title": "BYD Han üçün Bakıda rəsmi təkliflər", "related_trim_ids": ["trim_byd_han_ev_premium_awd_2025"], "status": "published"}
+    ],
+    "encyclopedia": [
+      {"content_id": "enc_001", "slug": "phev-nedir", "title": "PHEV nədir?", "related_trim_ids": ["trim_volvo_xc60_t8_recharge_plus_2025"], "status": "published"},
+      {"content_id": "enc_002", "slug": "erev-nedir", "title": "EREV nədir?", "related_trim_ids": ["trim_li_auto_l9_max_erev_6seat_2025"], "status": "published"}
+    ],
+    "qa": [
+      {"qa_id": "qa_001", "question": "EV ailə üçün uyğundurmu?", "answer": "Gündəlik şəhər istifadəsi və ev şarjı varsa uyğundur.", "related_trim_ids": ["trim_byd_han_ev_premium_awd_2025", "trim_kia_ev6_gt_line_awd_2025"], "status": "published"},
+      {"qa_id": "qa_002", "question": "PHEV və EREV fərqi nədir?", "answer": "PHEV həm elektrik, həm mühərriklə hərəkət edə bilir; EREV-də mühərrik əsasən generator rolundadır.", "related_trim_ids": ["trim_volvo_xc60_t8_recharge_plus_2025", "trim_li_auto_l9_max_erev_6seat_2025"], "status": "published"}
+    ]
+  }
+}

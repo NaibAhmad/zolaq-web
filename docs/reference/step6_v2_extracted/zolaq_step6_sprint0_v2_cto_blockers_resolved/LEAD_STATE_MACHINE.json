@@ -1,0 +1,144 @@
+{
+  "version": "1.0",
+  "canonical_states": [
+    "draft",
+    "submitted",
+    "dealer_opened",
+    "official_offer",
+    "test_drive_requested",
+    "test_drive_confirmed",
+    "whatsapp_handoff",
+    "expired",
+    "no_response",
+    "second_offer",
+    "accepted",
+    "closed"
+  ],
+  "states": {
+    "draft": {
+      "label_az": "Hazırlanır",
+      "state_type": "active",
+      "trigger_type": "user",
+      "allowed_next_states": ["submitted", "closed"],
+      "primary_cta_az": "Sorğunu göndər",
+      "side_effects": ["create_draft_lead", "store_phone_encrypted"],
+      "notification_rules": [],
+      "audit_log_event": "lead_draft_created"
+    },
+    "submitted": {
+      "label_az": "Göndərildi",
+      "state_type": "active",
+      "trigger_type": "user",
+      "allowed_next_states": ["dealer_opened", "no_response", "whatsapp_handoff", "closed"],
+      "primary_cta_az": "Cavab gələndə bildiriş al",
+      "side_effects": ["create_timeline_event", "notify_internal_ops", "start_sla_timer"],
+      "notification_rules": ["optional_user_confirmation"],
+      "audit_log_event": "lead_submitted"
+    },
+    "dealer_opened": {
+      "label_az": "Diler açdı",
+      "state_type": "active",
+      "trigger_type": "internal_operator",
+      "allowed_next_states": ["official_offer", "no_response", "second_offer", "closed"],
+      "primary_cta_az": "Cavab gələndə bildiriş al",
+      "side_effects": ["create_timeline_event", "start_offer_sla_timer"],
+      "notification_rules": ["optional_user_status_update"],
+      "audit_log_event": "lead_dealer_opened"
+    },
+    "official_offer": {
+      "label_az": "Rəsmi təklif gəldi",
+      "state_type": "active",
+      "trigger_type": "internal_operator",
+      "allowed_next_states": ["test_drive_requested", "accepted", "expired", "second_offer", "whatsapp_handoff", "closed"],
+      "primary_cta_az": "Test-sürüş sorğusu göndər",
+      "side_effects": ["create_offer", "create_timeline_event", "notify_user"],
+      "notification_rules": ["user_offer_received"],
+      "audit_log_event": "lead_official_offer_received"
+    },
+    "test_drive_requested": {
+      "label_az": "Test-sürüş soruldu",
+      "state_type": "active",
+      "trigger_type": "user",
+      "allowed_next_states": ["test_drive_confirmed", "closed"],
+      "primary_cta_az": "Diler təsdiqini gözlə",
+      "side_effects": ["create_test_drive_request", "notify_internal_ops"],
+      "notification_rules": ["optional_user_confirmation"],
+      "audit_log_event": "test_drive_requested"
+    },
+    "test_drive_confirmed": {
+      "label_az": "Test-sürüş təsdiq",
+      "state_type": "active",
+      "trigger_type": "internal_operator",
+      "allowed_next_states": ["accepted", "second_offer", "closed"],
+      "primary_cta_az": "Test-sürüşdən sonra yekun ver",
+      "side_effects": ["create_timeline_event", "notify_user"],
+      "notification_rules": ["test_drive_confirmed"],
+      "audit_log_event": "test_drive_confirmed"
+    },
+    "whatsapp_handoff": {
+      "label_az": "WhatsApp xarici",
+      "state_type": "parallel",
+      "trigger_type": "user",
+      "allowed_next_states": ["official_offer", "closed"],
+      "primary_cta_az": "WhatsApp-ı yenidən aç",
+      "side_effects": ["track_whatsapp_clicked", "track_whatsapp_external_opened", "create_timeline_event"],
+      "notification_rules": [],
+      "audit_log_event": "whatsapp_handoff_created"
+    },
+    "expired": {
+      "label_az": "Müddət bitib",
+      "state_type": "active",
+      "trigger_type": "system",
+      "allowed_next_states": ["second_offer", "official_offer", "closed"],
+      "primary_cta_az": "Yenilənmə istə",
+      "side_effects": ["mark_offer_expired", "create_timeline_event", "show_renewal_cta"],
+      "notification_rules": ["optional_offer_expired"],
+      "audit_log_event": "offer_expired"
+    },
+    "no_response": {
+      "label_az": "Diler cavab vermədi",
+      "state_type": "active",
+      "trigger_type": "system",
+      "allowed_next_states": ["second_offer", "closed"],
+      "primary_cta_az": "Başqa təkliflə yoxla",
+      "side_effects": ["create_timeline_event", "show_second_offer_cta"],
+      "notification_rules": ["optional_no_response"],
+      "audit_log_event": "lead_no_response"
+    },
+    "second_offer": {
+      "label_az": "Başqa təkliflə yoxla",
+      "state_type": "parallel",
+      "trigger_type": "user",
+      "allowed_next_states": ["submitted", "closed"],
+      "primary_cta_az": "Yeni sorğu göndər",
+      "side_effects": ["create_new_lead_same_trim", "link_to_previous_lead", "keep_previous_lead_open_unless_user_closes"],
+      "constraints": {
+        "same_trim_id": true,
+        "dealer_id_must_differ": true,
+        "max_parallel_leads_per_trim": 3
+      },
+      "notification_rules": ["optional_second_offer_started"],
+      "audit_log_event": "second_offer_requested"
+    },
+    "accepted": {
+      "label_az": "Rəsmi qəbul edildi",
+      "state_type": "terminal",
+      "trigger_type": "user",
+      "allowed_next_states": ["closed"],
+      "primary_cta_az": "Qərarı bağla",
+      "side_effects": ["mark_decision_ready", "create_timeline_event"],
+      "notification_rules": [],
+      "audit_log_event": "offer_accepted"
+    },
+    "closed": {
+      "label_az": "Bağlandı",
+      "state_type": "terminal",
+      "trigger_type": "user",
+      "allowed_next_states": [],
+      "primary_cta_az": null,
+      "side_effects": ["close_lead", "create_timeline_event"],
+      "notification_rules": [],
+      "audit_log_event": "lead_closed"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+Zolaq Stage 1 - AI Source Status
+
+Native Adobe Illustrator .ai source is PENDING.
+
+Required real native files:
+- zolaq-logo-master.ai
+- zolaq-logo-system-source.ai
+
+Important: EPS/PDF/SVG files must not be renamed to .ai. The final SVG/EPS source must be opened in Adobe Illustrator, checked as vector/path, text outlined, hidden layers/metadata cleaned, and saved as real native .ai.
+
+Design must not change. Final logic remains: Z icon + "olaq" = Zolaq.

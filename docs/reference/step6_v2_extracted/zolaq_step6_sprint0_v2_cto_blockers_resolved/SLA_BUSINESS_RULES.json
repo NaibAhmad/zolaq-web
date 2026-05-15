@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "timezone": "Asia/Baku",
+  "business_hours_source": "dealer.working_hours",
+  "dealer_working_hours_required_for_active_offer": true,
+  "fallbacks": [
+    {
+      "after": "0-2 saat",
+      "state": "normal_wait",
+      "system_behavior": "Diler cavabı gözlənilir"
+    },
+    {
+      "after": "2 saat",
+      "state": "soft_fallback",
+      "system_behavior": "Başqa təkliflə yoxla CTA görünür"
+    },
+    {
+      "after": "6 saat",
+      "state": "active_fallback",
+      "system_behavior": "Alternativ diler/model tövsiyə olunur"
+    },
+    {
+      "after": "24 saat",
+      "state": "no_response",
+      "system_behavior": "Lead no_response statusuna keçir"
+    }
+  ],
+  "rules": {
+    "dealer_opened_sla": "24 iş saatı",
+    "official_offer_sla_after_dealer_opened": "2 iş saatı",
+    "weekend_handling": "dealer.working_hours əsasında",
+    "if_working_hours_missing": "dealer cannot be verified or have active offer"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "version": "1.0",
+  "format_rule": "89 500 AZN",
+  "required_fields_all_price_cards": [
+    "amount",
+    "currency",
+    "status",
+    "source_type",
+    "source_name",
+    "verification_status",
+    "last_updated"
+  ],
+  "required_fields_dealer_offer": [
+    "dealer_id",
+    "valid_from",
+    "valid_until",
+    "included_fees",
+    "excluded_fees",
+    "stock_status"
+  ],
+  "statuses": {
+    "estimated": {
+      "label_az": "Təxmini qiymət",
+      "tone": "gray",
+      "meaning": "Aggregation/model average; not an official offer",
+      "allowed_cta": "Page-level CTA allowed: Rəsmi qiymət istə"
+    },
+    "catalog_price": {
+      "label_az": "Kataloq qiyməti",
+      "tone": "gray",
+      "meaning": "Catalog/list price; no lead required",
+      "allowed_cta": "Rəsmi qiymət istə"
+    },
+    "dealer_quote_pending": {
+      "label_az": "Təklif gözlənilir",
+      "tone": "gray",
+      "meaning": "Lead submitted; dealer response pending",
+      "allowed_cta": "Cavab gələndə yenilənir"
+    },
+    "dealer_official_offer": {
+      "label_az": "Rəsmi diler təklifi",
+      "tone": "ok",
+      "meaning": "Verified dealer offer with metadata and valid_until",
+      "allowed_cta": "Test-sürüş / Qəbul et"
+    },
+    "expired_offer": {
+      "label_az": "Təklif müddəti bitib",
+      "tone": "bad",
+      "meaning": "Old offer; render strikethrough or expired warning",
+      "allowed_cta": "Yenilənmə istə"
+    },
+    "conflict": {
+      "label_az": "Qiymət mənbələrində fərq",
+      "tone": "bad",
+      "meaning": "2+ sources show conflicting prices",
+      "allowed_cta": "Mənbələri yoxla / Rəsmi qiymət istə"
+    },
+    "price_unknown": {
+      "label_az": "Qiymət soruş",
+      "tone": "warn",
+      "meaning": "No price source exists yet",
+      "allowed_cta": "Rəsmi qiymət istə"
+    },
+    "not_available": {
+      "label_az": "Hazırda mövcud deyil",
+      "tone": "gray",
+      "meaning": "No stock or currently unavailable",
+      "allowed_cta": "Mövcud olanda xəbər ver"
+    }
+  }
+}

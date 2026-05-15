@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "global_payload_fields": ["event_name", "session_id", "device_type", "language", "source_url", "created_at"],
+  "privacy_rules": [
+    "No raw phone in analytics",
+    "No full name unless explicitly required and consented",
+    "Use phone_hash only where needed",
+    "Dealer does not receive phone unless user explicitly consents in future flow"
+  ],
+  "events": {
+    "search_started": {"payload": ["query", "surface"]},
+    "search_completed": {"payload": ["query", "result_count", "filters"]},
+    "catalog_filter_applied": {"payload": ["filters", "result_count"]},
+    "car_card_viewed": {"payload": ["trim_id", "surface"]},
+    "car_detail_viewed": {"payload": ["trim_id", "source"]},
+    "price_card_viewed": {"payload": ["trim_id", "price_status", "source_type"]},
+    "compare_added": {"payload": ["trim_id", "total_in_compare"]},
+    "compare_opened": {"payload": ["trim_ids"]},
+    "lead_form_opened": {"payload": ["trim_id", "dealer_id", "surface"]},
+    "lead_form_submitted": {"payload": ["lead_id", "trim_id", "dealer_id"]},
+    "otp_requested": {"payload": ["phone_hash", "purpose"]},
+    "otp_verified": {"payload": ["phone_hash", "attempts"]},
+    "whatsapp_clicked": {"payload": ["surface", "lead_id"]},
+    "whatsapp_external_opened": {"payload": ["lead_id", "dealer_id"]},
+    "dealer_profile_viewed": {"payload": ["dealer_id", "surface"]},
+    "offer_received": {"payload": ["lead_id", "offer_id", "amount"]},
+    "offer_expired": {"payload": ["lead_id", "offer_id"]},
+    "test_drive_requested": {"payload": ["lead_id", "date_pref"]},
+    "test_drive_confirmed": {"payload": ["lead_id", "date_final"]},
+    "decision_center_opened": {"payload": ["user_id_hash"]},
+    "decision_created": {"payload": ["decision_id", "candidate_list"]},
+    "decision_readiness_updated": {"payload": ["decision_id", "value", "delta"]},
+    "next_best_action_clicked": {"payload": ["decision_id", "action_type"]},
+    "decision_closed": {"payload": ["decision_id", "decided_trim_id", "reason"]},
+    "content_viewed": {"payload": ["content_id", "content_type", "slug"]},
+    "related_model_clicked": {"payload": ["content_id", "trim_id"]},
+    "cta_clicked": {"payload": ["cta_id", "surface", "destination"]}
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "LeadState": ["draft", "submitted", "dealer_opened", "official_offer", "test_drive_requested", "test_drive_confirmed", "whatsapp_handoff", "expired", "no_response", "second_offer", "accepted", "closed"],
+  "PriceStatus": ["estimated", "catalog_price", "dealer_quote_pending", "dealer_official_offer", "expired_offer", "conflict", "price_unknown", "not_available"],
+  "EnergyType": ["EV", "PHEV", "EREV", "HEV", "ICE"],
+  "DealerVerificationStatus": ["official_dealer", "verified_partner", "pending", "rejected", "expired"],
+  "SourceType": ["official_dealer", "catalog", "partner", "estimate", "zolaq_manual", "imported"],
+  "DecisionStatus": ["active", "decided", "abandoned", "closed"],
+  "StockStatus": ["available", "order", "not_available", "coming_soon"],
+  "LeadSourceSurface": ["car_detail", "catalog", "compare", "dealer_profile", "content", "decision_center"],
+  "ContentType": ["news", "encyclopedia", "qa"],
+  "VerificationStatus": ["unverified", "verified", "pending", "conflict", "outdated"],
+  "Currency": ["AZN", "USD", "CNY"]
+}
