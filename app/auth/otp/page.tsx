@@ -1,10 +1,10 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { Suspense } from "react";
+import { OtpForm } from "@/components/auth/OtpForm";
 
 export default function AuthOtpPage() {
   return (
-    <Placeholder
-      title="OTP təsdiqi"
-      note="Mock OTP provider (adapter) Sprint 1 Batch 2-də əlavə olunacaq."
-    />
+    <Suspense fallback={null}>
+      <OtpForm />
+    </Suspense>
   );
 }

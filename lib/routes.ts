@@ -23,6 +23,8 @@ export const ROUTES = {
   qaItem: (id: string) => `/qa/${id}`,
 
   authOtp: "/auth/otp",
+  authLogout: "/api/auth/logout",
+  authMe: "/api/auth/me",
 
   profile: "/profile",
   profileHistory: "/profile/history",
@@ -42,4 +44,18 @@ export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_ROUTE_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
+}
+
+export function otpHref({
+  purpose,
+  next,
+}: {
+  purpose?: "lead_submit" | "whatsapp_handoff" | "profile_access";
+  next?: string;
+} = {}): string {
+  const params = new URLSearchParams();
+  if (purpose) params.set("purpose", purpose);
+  if (next) params.set("next", next);
+  const qs = params.toString();
+  return qs ? `${ROUTES.authOtp}?${qs}` : ROUTES.authOtp;
 }
