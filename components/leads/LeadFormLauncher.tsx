@@ -11,6 +11,7 @@ import {
   type LeadSourceSurface,
   type PreferredContact,
 } from "@/lib/leads/types";
+import { trackEvent } from "@/lib/tracking/track";
 
 type Props = {
   trimId: string;
@@ -136,6 +137,10 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
       if (cancelled) return;
       clearPending();
       if (result.ok) {
+        trackEvent("lead_form_submitted", {
+          lead_id: result.leadId,
+          trim_id: pending.trim_id,
+        });
         router.replace(ROUTES.profileLead(result.leadId));
         return;
       }
@@ -197,6 +202,10 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
 
     const result = await submitLead(payload);
     if (result.ok) {
+      trackEvent("lead_form_submitted", {
+        lead_id: result.leadId,
+        trim_id: trimId,
+      });
       setOpen(false);
       router.push(ROUTES.profileLead(result.leadId));
       return;
@@ -235,6 +244,10 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
         onClick={() => {
           resetForm();
           setOpen(true);
+          trackEvent("lead_form_opened", {
+            trim_id: trimId,
+            surface: sourceSurface,
+          });
         }}
         className="inline-flex items-center justify-center rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg transition-opacity hover:opacity-90"
       >

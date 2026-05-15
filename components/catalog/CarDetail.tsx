@@ -17,6 +17,7 @@ import {
   isLeadSourceSurface,
   type LeadSourceSurface,
 } from "@/lib/leads/types";
+import { trackEvent } from "@/lib/tracking/track";
 import type { EnergyType, PriceRecord, Trim } from "@/lib/cars/types";
 
 type Props = {
@@ -83,6 +84,10 @@ function CarDetailInner({ carId }: Props) {
           trim: trimRes.trim,
           prices: pricesRes.prices,
         });
+        trackEvent("car_detail_viewed", {
+          trim_id: trimRes.trim.trim_id,
+          source: sourceSurface,
+        });
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -100,7 +105,7 @@ function CarDetailInner({ carId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [carId, reloadKey]);
+  }, [carId, reloadKey, sourceSurface]);
 
   function retry() {
     setState({ status: "loading" });

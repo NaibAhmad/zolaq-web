@@ -1,4 +1,8 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { notFound } from "next/navigation";
+import { ContentDetail } from "@/components/content/ContentDetail";
+import { trimSummaryFor } from "@/lib/cars/summary";
+import { getQAById } from "@/lib/content/lookup";
+import { ROUTES } from "@/lib/routes";
 
 export default async function QaDetailPage({
   params,
@@ -6,5 +10,24 @@ export default async function QaDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <Placeholder title="Sual detalı" note={`id: ${id}`} />;
+  const qa = getQAById(id);
+  if (!qa) notFound();
+
+  const relatedTrims = qa.related_trim_ids.map((trimId) =>
+    trimSummaryFor(trimId)
+  );
+
+  return (
+    <ContentDetail
+      contentId={qa.content_id}
+      contentType="qa"
+      slugOrId={qa.id}
+      title={qa.question}
+      body={qa.answer}
+      publishedAt={qa.published_at}
+      backHref={ROUTES.qa}
+      backLabel="Q&A-ya qayıt"
+      relatedTrims={relatedTrims}
+    />
+  );
 }

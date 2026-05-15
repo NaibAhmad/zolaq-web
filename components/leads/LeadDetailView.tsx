@@ -18,6 +18,7 @@ import type {
   LeadTimelineEvent,
 } from "@/lib/leads/types";
 import { ROUTES, otpHref } from "@/lib/routes";
+import { trackEvent } from "@/lib/tracking/track";
 
 type Props = { leadId: string };
 
@@ -164,6 +165,12 @@ export function LeadDetailView({ leadId }: Props) {
   async function runAction(action: ActionKey) {
     setActionInFlight(action);
     setActionError(null);
+    if (action === "whatsapp-handoff") {
+      trackEvent("whatsapp_clicked", {
+        surface: "lead_detail",
+        lead_id: leadId,
+      });
+    }
     try {
       await apiPost(`/api/profile/leads/${encodeURIComponent(leadId)}/${action}`);
       reload();

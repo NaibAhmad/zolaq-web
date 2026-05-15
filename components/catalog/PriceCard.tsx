@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/cars/format";
 import { ROUTES } from "@/lib/routes";
+import { trackEvent } from "@/lib/tracking/track";
 import type {
   PriceRecord,
   PriceStatus,
@@ -76,6 +80,14 @@ function hasRenderableAmount(status: PriceStatus): boolean {
 }
 
 export function PriceCard({ price }: Props) {
+  useEffect(() => {
+    trackEvent("price_card_viewed", {
+      trim_id: price.trim_id,
+      price_status: price.status,
+      source_type: price.source_type,
+    });
+  }, [price.trim_id, price.status, price.source_type]);
+
   const showAmount = hasRenderableAmount(price.status) && price.amount > 0;
   const showValidUntil =
     hasDealerValidity(price.status) && price.valid_until != null;
