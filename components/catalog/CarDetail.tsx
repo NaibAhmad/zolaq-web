@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { CarImage } from "@/components/catalog/CarImage";
 import { PriceCard } from "@/components/catalog/PriceCard";
+import { LeadFormLauncher } from "@/components/leads/LeadFormLauncher";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
@@ -11,6 +13,10 @@ import { NotFoundState } from "@/components/state/NotFoundState";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
 import { ROUTES } from "@/lib/routes";
+import {
+  isLeadSourceSurface,
+  type LeadSourceSurface,
+} from "@/lib/leads/types";
 import type { EnergyType, PriceRecord, Trim } from "@/lib/cars/types";
 
 type Props = {
@@ -39,6 +45,20 @@ function deriveTrimSuffix(displayName: string, brandName: string, modelName: str
 }
 
 export function CarDetail({ carId }: Props) {
+  return (
+    <Suspense fallback={<LoadingState label="Maşın yüklənir…" />}>
+      <CarDetailInner carId={carId} />
+    </Suspense>
+  );
+}
+
+function CarDetailInner({ carId }: Props) {
+  const searchParams = useSearchParams();
+  const sourceParam = searchParams.get("source");
+  const sourceSurface: LeadSourceSurface = isLeadSourceSurface(sourceParam)
+    ? sourceParam
+    : "car_detail";
+
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -194,18 +214,10 @@ export function CarDetail({ carId }: Props) {
             id="sorgu"
             className="flex flex-col gap-2 rounded-lg border border-border bg-surface-elevated p-4"
           >
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Sprint 3 — sorğu axını hələ aktiv deyil"
-              className="inline-flex items-center justify-center rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Rəsmi qiymət istə
-            </button>
-            <p className="text-xs text-foreground-muted">
-              Sorğu axını Sprint 3-də aktivləşəcək.
-            </p>
+            <LeadFormLauncher
+              trimId={trim.trim_id}
+              sourceSurface={sourceSurface}
+            />
             <div className="mt-1 flex flex-wrap gap-2">
               <button
                 type="button"

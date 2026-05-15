@@ -71,7 +71,7 @@ export function CarCard({ trim, brandName }: Props) {
           Ətraflı bax
         </Link>
         <Link
-          href={`${detailHref}#sorgu`}
+          href={`${detailHref}?source=catalog#sorgu`}
           className="inline-flex items-center justify-center rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface"
         >
           Sorğu göndər

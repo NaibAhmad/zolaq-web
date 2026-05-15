@@ -1,4 +1,4 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { LeadDetailView } from "@/components/leads/LeadDetailView";
 
 export default async function ProfileLeadDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function ProfileLeadDetailPage({
   params: Promise<{ leadId: string }>;
 }) {
   const { leadId } = await params;
-  return <Placeholder title="Sorğu detalı" note={`leadId: ${leadId}`} />;
+  return <LeadDetailView leadId={leadId} />;
 }
