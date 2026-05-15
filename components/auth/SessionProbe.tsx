@@ -24,8 +24,6 @@ export function SessionProbe() {
 
   useEffect(() => {
     let cancelled = false;
-    setPending(true);
-    setError(null);
     apiGet<Me>("/api/auth/me")
       .then((r) => {
         if (cancelled) return;
@@ -42,6 +40,13 @@ export function SessionProbe() {
     };
   }, [reloadKey]);
 
+  function retry() {
+    setError(null);
+    setMe(null);
+    setPending(true);
+    setReloadKey((k) => k + 1);
+  }
+
   if (pending) return <LoadingState label="Sessiya yoxlanılır…" />;
 
   if (error) {
@@ -50,7 +55,7 @@ export function SessionProbe() {
         title="Sessiya alına bilmədi"
         message={error.message}
         code={error.code}
-        onRetry={() => setReloadKey((k) => k + 1)}
+        onRetry={retry}
       />
     );
   }

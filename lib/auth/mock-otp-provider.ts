@@ -5,7 +5,7 @@ import type { OtpProvider } from "./otp-provider";
 // never logged — only phone_hash + purpose, per OTP_FLOW_SPEC privacy rules.
 export const mockOtpProvider: OtpProvider = {
   async sendCode({ phoneHash, code, purpose }) {
-    // eslint-disable-next-line no-console
+     
     console.log(
       `[MOCK-OTP] phoneHash=${phoneHash.slice(0, 12)}… purpose=${purpose} code=${code}`
     );
