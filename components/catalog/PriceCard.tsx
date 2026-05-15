@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { formatPrice } from "@/lib/cars/format";
+import { ROUTES } from "@/lib/routes";
 import type {
   PriceRecord,
   PriceStatus,
@@ -77,6 +79,16 @@ export function PriceCard({ price }: Props) {
   const showAmount = hasRenderableAmount(price.status) && price.amount > 0;
   const showValidUntil =
     hasDealerValidity(price.status) && price.valid_until != null;
+  const sourceText = (
+    <>
+      {price.source_name}{" "}
+      <span className="text-xs text-foreground-muted">
+        ({SOURCE_LABEL[price.source_type]})
+      </span>
+    </>
+  );
+  const hasPdf =
+    typeof price.signed_pdf_url === "string" && price.signed_pdf_url.length > 0;
 
   return (
     <article
@@ -102,10 +114,16 @@ export function PriceCard({ price }: Props) {
         <div className="flex gap-2">
           <dt className="text-foreground-muted">Mənbə:</dt>
           <dd className="font-medium">
-            {price.source_name}{" "}
-            <span className="text-xs text-foreground-muted">
-              ({SOURCE_LABEL[price.source_type]})
-            </span>
+            {price.dealer_id ? (
+              <Link
+                href={ROUTES.dealer(price.dealer_id)}
+                className="text-accent-blue underline-offset-2 hover:underline"
+              >
+                {sourceText}
+              </Link>
+            ) : (
+              sourceText
+            )}
           </dd>
         </div>
         <div className="flex gap-2">
@@ -125,6 +143,19 @@ export function PriceCard({ price }: Props) {
           </div>
         ) : null}
       </dl>
+
+      {hasPdf ? (
+        <div className="mt-3">
+          <a
+            href={price.signed_pdf_url ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated"
+          >
+            PDF təklif
+          </a>
+        </div>
+      ) : null}
     </article>
   );
 }

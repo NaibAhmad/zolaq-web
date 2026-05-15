@@ -1,4 +1,4 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { DealerProfile } from "@/components/dealers/DealerProfile";
 
 export default async function DealerDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function DealerDetailPage({
   params: Promise<{ dealerId: string }>;
 }) {
   const { dealerId } = await params;
-  return <Placeholder title="Diler profili" note={`dealerId: ${dealerId}`} />;
+  return <DealerProfile dealerId={dealerId} />;
 }
