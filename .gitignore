@@ -30,8 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (can opt-in for committing if needed). .env.example IS committed.
 .env*
+!.env.example
+
+# media uploads (Sprint 9D) — keep folder, not contents
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 # vercel
 .vercel

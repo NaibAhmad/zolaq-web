@@ -13,12 +13,53 @@ export function isContentType(value: unknown): value is ContentType {
   );
 }
 
+// Sprint 8D: content lifecycle. Existing seed entries default to "published"
+// when loaded into the admin store. Public reads filter to "published" only.
+export const CONTENT_STATUSES = ["draft", "published", "unpublished"] as const;
+export type ContentStatus = (typeof CONTENT_STATUSES)[number];
+
+export function isContentStatus(value: unknown): value is ContentStatus {
+  return (
+    typeof value === "string" &&
+    (CONTENT_STATUSES as readonly string[]).includes(value)
+  );
+}
+
 type ContentBase = {
   title: string;
   summary: string;
   body: string;
   related_trim_ids: readonly string[];
   published_at: number;
+  status?: ContentStatus;
+};
+
+export const ENCYCLOPEDIA_CATEGORIES = [
+  "tech",
+  "battery",
+  "driving",
+  "finance",
+  "charging",
+  "insurance",
+] as const;
+
+export type EncyclopediaCategory = (typeof ENCYCLOPEDIA_CATEGORIES)[number];
+
+export function isEncyclopediaCategory(
+  value: unknown,
+): value is EncyclopediaCategory {
+  return (
+    typeof value === "string" &&
+    (ENCYCLOPEDIA_CATEGORIES as readonly string[]).includes(value)
+  );
+}
+
+export type EncyclopediaStat = { label: string; value: string };
+
+export type EncyclopediaSource = {
+  name: string;
+  source_count: number;
+  verified: boolean;
 };
 
 export type NewsArticle = ContentBase & {
@@ -26,6 +67,11 @@ export type NewsArticle = ContentBase & {
   type: "news";
   slug: string;
   source_name?: string;
+  category?: string;
+  image_url?: string;
+  image_alt?: string;
+  excerpt?: string;
+  related_model_reason?: string;
 };
 
 export type EncyclopediaEntry = ContentBase & {
@@ -33,6 +79,13 @@ export type EncyclopediaEntry = ContentBase & {
   type: "encyclopedia";
   slug: string;
   topic_tags?: readonly string[];
+  category?: EncyclopediaCategory;
+  stats?: readonly EncyclopediaStat[];
+  source?: EncyclopediaSource;
+  image_url?: string;
+  image_alt?: string;
+  excerpt?: string;
+  related_model_reason?: string;
 };
 
 export type QAEntry = {

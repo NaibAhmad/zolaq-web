@@ -1,30 +1,34 @@
-import { DEALER_OFFERS, EXTRA_PRICES } from "@/lib/cars/seed";
+// Sprint 8B: public dealer/offer reads delegate to the admin stores so
+// admin-created dealers and approved-published offers appear on the public
+// site. Draft/submitted/rejected offers are filtered out by offer_status.
+
+import {
+  getOfferById as adminGetOfferById,
+  listDealers,
+  listPrices,
+} from "@/lib/admin";
 import type { PriceRecord } from "@/lib/cars/types";
-import { DEALERS } from "./seed";
 import type { Dealer, DealerVerificationStatus } from "./types";
 
 export function getAllDealers(): readonly Dealer[] {
-  return DEALERS;
+  return listDealers();
 }
 
 export function getDealerById(dealerId: string): Dealer | null {
-  return DEALERS.find((d) => d.dealer_id === dealerId) ?? null;
+  return listDealers().find((d) => d.dealer_id === dealerId) ?? null;
 }
 
-// All offer-shaped PriceRecord rows. Pulls from both seed buckets so any
-// dealer-scoped row (including EXTRA_PRICES rows with a dealer_id) is included.
-function getAllDealerOffers(): readonly PriceRecord[] {
-  const fromOffers = DEALER_OFFERS;
-  const fromExtras = EXTRA_PRICES.filter((p) => p.dealer_id != null);
-  return [...fromOffers, ...fromExtras];
+function isPublishedOffer(p: PriceRecord): boolean {
+  return p.dealer_id != null && p.offer_status === "published";
 }
 
 export function getOffersByDealerId(dealerId: string): PriceRecord[] {
-  return getAllDealerOffers().filter((o) => o.dealer_id === dealerId);
+  return listPrices({ dealer_id: dealerId }).filter(isPublishedOffer);
 }
 
 export function getOfferById(offerId: string): PriceRecord | null {
-  return getAllDealerOffers().find((o) => o.offer_id === offerId) ?? null;
+  const found = adminGetOfferById(offerId);
+  return found && isPublishedOffer(found) ? found : null;
 }
 
 export type DealerFilters = {
@@ -33,7 +37,7 @@ export type DealerFilters = {
 };
 
 export function filterDealers(filters: DealerFilters): Dealer[] {
-  return DEALERS.filter((d) => {
+  return listDealers().filter((d) => {
     if (filters.brand && !d.represented_brands.includes(filters.brand)) {
       return false;
     }

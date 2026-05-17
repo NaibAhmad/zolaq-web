@@ -1,0 +1,387 @@
+// Sprint 9B vertical slice: catalog (Brand/Model/Generation/Trim/TrimSpec/
+// CatalogPrice), dealer (Dealer/DealerOffer), media (MediaAsset/MediaUsage),
+// audit (AuditLog). Other 9A-planned models (User/Lead/Decision/Ads/Invoice/
+// Payment/MarketPulse/Gamification/Content/OTP) are deferred to per-domain
+// follow-up PRs per docs/sprint-9a/SEED_TO_DATABASE_MIGRATION_PLAN.md.
+//
+// Field names follow docs/sprint-9a/DATABASE_SCHEMA_DRAFT.md verbatim where
+// possible. Natural primary keys (trim_id, brand_id, ...) are preserved.
+//
+// Enums are intentionally String columns (not PG enums) to (a) match the
+// AuditLog.action requirement in the user spec and (b) keep the schema
+// flexible while domains are still iterating.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // Supabase staging routes DATABASE_URL through PgBouncer (port 6543,
+  // ?pgbouncer=true). DIRECT_URL must point at port 5432 so `prisma migrate`
+  // can issue DDL outside the pooler. For local/disposable Postgres without a
+  // pooler, set DIRECT_URL to the same value as DATABASE_URL. See
+  // docs/sprint-10/DB_MIGRATION_AND_SEED_RUNBOOK.md §1.
+}
+
+// ============================================================================
+// Catalog
+// ============================================================================
+
+model Brand {
+  brand_id   String   @id
+  name       String
+  slug       String   @unique
+  country    String?
+  status     String   @default("active")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  models      Model[]
+  generations Generation[]
+  trims       Trim[]
+
+  @@map("brands")
+}
+
+model Model {
+  model_id   String   @id
+  brand_id   String
+  name       String
+  slug       String
+  body_type  String?
+  status     String   @default("active")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  brand Brand @relation(fields: [brand_id], references: [brand_id])
+
+  @@unique([brand_id, slug])
+  @@map("models")
+}
+
+model Generation {
+  generation_id        String   @id
+  brand_id             String
+  model_name           String
+  name                 String
+  display_name         String
+  production_year_from Int
+  production_year_to   Int?
+  status               String   @default("active")
+  source               String?
+  verification_status  String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  brand Brand  @relation(fields: [brand_id], references: [brand_id])
+  trims Trim[]
+
+  @@index([brand_id, model_name])
+  @@map("generations")
+}
+
+model Trim {
+  trim_id       String   @id
+  brand_id      String
+  model_name    String
+  generation_id String?
+  display_name  String
+  year          Int
+  energy_type   String
+  body_type     String?
+  power_hp      Int?
+  range_km      Int?
+  image_url     String?
+  status        String   @default("active")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  brand        Brand          @relation(fields: [brand_id], references: [brand_id])
+  generation   Generation?    @relation(fields: [generation_id], references: [generation_id])
+  spec         TrimSpec?
+  prices       CatalogPrice[]
+  dealerOffers DealerOffer[]
+
+  @@index([brand_id, model_name])
+  @@index([generation_id])
+  @@map("trims")
+}
+
+// One-to-one with Trim. All fields optional — advanced specs are progressive.
+model TrimSpec {
+  trim_id                  String    @id
+  engine                   String?
+  engine_displacement_l    Float?
+  torque_nm                Int?
+  transmission             String?
+  drivetrain               String?
+  seats                    Int?
+  battery_kwh              Float?
+  fuel_consumption_l_100km Float?
+  charging_ac_kw           Float?
+  charging_dc_kw           Float?
+  acceleration_0_100       Float?
+  dimensions               String?
+  ground_clearance         Int?
+  warranty                 String?
+  source                   String?
+  verification_status      String?
+  last_updated             DateTime?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  trim Trim @relation(fields: [trim_id], references: [trim_id], onDelete: Cascade)
+
+  @@map("trim_specs")
+}
+
+// Catalog price has NO dealer_id (9A split). DealerOffer is the separate table.
+model CatalogPrice {
+  price_id            String   @id
+  trim_id             String
+  amount              Decimal  @db.Decimal(14, 2)
+  currency            String
+  status              String
+  source_type         String
+  source_name         String
+  verification_status String
+  last_updated        DateTime
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  trim Trim @relation(fields: [trim_id], references: [trim_id])
+
+  @@index([trim_id])
+  @@map("catalog_prices")
+}
+
+// ============================================================================
+// Dealer
+// ============================================================================
+
+model Dealer {
+  dealer_id           String   @id
+  legal_name          String
+  display_name        String
+  slug                String   @unique
+  verification_status String   @default("pending")
+  represented_brands  String[] @default([])
+  city                String?
+  address             String?
+  response_sla_hours  Int?
+  services            String[] @default([])
+  status              String   @default("active")
+  source_name         String?
+  logo_media_id       String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  offers DealerOffer[]
+  logo   MediaAsset?   @relation("DealerLogo", fields: [logo_media_id], references: [id])
+
+  @@map("dealers")
+}
+
+// trim_id is REQUIRED (R6 invariant from SECURITY_AND_ACCESS_RULES.md).
+// offer_status drives publication; only "published" leaks to public reads.
+model DealerOffer {
+  offer_id       String    @id
+  dealer_id      String
+  trim_id        String
+  amount         Decimal   @db.Decimal(14, 2)
+  currency       String
+  stock_status   String?
+  offer_status   String    @default("draft")
+  valid_from     DateTime?
+  valid_until    DateTime?
+  published_at   DateTime?
+  submitted_by   String?
+  reviewed_by    String?
+  review_note    String?
+  notes          String?
+  signed_pdf_url String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  dealer Dealer @relation(fields: [dealer_id], references: [dealer_id])
+  trim   Trim   @relation(fields: [trim_id], references: [trim_id])
+
+  @@index([dealer_id])
+  @@index([trim_id])
+  @@index([offer_status, published_at])
+  @@map("dealer_offers")
+}
+
+// ============================================================================
+// Media
+// ============================================================================
+
+model MediaAsset {
+  id                 String   @id
+  owner_type         String
+  owner_id           String?
+  file_name          String
+  original_file_name String
+  mime_type          String
+  size_bytes         Int
+  width              Int?
+  height             Int?
+  storage_provider   String   @default("local")
+  storage_key        String   @unique
+  public_url         String
+  alt_text           String?
+  caption            String?
+  status             String   @default("uploaded")
+  created_by_type    String?
+  created_by_id      String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  usages        MediaUsage[]
+  dealersAsLogo Dealer[]     @relation("DealerLogo")
+
+  @@index([owner_type, owner_id])
+  @@index([status])
+  @@map("media_assets")
+}
+
+model MediaUsage {
+  id         String   @id
+  media_id   String
+  owner_type String
+  owner_id   String
+  usage_kind String
+  created_at DateTime @default(now())
+
+  media MediaAsset @relation(fields: [media_id], references: [id], onDelete: Cascade)
+
+  @@unique([media_id, owner_type, owner_id, usage_kind])
+  @@index([owner_type, owner_id])
+  @@map("media_usages")
+}
+
+// ============================================================================
+// Audit (the only domain CUT OVER to DB this sprint)
+// ============================================================================
+
+model AuditLog {
+  audit_id    String   @id
+  actor_type  String
+  actor_id    String
+  role        String
+  action      String
+  entity_type String
+  entity_id   String
+  before      Json?
+  after       Json?
+  note        String?
+  created_at  DateTime @default(now())
+
+  @@index([entity_type, entity_id, created_at])
+  @@index([actor_type, actor_id, created_at])
+  @@index([action, created_at])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// Auth — Sprint 9E foundation (real password / SSO flow wired in Sprint 9F)
+// ============================================================================
+// Tables only this sprint. No migration is run by 9E — Sprint 9F will run
+// `prisma migrate dev`, seed initial AdminUser rows with bcrypt hashes, and
+// switch the login routes off the mock seed list. Field names match
+// docs/sprint-9e/AUTH_SECURITY_ARCHITECTURE.md.
+
+model AdminUser {
+  admin_id           String    @id
+  email              String    @unique
+  display_name       String
+  password_hash      String?
+  status             String    @default("active") // active | disabled
+  last_login_at      DateTime?
+  failed_login_count Int       @default(0)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  roles AdminUserRole[]
+
+  @@map("admin_users")
+}
+
+model AdminUserRole {
+  admin_id String
+  role     String // matches ADMIN_ROLES enum in lib/auth/constants.ts
+
+  admin AdminUser @relation(fields: [admin_id], references: [admin_id], onDelete: Cascade)
+
+  @@id([admin_id, role])
+  @@map("admin_user_roles")
+}
+
+model AdminSession {
+  session_id String    @id
+  admin_id   String
+  issued_at  DateTime  @default(now())
+  expires_at DateTime
+  revoked_at DateTime?
+  user_agent String?
+  ip_hash    String?
+
+  @@index([admin_id, expires_at])
+  @@map("admin_sessions")
+}
+
+model DealerSession {
+  session_id     String    @id
+  dealer_user_id String
+  dealer_id      String
+  role           String
+  issued_at      DateTime  @default(now())
+  expires_at     DateTime
+  revoked_at     DateTime?
+  user_agent     String?
+  ip_hash        String?
+
+  @@index([dealer_user_id, expires_at])
+  @@index([dealer_id])
+  @@map("dealer_sessions")
+}
+
+model DealerUser {
+  dealer_user_id     String    @id
+  dealer_id          String
+  email              String?
+  phone_hash         String?
+  password_hash      String?
+  /// owner | manager | staff — enforced by isDealerRole() in lib/auth/constants.ts
+  role               String    @default("owner")
+  status             String    @default("active")
+  last_login_at      DateTime?
+  failed_login_count Int       @default(0)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@unique([dealer_id, email])
+  @@index([dealer_id])
+  @@map("dealer_users")
+}
+
+model OtpAttempt {
+  attempt_id    String    @id
+  phone_hash    String
+  purpose       String
+  code_hash     String
+  attempt_count Int       @default(0)
+  max_attempts  Int       @default(3)
+  expires_at    DateTime
+  verified_at   DateTime?
+  consumed_at   DateTime?
+  locked_at     DateTime?
+  created_at    DateTime  @default(now())
+
+  @@index([phone_hash, created_at])
+  @@index([phone_hash, purpose, created_at])
+  @@map("otp_attempts")
+}

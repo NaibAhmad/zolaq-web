@@ -1,30 +1,49 @@
+// Public-facing content lookup. Sprint 8D: now delegates to the admin store
+// (which is bootstrapped from the same seed at startup) so admin-created
+// entries are visible on the public site and draft/unpublished entries are
+// filtered out. The function shapes remain unchanged.
+
 import {
-  ENCYCLOPEDIA_ENTRIES,
-  NEWS_ARTICLES,
-  QA_ENTRIES,
-} from "./seed";
+  getEncyclopediaBySlug as adminGetEncyclopediaBySlug,
+  getNewsBySlug as adminGetNewsBySlug,
+  listPublishedEncyclopedia,
+  listPublishedNews,
+  listPublishedQA,
+} from "./admin-store";
+import { QA_ENTRIES } from "./seed";
 import type { EncyclopediaEntry, NewsArticle, QAEntry } from "./types";
 
 export function listNews(): readonly NewsArticle[] {
-  return NEWS_ARTICLES;
+  return listPublishedNews();
 }
 
 export function getNewsBySlug(slug: string): NewsArticle | null {
-  return NEWS_ARTICLES.find((n) => n.slug === slug) ?? null;
+  const found = adminGetNewsBySlug(slug);
+  if (!found) return null;
+  return found.status === "published" ? found : null;
 }
 
 export function listEncyclopedia(): readonly EncyclopediaEntry[] {
-  return ENCYCLOPEDIA_ENTRIES;
+  return listPublishedEncyclopedia();
 }
 
 export function getEncyclopediaBySlug(slug: string): EncyclopediaEntry | null {
-  return ENCYCLOPEDIA_ENTRIES.find((e) => e.slug === slug) ?? null;
+  const found = adminGetEncyclopediaBySlug(slug);
+  if (!found) return null;
+  return found.status === "published" ? found : null;
 }
 
 export function listQA(): readonly QAEntry[] {
-  return QA_ENTRIES;
+  return listPublishedQA();
 }
 
+// Q&A entries are keyed publicly by `id` (e.g., "qa-001"), not by content_id.
+// Admin store keys by content_id; we resolve via the seed for ID → content_id.
 export function getQAById(id: string): QAEntry | null {
-  return QA_ENTRIES.find((q) => q.id === id) ?? null;
+  const seed = QA_ENTRIES.find((q) => q.id === id);
+  if (!seed) return null;
+  const published = listPublishedQA().find(
+    (q) => q.content_id === seed.content_id,
+  );
+  return published ?? null;
 }

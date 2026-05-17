@@ -1,7 +1,6 @@
-// Mock seed for Sprint 3 Batch 3.1. In-memory only — replace with backend
-// API read when the lead service lands. Mirrors lib/cars/seed.ts in shape.
-// No raw phone is stored; phone_hash is a placeholder mirroring the format
-// produced by the OTP mock for the demo user (see lib/auth/otp-store.ts).
+// Mock seed for Sprint 3 Batch 3.1, extended in Sprint 7D so all key lead
+// states are visually reachable for QA. In-memory only — replace with
+// backend API read when the lead service lands. No raw phone is stored.
 
 import type { Lead, LeadTimelineEvent } from "./types";
 
@@ -12,6 +11,7 @@ export const SEED_DEMO_PHONE_HASH = "demo0000000000000000000000000000";
 export const SEED_DEMO_USER_ID = "user_demo000000000000";
 
 const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
 const NOW_BASE = 1_715_000_000_000; // fixed epoch base so seed is deterministic.
 
 export const SEED_LEADS: readonly Lead[] = [
@@ -22,8 +22,10 @@ export const SEED_LEADS: readonly Lead[] = [
     phone_hash: SEED_DEMO_PHONE_HASH,
     state: "submitted",
     source_surface: "car_detail",
-    created_at: NOW_BASE - 1 * DAY,
-    updated_at: NOW_BASE - 1 * DAY,
+    created_at: NOW_BASE - 1 * HOUR,
+    updated_at: NOW_BASE - 1 * HOUR,
+    name: "Demo",
+    preferred_contact: "phone",
   },
   {
     lead_id: "lead_seed_002",
@@ -34,6 +36,8 @@ export const SEED_LEADS: readonly Lead[] = [
     source_surface: "compare",
     created_at: NOW_BASE - 3 * DAY,
     updated_at: NOW_BASE - 1 * DAY,
+    name: "Demo",
+    preferred_contact: "phone",
   },
   {
     lead_id: "lead_seed_003",
@@ -46,6 +50,43 @@ export const SEED_LEADS: readonly Lead[] = [
     updated_at: NOW_BASE - 5 * DAY,
     closed_at: NOW_BASE - 5 * DAY,
   },
+  // Sprint 7D additions — exercise the remaining state-visual paths.
+  {
+    lead_id: "lead_seed_004",
+    trim_id: "trim_byd_seal_ev_long_range_2025",
+    user_id: SEED_DEMO_USER_ID,
+    phone_hash: SEED_DEMO_PHONE_HASH,
+    state: "test_drive_requested",
+    source_surface: "car_detail",
+    created_at: NOW_BASE - 5 * DAY,
+    updated_at: NOW_BASE - 6 * HOUR,
+    name: "Demo",
+    preferred_contact: "phone",
+  },
+  {
+    lead_id: "lead_seed_005",
+    trim_id: "trim_hongqi_ehs9_ev_6year_2025",
+    user_id: SEED_DEMO_USER_ID,
+    phone_hash: SEED_DEMO_PHONE_HASH,
+    state: "expired",
+    source_surface: "catalog",
+    created_at: NOW_BASE - 14 * DAY,
+    updated_at: NOW_BASE - 2 * DAY,
+    name: "Demo",
+    preferred_contact: "phone",
+  },
+  {
+    lead_id: "lead_seed_006",
+    trim_id: "trim_toyota_camry_25_hybrid_prestige_2025",
+    user_id: SEED_DEMO_USER_ID,
+    phone_hash: SEED_DEMO_PHONE_HASH,
+    state: "whatsapp_handoff",
+    source_surface: "car_detail",
+    created_at: NOW_BASE - 2 * DAY,
+    updated_at: NOW_BASE - 12 * HOUR,
+    name: "Demo",
+    preferred_contact: "whatsapp",
+  },
 ];
 
 export const SEED_TIMELINE: readonly LeadTimelineEvent[] = [
@@ -55,7 +96,7 @@ export const SEED_TIMELINE: readonly LeadTimelineEvent[] = [
     type: "lead_submitted",
     to_state: "submitted",
     actor: "user",
-    created_at: NOW_BASE - 1 * DAY,
+    created_at: NOW_BASE - 1 * HOUR,
   },
   {
     event_id: "evt_seed_002_a",
@@ -99,5 +140,93 @@ export const SEED_TIMELINE: readonly LeadTimelineEvent[] = [
     to_state: "closed",
     actor: "user",
     created_at: NOW_BASE - 5 * DAY,
+  },
+  // Sprint 7D additions.
+  {
+    event_id: "evt_seed_004_a",
+    lead_id: "lead_seed_004",
+    type: "lead_submitted",
+    to_state: "submitted",
+    actor: "user",
+    created_at: NOW_BASE - 5 * DAY,
+  },
+  {
+    event_id: "evt_seed_004_b",
+    lead_id: "lead_seed_004",
+    type: "lead_dealer_opened",
+    from_state: "submitted",
+    to_state: "dealer_opened",
+    actor: "internal_operator",
+    created_at: NOW_BASE - 4 * DAY,
+  },
+  {
+    event_id: "evt_seed_004_c",
+    lead_id: "lead_seed_004",
+    type: "lead_official_offer_received",
+    from_state: "dealer_opened",
+    to_state: "official_offer",
+    actor: "internal_operator",
+    created_at: NOW_BASE - 3 * DAY,
+  },
+  {
+    event_id: "evt_seed_004_d",
+    lead_id: "lead_seed_004",
+    type: "test_drive_requested",
+    from_state: "official_offer",
+    to_state: "test_drive_requested",
+    actor: "user",
+    created_at: NOW_BASE - 6 * HOUR,
+  },
+  {
+    event_id: "evt_seed_005_a",
+    lead_id: "lead_seed_005",
+    type: "lead_submitted",
+    to_state: "submitted",
+    actor: "user",
+    created_at: NOW_BASE - 14 * DAY,
+  },
+  {
+    event_id: "evt_seed_005_b",
+    lead_id: "lead_seed_005",
+    type: "lead_dealer_opened",
+    from_state: "submitted",
+    to_state: "dealer_opened",
+    actor: "internal_operator",
+    created_at: NOW_BASE - 13 * DAY,
+  },
+  {
+    event_id: "evt_seed_005_c",
+    lead_id: "lead_seed_005",
+    type: "lead_official_offer_received",
+    from_state: "dealer_opened",
+    to_state: "official_offer",
+    actor: "internal_operator",
+    created_at: NOW_BASE - 12 * DAY,
+  },
+  {
+    event_id: "evt_seed_005_d",
+    lead_id: "lead_seed_005",
+    type: "offer_expired",
+    from_state: "official_offer",
+    to_state: "expired",
+    actor: "system",
+    created_at: NOW_BASE - 2 * DAY,
+  },
+  {
+    event_id: "evt_seed_006_a",
+    lead_id: "lead_seed_006",
+    type: "lead_submitted",
+    to_state: "submitted",
+    actor: "user",
+    created_at: NOW_BASE - 2 * DAY,
+  },
+  {
+    event_id: "evt_seed_006_b",
+    lead_id: "lead_seed_006",
+    type: "whatsapp_handoff_created",
+    from_state: "submitted",
+    to_state: "whatsapp_handoff",
+    actor: "user",
+    created_at: NOW_BASE - 12 * HOUR,
   },
 ];

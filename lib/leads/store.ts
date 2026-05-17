@@ -6,6 +6,7 @@
 // the `phone_hash` already derived in the session layer.
 
 import { randomUUID } from "node:crypto";
+import { onOfficialOfferReceived } from "@/lib/gamification/hooks";
 import {
   LEAD_ALLOWED_TRANSITIONS,
   LEAD_AUDIT_EVENT,
@@ -98,6 +99,19 @@ export function listLeadsForUser(user_id: string): Lead[] {
   return out;
 }
 
+// Sprint 8B admin/dealer panels. Admins see all, dealers will filter by
+// trim_ids they own via getOffersByDealerId — see lib/dealer/leads.ts.
+export function listAllLeads(): Lead[] {
+  return Array.from(stores.leadsById.values())
+    .map((l) => ({ ...l }))
+    .sort((a, b) => b.created_at - a.created_at);
+}
+
+export function listLeadsForTrims(trim_ids: readonly string[]): Lead[] {
+  const set = new Set(trim_ids);
+  return listAllLeads().filter((l) => set.has(l.trim_id));
+}
+
 export function getLeadById(lead_id: string): Lead | null {
   const lead = stores.leadsById.get(lead_id);
   return lead ? { ...lead } : null;
@@ -161,6 +175,13 @@ export function transitionLead(args: {
     created_at: t,
     metadata: args.metadata,
   });
+
+  // Sprint 8F P0-lite: award the customer the official_offer_received badge
+  // when their lead enters the official_offer state. Pure side-effect; does
+  // not touch lead state, timeline, or actor semantics.
+  if (args.to_state === "official_offer") {
+    onOfficialOfferReceived(lead.user_id);
+  }
 
   return { ok: true, lead: { ...lead }, event };
 }
