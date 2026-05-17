@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "home": "Home",
+    "cars": "Cars",
+    "compare": "Compare",
+    "dealers": "Dealers",
+    "news": "News",
+    "encyclopedia": "Encyclopedia",
+    "qa": "Q&A",
+    "profile": "Profile",
+    "login": "Sign in"
+  },
+  "buttons": {
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "retry": "Retry",
+    "loadMore": "Load more",
+    "viewAll": "View all",
+    "viewDetails": "View details"
+  },
+  "filters": {
+    "brand": "Brand",
+    "model": "Model",
+    "generation": "Generation",
+    "trim": "Trim",
+    "yearFrom": "Year (from)",
+    "yearTo": "Year (to)",
+    "priceMin": "Min price",
+    "priceMax": "Max price",
+    "energyType": "Fuel type",
+    "bodyType": "Body type",
+    "availability": "Availability",
+    "dealerVerified": "Verified dealer",
+    "sort": "Sort"
+  },
+  "status": {
+    "loading": "Loading…",
+    "empty": "No results found",
+    "error": "Something went wrong",
+    "success": "Success",
+    "comingSoon": "Coming soon"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "phoneRequired": "Phone number required",
+    "codeSent": "Code sent",
+    "codeInvalid": "Invalid code",
+    "codeExpired": "Code expired",
+    "tooManyAttempts": "Too many attempts. Please wait.",
+    "sessionExpired": "Session expired"
+  },
+  "vinCheck": {
+    "title": "VIN check",
+    "comingSoon": "VIN check coming soon",
+    "verifiedRequired": "Verified account required",
+    "quotaExceeded": "Monthly quota reached"
+  },
+  "gamification": {
+    "pointsEarned": "Points earned",
+    "badgeUnlocked": "Badge unlocked",
+    "levelUp": "Level up"
+  },
+  "price": {
+    "official": "Official price",
+    "market": "Market price",
+    "sponsored": "Sponsored",
+    "contactForPrice": "Contact for price"
+  },
+  "home": {
+    "quickSearchEyebrow": "Quick search",
+    "quickSearchTitle": "Pick a car and compare"
+  }
+}

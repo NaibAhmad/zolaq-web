@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "home": "Главная",
+    "cars": "Автомобили",
+    "compare": "Сравнение",
+    "dealers": "Дилеры",
+    "news": "Новости",
+    "encyclopedia": "Энциклопедия",
+    "qa": "Вопросы и ответы",
+    "profile": "Профиль",
+    "login": "Войти"
+  },
+  "buttons": {
+    "search": "Поиск",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "submit": "Отправить",
+    "retry": "Повторить",
+    "loadMore": "Показать ещё",
+    "viewAll": "Смотреть всё",
+    "viewDetails": "Подробнее"
+  },
+  "filters": {
+    "brand": "Марка",
+    "model": "Модель",
+    "generation": "Поколение",
+    "trim": "Комплектация",
+    "yearFrom": "Год (от)",
+    "yearTo": "Год (до)",
+    "priceMin": "Минимальная цена",
+    "priceMax": "Максимальная цена",
+    "energyType": "Тип топлива",
+    "bodyType": "Тип кузова",
+    "availability": "Доступность",
+    "dealerVerified": "Проверенный дилер",
+    "sort": "Сортировка"
+  },
+  "status": {
+    "loading": "Загрузка…",
+    "empty": "Ничего не найдено",
+    "error": "Произошла ошибка",
+    "success": "Успешно",
+    "comingSoon": "Скоро"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signOut": "Выйти",
+    "phoneRequired": "Требуется номер телефона",
+    "codeSent": "Код отправлен",
+    "codeInvalid": "Неверный код",
+    "codeExpired": "Срок действия кода истёк",
+    "tooManyAttempts": "Слишком много попыток. Подождите.",
+    "sessionExpired": "Сессия истекла"
+  },
+  "vinCheck": {
+    "title": "Проверка VIN",
+    "comingSoon": "Проверка VIN скоро будет доступна",
+    "verifiedRequired": "Требуется подтверждённый аккаунт",
+    "quotaExceeded": "Месячный лимит исчерпан"
+  },
+  "gamification": {
+    "pointsEarned": "Очки получены",
+    "badgeUnlocked": "Новый значок",
+    "levelUp": "Новый уровень"
+  },
+  "price": {
+    "official": "Официальная цена",
+    "market": "Рыночная цена",
+    "sponsored": "Спонсировано",
+    "contactForPrice": "Цена по запросу"
+  },
+  "home": {
+    "quickSearchEyebrow": "Быстрый поиск",
+    "quickSearchTitle": "Выбери авто и сравни"
+  }
+}

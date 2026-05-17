@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "home": "Ana səhifə",
+    "cars": "Avtomobillər",
+    "compare": "Müqayisə",
+    "dealers": "Dilerlər",
+    "news": "Xəbərlər",
+    "encyclopedia": "Ensiklopediya",
+    "qa": "Sual-cavab",
+    "profile": "Profil",
+    "login": "Daxil ol"
+  },
+  "buttons": {
+    "search": "Axtar",
+    "save": "Yadda saxla",
+    "cancel": "Ləğv et",
+    "submit": "Göndər",
+    "retry": "Yenidən cəhd et",
+    "loadMore": "Daha çox göstər",
+    "viewAll": "Hamısına bax",
+    "viewDetails": "Ətraflı"
+  },
+  "filters": {
+    "brand": "Marka",
+    "model": "Model",
+    "generation": "Nəsil",
+    "trim": "Komplektasiya",
+    "yearFrom": "İl (başlanğıc)",
+    "yearTo": "İl (son)",
+    "priceMin": "Minimum qiymət",
+    "priceMax": "Maksimum qiymət",
+    "energyType": "Yanacaq növü",
+    "bodyType": "Kuza tipi",
+    "availability": "Mövcudluq",
+    "dealerVerified": "Təsdiqlənmiş diler",
+    "sort": "Sıralama"
+  },
+  "status": {
+    "loading": "Yüklənir…",
+    "empty": "Nəticə tapılmadı",
+    "error": "Xəta baş verdi",
+    "success": "Uğurla tamamlandı",
+    "comingSoon": "Tezliklə"
+  },
+  "auth": {
+    "signIn": "Daxil ol",
+    "signOut": "Çıxış",
+    "phoneRequired": "Telefon nömrəsi tələb olunur",
+    "codeSent": "Kod göndərildi",
+    "codeInvalid": "Kod yanlışdır",
+    "codeExpired": "Kodun vaxtı bitib",
+    "tooManyAttempts": "Çox sayda cəhd. Bir az gözləyin.",
+    "sessionExpired": "Sessiyanın vaxtı bitib"
+  },
+  "vinCheck": {
+    "title": "VIN yoxlanışı",
+    "comingSoon": "VIN yoxlanışı tezliklə əlçatan olacaq",
+    "verifiedRequired": "Bu xidmət üçün təsdiqlənmiş hesab tələb olunur",
+    "quotaExceeded": "Aylıq limit tükənib"
+  },
+  "gamification": {
+    "pointsEarned": "Xal qazandınız",
+    "badgeUnlocked": "Yeni nişan açıldı",
+    "levelUp": "Yeni səviyyə"
+  },
+  "price": {
+    "official": "Rəsmi qiymət",
+    "market": "Bazar qiyməti",
+    "sponsored": "Sponsorlu",
+    "contactForPrice": "Qiymət üçün əlaqə"
+  },
+  "home": {
+    "quickSearchEyebrow": "Sürətli axtarış",
+    "quickSearchTitle": "Maşın seç və müqayisə et"
+  }
+}
