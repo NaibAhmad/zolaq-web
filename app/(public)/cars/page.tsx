@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SponsoredSlot } from "@/components/ads/SponsoredSlot";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { CarCard } from "@/components/catalog/CarCard";
 import { CompareSelectionBar } from "@/components/compare/CompareSelectionBar";
@@ -131,6 +132,8 @@ function CatalogInner() {
         <Container>
           <div className="flex flex-col gap-6">
             <CatalogFilters count={resultCount ?? undefined} />
+
+            <SponsoredSlot area="catalog" variant="strip" />
 
             <CompareSelectionBar />
 

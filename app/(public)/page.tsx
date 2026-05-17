@@ -1,3 +1,4 @@
+import { SponsoredSlot } from "@/components/ads/SponsoredSlot";
 import { HomeCatalogTeaser } from "@/components/home/HomeCatalogTeaser";
 import { HomeContentTeaser } from "@/components/home/HomeContentTeaser";
 import { HomeDealerTeaser } from "@/components/home/HomeDealerTeaser";
@@ -45,6 +46,12 @@ export default function HomePage() {
       <Section tone="light" padding="md">
         <Container>
           <HomeCatalogTeaser />
+        </Container>
+      </Section>
+
+      <Section tone="muted" padding="sm">
+        <Container>
+          <SponsoredSlot area="homepage" variant="strip" />
         </Container>
       </Section>
 

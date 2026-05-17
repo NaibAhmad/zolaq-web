@@ -17,10 +17,17 @@ import {
 } from "@/lib/leads/types";
 import { trackEvent } from "@/lib/tracking/track";
 
+type LeadIntent = "price_request" | "test_drive";
+
 type Props = {
   trimId: string;
   sourceSurface: LeadSourceSurface;
+  intent?: LeadIntent;
 };
+
+const TEST_DRIVE_NOTE_PREFIX = "[Test sürüşü tələbi]";
+const TEST_DRIVE_BETA_NOTE =
+  "Test sürüşü sorğusu beta mərhələsindədir. Sorğu göndərmək üçün əlaqə məlumatı tələb olunur.";
 
 type FormFields = {
   name: string;
@@ -63,8 +70,13 @@ async function submitLead(payload: {
   }
 }
 
-export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
+export function LeadFormLauncher({
+  trimId,
+  sourceSurface,
+  intent = "price_request",
+}: Props) {
   const router = useRouter();
+  const isTestDrive = intent === "test_drive";
 
   const [open, setOpen] = useState(false);
   const [fields, setFields] = useState<FormFields>({
@@ -121,14 +133,22 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
   }
 
   const buildLeadPayload = useCallback(
-    () => ({
-      trim_id: trimId,
-      source_surface: sourceSurface,
-      name: fields.name.trim(),
-      preferred_contact: fields.preferred_contact,
-      note: fields.note.trim() || undefined,
-    }),
-    [trimId, sourceSurface, fields],
+    () => {
+      const baseNote = fields.note.trim();
+      const note = isTestDrive
+        ? baseNote
+          ? `${TEST_DRIVE_NOTE_PREFIX} ${baseNote}`
+          : TEST_DRIVE_NOTE_PREFIX
+        : baseNote || undefined;
+      return {
+        trim_id: trimId,
+        source_surface: sourceSurface,
+        name: fields.name.trim(),
+        preferred_contact: fields.preferred_contact,
+        note,
+      };
+    },
+    [trimId, sourceSurface, fields, isTestDrive],
   );
 
   const finalizeLead = useCallback(async () => {
@@ -214,15 +234,24 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
   const dismissible = !isBusy;
 
   const showOtp = flow.kind === "otp";
-  const eyebrow = showOtp ? "Telefon təsdiqi" : "Rəsmi qiymət istə";
+  const eyebrow = showOtp
+    ? "Telefon təsdiqi"
+    : isTestDrive
+      ? "Test sürüşü (beta)"
+      : "Rəsmi qiymət istə";
   const title = showOtp
     ? "6 rəqəmli kod"
-    : "Rəsmi diler 1–2 saatda cavab verir";
+    : isTestDrive
+      ? "Test sürüşü istə"
+      : "Rəsmi diler 1–2 saatda cavab verir";
+
+  const triggerVariant = isTestDrive ? "secondary" : "primary";
+  const triggerLabel = isTestDrive ? "Test sürüşü istə" : "Rəsmi qiymət istə";
 
   return (
     <>
       <Button
-        variant="primary"
+        variant={triggerVariant}
         size="md"
         onClick={() => {
           resetAll();
@@ -233,7 +262,7 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
           });
         }}
       >
-        Rəsmi qiymət istə
+        {triggerLabel}
       </Button>
 
       <Modal
@@ -275,6 +304,11 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
           />
         ) : (
           <form className="space-y-4" onSubmit={handleFormSubmit}>
+            {isTestDrive ? (
+              <p className="rounded-[var(--radius)] border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-foreground">
+                {TEST_DRIVE_BETA_NOTE}
+              </p>
+            ) : null}
             <Input
               id="lead-name"
               ref={nameInputRef}

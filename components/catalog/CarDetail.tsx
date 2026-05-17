@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { SponsoredSlot } from "@/components/ads/SponsoredSlot";
 import { CarImage } from "@/components/catalog/CarImage";
 import { PriceCard } from "@/components/catalog/PriceCard";
 import { CompareToggleButton } from "@/components/compare/CompareToggleButton";
 import { LeadFormLauncher } from "@/components/leads/LeadFormLauncher";
+import { SaveToggleButton } from "@/components/saved/SaveToggleButton";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
 import { NotFoundState } from "@/components/state/NotFoundState";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
@@ -22,6 +24,7 @@ import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
 import { formatPrice } from "@/lib/cars/format";
 import { getGenerationById } from "@/lib/cars/generations";
+import { formatDateAz } from "@/lib/format/date";
 import { ROUTES } from "@/lib/routes";
 import {
   isLeadSourceSurface,
@@ -112,18 +115,6 @@ const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
   conflict: "danger",
   outdated: "muted",
 };
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return DATE_FORMATTER.format(d);
-}
 
 function hasDealerValidity(status: PriceStatus): boolean {
   return (
@@ -346,27 +337,25 @@ function CarDetailInner({ carId }: Props) {
       <Section tone="light" padding="md">
         <Container>
           <div className="flex flex-col gap-8">
-            <Card padding="md" tone="raised" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Card padding="md" tone="raised" className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
                   Tez əməliyyatlar
                 </span>
                 <p className="text-sm text-foreground-muted">
-                  Bu maşını saxla və ya digər maşınlarla müqayisə et.
+                  Bu maşını saxla, müqayisə et və ya test sürüşü istə.
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-                <div className="flex flex-col items-start gap-0.5">
-                  <Button variant="secondary" size="md" disabled>
-                    Saxla
-                  </Button>
-                  <span className="text-[10px] uppercase tracking-wide text-foreground-muted">
-                    Tezliklə
-                  </span>
-                </div>
+              <div className="flex flex-wrap items-stretch gap-2 sm:flex-nowrap">
+                <SaveToggleButton trimId={trim.trim_id} />
                 <div className="min-w-[12rem]">
                   <CompareToggleButton trimId={trim.trim_id} />
                 </div>
+                <LeadFormLauncher
+                  trimId={trim.trim_id}
+                  sourceSurface={sourceSurface}
+                  intent="test_drive"
+                />
               </div>
             </Card>
 
@@ -432,6 +421,8 @@ function CarDetailInner({ carId }: Props) {
                 note="Bu trim üçün hələ ki, qiymət qeydi mövcud deyil."
               />
             )}
+
+            <SponsoredSlot area="car_detail" />
 
             {otherPrices.length > 0 ? (
               <div className="flex flex-col gap-4">
@@ -536,6 +527,11 @@ function BestPriceHero({
 
         <div className="flex w-full flex-col gap-3 sm:max-w-sm">
           <LeadFormLauncher trimId={trimId} sourceSurface={sourceSurface} />
+          <LeadFormLauncher
+            trimId={trimId}
+            sourceSurface={sourceSurface}
+            intent="test_drive"
+          />
           {hasPdf ? (
             <ButtonLink
               href={price.signed_pdf_url ?? "#"}
@@ -566,7 +562,7 @@ function BestPriceHero({
             Yenilənib
           </dt>
           <dd className="text-sm font-medium text-foreground">
-            {formatDate(price.last_updated)}
+            {formatDateAz(price.last_updated)}
           </dd>
         </div>
         {showValidUntil && price.valid_until ? (
@@ -575,7 +571,7 @@ function BestPriceHero({
               Etibarlıdır
             </dt>
             <dd className="text-sm font-medium text-foreground">
-              {formatDate(price.valid_until)}
+              {formatDateAz(price.valid_until)}
             </dd>
           </div>
         ) : null}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/cars/format";
+import { formatDateAz } from "@/lib/format/date";
 import { ROUTES } from "@/lib/routes";
 import { trackEvent } from "@/lib/tracking/track";
 import type {
@@ -64,18 +65,6 @@ const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
   conflict: "danger",
   outdated: "muted",
 };
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return DATE_FORMATTER.format(d);
-}
 
 function hasDealerValidity(status: PriceStatus): boolean {
   return (
@@ -162,7 +151,7 @@ export function PriceCard({ price }: Props) {
             Yenilənib
           </dt>
           <dd className="font-medium text-foreground">
-            {formatDate(price.last_updated)}
+            {formatDateAz(price.last_updated)}
           </dd>
         </div>
         {showValidUntil && price.valid_until ? (
@@ -171,7 +160,7 @@ export function PriceCard({ price }: Props) {
               Etibarlıdır
             </dt>
             <dd className="font-medium text-foreground">
-              {formatDate(price.valid_until)}
+              {formatDateAz(price.valid_until)}
             </dd>
           </div>
         ) : null}
