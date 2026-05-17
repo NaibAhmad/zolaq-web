@@ -4,6 +4,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   type OtpPurpose,
 } from "./constants";
+import { signPayload, tryDecodeLegacyCookie, verifySigned } from "./cookie-sign";
 
 export type Session = {
   userId: string;
@@ -13,15 +14,14 @@ export type Session = {
   purpose: OtpPurpose;
 };
 
-// TODO Sprint pre-staging: sign this payload (JWT / signed cookie). Sprint 1
-// uses base64 JSON because the mock has no real auth secret.
+// Sprint 9E: cookie is now HMAC-signed (see lib/auth/cookie-sign.ts) so a
+// tampered value (e.g. swapped userId) fails verification on decode.
 function encode(payload: Session): string {
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
+  return signPayload(JSON.stringify(payload));
 }
 
-export function decodeSessionCookie(value: string): Session | null {
+function parseJsonAsSession(json: string): Session | null {
   try {
-    const json = Buffer.from(value, "base64").toString("utf8");
     const parsed = JSON.parse(json) as Partial<Session>;
     if (
       !parsed ||
@@ -38,6 +38,16 @@ export function decodeSessionCookie(value: string): Session | null {
   } catch {
     return null;
   }
+}
+
+export function decodeSessionCookie(value: string): Session | null {
+  const signed = verifySigned(value);
+  if (signed !== null) return parseJsonAsSession(signed);
+  // DEV_AUTH_MODE-only fallback so existing dev sessions aren't immediately
+  // invalidated by the signing cutover. Production decode is signed-only.
+  const legacy = tryDecodeLegacyCookie(value);
+  if (legacy !== null) return parseJsonAsSession(legacy);
+  return null;
 }
 
 export async function getSession(): Promise<Session | null> {

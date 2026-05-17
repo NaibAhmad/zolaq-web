@@ -1,5 +1,9 @@
+import { getSmsProvider } from "@/lib/sms";
 import type { OtpPurpose } from "./constants";
-import { mockOtpProvider } from "./mock-otp-provider";
+
+// Sprint 9F: thin compatibility shim — existing callers import { otpProvider }
+// from here. Delegates to the SMS provider layer (mock | http | disabled).
+// `sendCode` throws on `disabled` so the OTP route can map to AUTH_NOT_AVAILABLE.
 
 export interface OtpProvider {
   sendCode(input: {
@@ -10,6 +14,21 @@ export interface OtpProvider {
   }): Promise<void>;
 }
 
-// Single import point for callers. Swap the implementation here when a real
-// SMS adapter lands (Sprint pre-staging) without touching API routes.
-export const otpProvider: OtpProvider = mockOtpProvider;
+export const otpProvider: OtpProvider = {
+  async sendCode(input) {
+    const sms = getSmsProvider();
+    const result = await sms.sendOtp(input);
+    if (!result.ok) {
+      throw new SmsSendError(result.reason);
+    }
+  },
+};
+
+export class SmsSendError extends Error {
+  readonly reason: string;
+  constructor(reason: string) {
+    super(`sms_send_failed:${reason}`);
+    this.name = "SmsSendError";
+    this.reason = reason;
+  }
+}

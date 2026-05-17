@@ -8,7 +8,10 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "EXPIRED"
   | "LOCKED"
-  | "UNAUTHENTICATED";
+  | "UNAUTHENTICATED"
+  | "FORBIDDEN"
+  | "CONFLICT"
+  | "AUTH_NOT_AVAILABLE";
 
 export function errorJson(
   status: number,

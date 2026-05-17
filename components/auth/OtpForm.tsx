@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Input } from "@/components/ui/Input";
+import { Section } from "@/components/ui/Section";
 import { OTP, isOtpPurpose, type OtpPurpose } from "@/lib/auth/constants";
 import { ROUTES } from "@/lib/routes";
 
@@ -71,7 +76,7 @@ export function OtpForm() {
 
   const nextUrl = useMemo(
     () => sanitizeNext(params.get("next"), ROUTES.profile),
-    [params]
+    [params],
   );
 
   const [state, setState] = useState<UiState>(INITIAL);
@@ -83,7 +88,7 @@ export function OtpForm() {
       setState((s) =>
         s.resendCountdown > 0
           ? { ...s, resendCountdown: s.resendCountdown - 1 }
-          : s
+          : s,
       );
     }, 1000);
     return () => clearInterval(t);
@@ -170,7 +175,11 @@ export function OtpForm() {
     const code = data.error?.code;
     if (code === "LOCKED" || code === "EXPIRED" || status === 404) {
       const reason: LockReason =
-        code === "EXPIRED" ? "expired" : code === "LOCKED" ? "max_attempts" : "session_lost";
+        code === "EXPIRED"
+          ? "expired"
+          : code === "LOCKED"
+            ? "max_attempts"
+            : "session_lost";
       setState((s) => ({
         ...s,
         status: "locked",
@@ -200,169 +209,183 @@ export function OtpForm() {
     state.status === "verifying" ||
     isLocked;
 
+  const purposeCopy =
+    purpose === "lead_submit"
+      ? "Sorğunu tamamlamaq üçün telefon nömrəni təsdiqlə."
+      : purpose === "whatsapp_handoff"
+        ? "WhatsApp keçidini davam etdirmək üçün təsdiq."
+        : "Profilə daxil olmaq üçün təsdiq.";
+
   return (
-    <section className="mx-auto max-w-md px-6 py-12">
-      <h1 className="text-2xl font-semibold text-foreground">OTP təsdiqi</h1>
-      <p className="mt-2 text-sm text-foreground-muted">
-        {purpose === "lead_submit"
-          ? "Sorğunu tamamlamaq üçün telefon nömrəni təsdiqlə."
-          : purpose === "whatsapp_handoff"
-            ? "WhatsApp keçidini davam etdirmək üçün təsdiq."
-            : "Profilə daxil olmaq üçün təsdiq."}
-      </p>
-
-      {isPhoneStage && (
-        <form
-          className="mt-8 space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (state.status !== "idle") return;
-            if (!state.phone.trim()) return;
-            void requestCode();
-          }}
-        >
-          <label className="block text-sm font-medium text-foreground" htmlFor="otp-phone">
-            Telefon nömrəsi
-          </label>
-          <input
-            id="otp-phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+994501234567"
-            value={state.phone}
-            disabled={state.status === "requesting"}
-            onChange={(e) =>
-              setState((s) => ({ ...s, phone: e.target.value, message: null }))
-            }
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground outline-none focus:border-brand"
-          />
-          <button
-            type="submit"
-            disabled={state.status === "requesting" || !state.phone.trim()}
-            className="w-full rounded-md bg-accent-orange px-4 py-2 font-medium text-accent-orange-fg disabled:opacity-50"
-          >
-            {state.status === "requesting" ? "Kod göndərilir…" : "Kod göndər"}
-          </button>
-          {state.message ? (
-            <p className="text-sm text-danger">{state.message}</p>
-          ) : null}
-        </form>
-      )}
-
-      {(state.status === "code_sent" ||
-        state.status === "verifying" ||
-        state.status === "error") && (
-        <form
-          className="mt-8 space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (state.code.length !== OTP.CODE_LENGTH) return;
-            void verifyCode();
-          }}
-        >
-          <p className="text-sm text-foreground-muted">
-            Kod göndərildi: <span className="font-medium text-foreground">{state.phone}</span>
+    <Section tone="light" padding="lg">
+      <Container className="max-w-md">
+        <Card padding="lg" tone="raised">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+            Zolaq OTP
           </p>
-          <label className="block text-sm font-medium text-foreground" htmlFor="otp-code">
-            6 rəqəmli kod
-          </label>
-          <input
-            id="otp-code"
-            ref={codeInputRef}
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={OTP.CODE_LENGTH}
-            pattern="\d{6}"
-            value={state.code}
-            disabled={state.status === "verifying"}
-            onChange={(e) =>
-              setState((s) => ({
-                ...s,
-                code: e.target.value.replace(/\D/g, "").slice(0, OTP.CODE_LENGTH),
-                message: s.status === "error" ? null : s.message,
-                status: s.status === "error" ? "code_sent" : s.status,
-              }))
-            }
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-lg tracking-widest text-foreground outline-none focus:border-brand"
-            aria-invalid={state.status === "error"}
-          />
-          <button
-            type="submit"
-            disabled={
-              state.status === "verifying" || state.code.length !== OTP.CODE_LENGTH
-            }
-            className="w-full rounded-md bg-accent-orange px-4 py-2 font-medium text-accent-orange-fg disabled:opacity-50"
-          >
-            {state.status === "verifying" ? "Yoxlanılır…" : "Təsdiqlə"}
-          </button>
-          <div className="flex items-center justify-between text-sm">
-            <button
-              type="button"
-              disabled={resendDisabled}
-              onClick={() => void requestCode()}
-              className="text-accent-blue underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-foreground-muted disabled:no-underline"
-            >
-              {state.resendCountdown > 0
-                ? `Yenidən göndər (${state.resendCountdown}s)`
-                : "Kodu yenidən göndər"}
-            </button>
-            <button
-              type="button"
-              onClick={reset}
-              className="text-foreground-muted hover:text-foreground"
-            >
-              Telefonu dəyiş
-            </button>
-          </div>
-          {state.message ? (
-            <p
-              role="alert"
-              className={
-                state.status === "error"
-                  ? "text-sm text-danger"
-                  : "text-sm text-foreground-muted"
-              }
-            >
-              {state.message}
-            </p>
-          ) : null}
-        </form>
-      )}
+          <h1 className="mt-2 text-2xl font-semibold text-foreground">
+            Telefon təsdiqi
+          </h1>
+          <p className="mt-2 text-sm text-foreground-muted">{purposeCopy}</p>
 
-      {state.status === "verified" && (
-        <div className="mt-8 rounded-md border border-success/40 bg-success/10 px-4 py-3 text-success">
-          Təsdiqləndi — yönləndirilirsiniz…
-        </div>
-      )}
+          {isPhoneStage && (
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (state.status !== "idle") return;
+                if (!state.phone.trim()) return;
+                void requestCode();
+              }}
+            >
+              <Input
+                id="otp-phone"
+                label="Telefon nömrəsi"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+994501234567"
+                value={state.phone}
+                disabled={state.status === "requesting"}
+                onChange={(e) =>
+                  setState((s) => ({
+                    ...s,
+                    phone: e.target.value,
+                    message: null,
+                  }))
+                }
+                inputClassName="h-12 text-base"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={state.status === "requesting" || !state.phone.trim()}
+              >
+                {state.status === "requesting" ? "Kod göndərilir…" : "Kod göndər"}
+              </Button>
+              {state.message ? (
+                <p className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+                  {state.message}
+                </p>
+              ) : null}
+            </form>
+          )}
 
-      {isLocked && (
-        <div className="mt-8 space-y-4">
-          <div
-            role="alert"
-            className="rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-danger"
-          >
-            {state.lockReason === "expired" && "Kodun müddəti bitdi."}
-            {state.lockReason === "max_attempts" &&
-              "Maksimum cəhd sayına çatdınız."}
-            {state.lockReason === "rate_limited" &&
-              `Saatlıq limit aşılıb${
-                state.retryAfterSeconds
-                  ? ` — ${state.retryAfterSeconds} saniyə sonra yenidən cəhd edin.`
-                  : "."
-              }`}
-            {state.lockReason === "session_lost" && "Sessiya tapılmadı."}
-          </div>
-          <button
-            type="button"
-            onClick={reset}
-            className="w-full rounded-md border border-border bg-surface px-4 py-2 font-medium text-foreground hover:bg-surface-elevated"
-          >
-            Yenidən başla
-          </button>
-        </div>
-      )}
-    </section>
+          {(state.status === "code_sent" ||
+            state.status === "verifying" ||
+            state.status === "error") && (
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (state.code.length !== OTP.CODE_LENGTH) return;
+                void verifyCode();
+              }}
+            >
+              <p className="text-sm text-foreground-muted">
+                Kod göndərildi:{" "}
+                <span className="font-medium text-foreground">{state.phone}</span>
+              </p>
+              <Input
+                id="otp-code"
+                ref={codeInputRef}
+                label="6 rəqəmli kod"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={OTP.CODE_LENGTH}
+                pattern="\d{6}"
+                value={state.code}
+                disabled={state.status === "verifying"}
+                onChange={(e) =>
+                  setState((s) => ({
+                    ...s,
+                    code: e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, OTP.CODE_LENGTH),
+                    message: s.status === "error" ? null : s.message,
+                    status: s.status === "error" ? "code_sent" : s.status,
+                  }))
+                }
+                aria-invalid={state.status === "error"}
+                inputClassName="h-12 font-mono tracking-[0.5em] text-center text-xl"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={
+                  state.status === "verifying" ||
+                  state.code.length !== OTP.CODE_LENGTH
+                }
+              >
+                {state.status === "verifying" ? "Yoxlanılır…" : "Təsdiqlə"}
+              </Button>
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  disabled={resendDisabled}
+                  onClick={() => void requestCode()}
+                  className="text-accent-blue underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-foreground-muted disabled:no-underline"
+                >
+                  {state.resendCountdown > 0
+                    ? `Yenidən göndər (${state.resendCountdown}s)`
+                    : "Kodu yenidən göndər"}
+                </button>
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="text-foreground-muted hover:text-foreground"
+                >
+                  Telefonu dəyiş
+                </button>
+              </div>
+              {state.message ? (
+                <p
+                  role="alert"
+                  className={
+                    state.status === "error"
+                      ? "rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger"
+                      : "text-sm text-foreground-muted"
+                  }
+                >
+                  {state.message}
+                </p>
+              ) : null}
+            </form>
+          )}
+
+          {state.status === "verified" && (
+            <div className="mt-6 rounded-[var(--radius)] border border-success/30 bg-success/10 px-4 py-3 text-success">
+              Təsdiqləndi — yönləndirilirsiniz…
+            </div>
+          )}
+
+          {isLocked && (
+            <div className="mt-6 space-y-4">
+              <div
+                role="alert"
+                className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger"
+              >
+                {state.lockReason === "expired" && "Kodun müddəti bitdi."}
+                {state.lockReason === "max_attempts" &&
+                  "Maksimum cəhd sayına çatdınız."}
+                {state.lockReason === "rate_limited" &&
+                  `Saatlıq limit aşılıb${
+                    state.retryAfterSeconds
+                      ? ` — ${state.retryAfterSeconds} saniyə sonra yenidən cəhd edin.`
+                      : "."
+                  }`}
+                {state.lockReason === "session_lost" && "Sessiya tapılmadı."}
+              </div>
+              <Button variant="secondary" fullWidth onClick={reset}>
+                Yenidən başla
+              </Button>
+            </div>
+          )}
+        </Card>
+      </Container>
+    </Section>
   );
 }

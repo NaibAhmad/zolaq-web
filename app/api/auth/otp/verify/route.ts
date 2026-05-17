@@ -1,14 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { OTP } from "@/lib/auth/constants";
+import { writeAuditFireAndForget } from "@/lib/audit/repository";
 import { errorJson } from "@/lib/auth/error";
-import {
-  deriveUserId,
-  getOtpSession,
-  incrementAttempts,
-  lockSession,
-  markVerified,
-} from "@/lib/auth/otp-store";
+import { deriveUserId, verifyCode } from "@/lib/auth/otp-store";
 import { setSession } from "@/lib/auth/session";
+
+type OtpAuditAction = "otp.verified" | "otp.failed" | "otp.expired" | "otp.locked";
+
+// See request/route.ts: actor_type=system + truncated phone hash so the
+// audit row never contains a raw phone number.
+function safeAudit(action: OtpAuditAction, hash: string, purpose: string, note?: string): void {
+  try {
+    writeAuditFireAndForget({
+      actor_type: "system",
+      actor_id: hash.slice(0, 16),
+      role: "customer",
+      action,
+      entity_type: "otp",
+      entity_id: hash.slice(0, 16),
+      note: note ? `${purpose}; ${note}` : purpose,
+    });
+  } catch {
+    // never fail the response on audit error
+  }
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -27,49 +41,49 @@ export async function POST(request: NextRequest) {
     return errorJson(
       400,
       "VALIDATION_ERROR",
-      "`otp_session_id` və `code` tələb olunur."
+      "`otp_session_id` və `code` tələb olunur.",
     );
   }
 
-  const session = getOtpSession(otp_session_id);
-  if (!session) {
-    return errorJson(404, "NOT_FOUND", "OTP sessiyası tapılmadı.");
-  }
-  if (session.locked) {
-    return errorJson(400, "LOCKED", "Bu sessiya bloklanıb.", {
-      reason: "max_attempts",
-    });
-  }
-  if (Date.now() > session.expiresAt) {
-    lockSession(session.id);
-    return errorJson(400, "EXPIRED", "Kodun müddəti bitib.", {
-      reason: "expired",
-    });
-  }
-  if (session.verifiedAt) {
-    return errorJson(400, "LOCKED", "Sessiya artıq təsdiqlənib.", {
-      reason: "already_verified",
-    });
-  }
+  const result = await verifyCode(otp_session_id, code);
 
-  if (code !== session.code) {
-    const r = incrementAttempts(session.id);
-    if (r?.locked) {
+  if (!result.ok) {
+    const s = result.session;
+    if (result.reason === "not_found") {
+      return errorJson(404, "NOT_FOUND", "OTP sessiyası tapılmadı.");
+    }
+    if (result.reason === "locked") {
+      if (s) safeAudit("otp.locked", s.phoneHash, s.purpose, "already_locked");
+      return errorJson(400, "LOCKED", "Bu sessiya bloklanıb.", {
+        reason: "max_attempts",
+      });
+    }
+    if (result.reason === "expired") {
+      if (s) safeAudit("otp.expired", s.phoneHash, s.purpose);
+      return errorJson(400, "EXPIRED", "Kodun müddəti bitib.", {
+        reason: "expired",
+      });
+    }
+    if (result.reason === "already_verified") {
+      return errorJson(400, "LOCKED", "Sessiya artıq təsdiqlənib.", {
+        reason: "already_verified",
+      });
+    }
+    // invalid_code
+    if (s && result.lockedNow) {
+      safeAudit("otp.locked", s.phoneHash, s.purpose, "max_attempts");
       return errorJson(400, "LOCKED", "Maksimum cəhd sayına çatdı.", {
         reason: "max_attempts",
       });
     }
-    const attemptsRemaining = OTP.MAX_ATTEMPTS - (r?.session.attempts ?? 0);
+    if (s) safeAudit("otp.failed", s.phoneHash, s.purpose);
     return NextResponse.json(
-      { verified: false, attempts_remaining: Math.max(0, attemptsRemaining) },
-      { status: 400 }
+      { verified: false, attempts_remaining: result.attemptsRemaining ?? 0 },
+      { status: 400 },
     );
   }
 
-  const verified = markVerified(session.id);
-  if (!verified) {
-    return errorJson(404, "NOT_FOUND", "OTP sessiyası tapılmadı.");
-  }
+  const verified = result.session;
   const userId = deriveUserId(verified.phoneHash);
   await setSession({
     userId,
@@ -77,6 +91,8 @@ export async function POST(request: NextRequest) {
     verifiedAt: verified.verifiedAt ?? Date.now(),
     purpose: verified.purpose,
   });
+
+  safeAudit("otp.verified", verified.phoneHash, verified.purpose);
 
   return NextResponse.json({
     verified: true,

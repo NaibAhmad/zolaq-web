@@ -30,3 +30,41 @@ export function isOtpPurpose(value: unknown): value is OtpPurpose {
 
 export const SESSION_COOKIE = "zlq_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+
+// Sprint 8A: private admin/dealer panels use separate cookies so the customer
+// OTP session (above) and the internal sessions never co-mingle. Same TTL.
+// TODO Sprint 8E: replace mock cookies with real auth (password/SSO/JWT).
+export const ADMIN_SESSION_COOKIE = "zlq_admin_session";
+export const DEALER_SESSION_COOKIE = "zlq_dealer_session";
+
+export const ADMIN_ROLES = [
+  "super_admin",
+  "internal_ops_admin",
+  "content_manager",
+  "sales_lead_manager",
+  "moderator",
+] as const;
+
+export type AdminRole = (typeof ADMIN_ROLES)[number];
+
+export function isAdminRole(value: unknown): value is AdminRole {
+  return (
+    typeof value === "string" &&
+    (ADMIN_ROLES as readonly string[]).includes(value)
+  );
+}
+
+// Sprint 9E: dealer-side roles. Owner can do everything within the dealer's
+// scope; manager handles offers/leads/media but not billing; staff is
+// view-mostly. Enforcement points are gradual — Sprint 9F wires real
+// password auth and per-action checks. The mock login defaults to "owner".
+export const DEALER_ROLES = ["owner", "manager", "staff"] as const;
+
+export type DealerRole = (typeof DEALER_ROLES)[number];
+
+export function isDealerRole(value: unknown): value is DealerRole {
+  return (
+    typeof value === "string" &&
+    (DEALER_ROLES as readonly string[]).includes(value)
+  );
+}

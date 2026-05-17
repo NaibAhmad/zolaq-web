@@ -1,14 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { writeAuditFireAndForget } from "@/lib/audit/repository";
 import { OTP, isOtpPurpose } from "@/lib/auth/constants";
 import { errorJson } from "@/lib/auth/error";
 import { normalizePhone, phoneHash } from "@/lib/auth/phone";
-import { otpProvider } from "@/lib/auth/otp-provider";
+import { otpProvider, SmsSendError } from "@/lib/auth/otp-provider";
 import {
   checkRateLimit,
   createOtpSession,
   generateCode,
   recordRequest,
 } from "@/lib/auth/otp-store";
+
+// Sprint 9E: customer-side OTP events are audited under actor_type=system
+// (we have no authenticated customer yet at request time) and actor_id is the
+// truncated phone hash so the log never contains a raw phone number.
+function safeAudit(action: "otp.requested" | "otp.rate_limited", hash: string, purpose: string): void {
+  try {
+    writeAuditFireAndForget({
+      actor_type: "system",
+      actor_id: hash.slice(0, 16),
+      role: "customer",
+      action,
+      entity_type: "otp",
+      entity_id: hash.slice(0, 16),
+      note: purpose,
+    });
+  } catch {
+    // never fail the response on audit error
+  }
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -43,28 +63,42 @@ export async function POST(request: NextRequest) {
   }
 
   const hash = phoneHash(normalized);
-  const rl = checkRateLimit(hash);
+  const rl = await checkRateLimit(hash);
   if (!rl.allowed) {
+    safeAudit("otp.rate_limited", hash, purpose);
     return errorJson(429, "RATE_LIMITED", "Saatlıq OTP limiti aşılıb.", {
       retry_after_seconds: rl.retryAfterSeconds ?? null,
     });
   }
 
   const code = generateCode();
-  const session = createOtpSession({
+  const session = await createOtpSession({
     phoneHash: hash,
     purpose,
     code,
     leadId: lead_id,
   });
-  recordRequest(hash);
+  await recordRequest(hash);
 
-  await otpProvider.sendCode({
-    phone: normalized,
-    phoneHash: hash,
-    code,
-    purpose,
-  });
+  try {
+    await otpProvider.sendCode({
+      phone: normalized,
+      phoneHash: hash,
+      code,
+      purpose,
+    });
+  } catch (err) {
+    if (err instanceof SmsSendError) {
+      return errorJson(
+        503,
+        "AUTH_NOT_AVAILABLE",
+        "SMS xidməti hazırda əlçatan deyil.",
+      );
+    }
+    throw err;
+  }
+
+  safeAudit("otp.requested", hash, purpose);
 
   return NextResponse.json({
     otp_session_id: session.id,
