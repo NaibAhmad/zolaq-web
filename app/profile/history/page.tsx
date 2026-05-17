@@ -5,15 +5,32 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { DECISION_HISTORY_EVENT_LABELS_AZ } from "@/lib/decisions/labels";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { DecisionHistoryEvent } from "@/lib/decisions/types";
 
+type ActivityItem = {
+  id: string;
+  kind: string;
+  label: string;
+  detail?: string;
+  at: number;
+};
+
 type FetchState =
   | { status: "loading" }
   | { status: "error"; message: string; code: string }
-  | { status: "ready"; events: DecisionHistoryEvent[] };
+  | {
+      status: "ready";
+      events: DecisionHistoryEvent[];
+      activity: ActivityItem[];
+    };
 
 const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
   year: "numeric",
@@ -33,15 +50,23 @@ export default function ProfileHistoryPage() {
 
   useEffect(() => {
     let cancelled = false;
-    apiGet<{ events: DecisionHistoryEvent[] }>("/api/profile/history")
-      .then((data) => {
-        if (!cancelled) setState({ status: "ready", events: data.events });
+    Promise.all([
+      apiGet<{ events: DecisionHistoryEvent[] }>("/api/profile/history"),
+      apiGet<{ activity: ActivityItem[] }>("/api/profile/activity"),
+    ])
+      .then(([h, a]) => {
+        if (!cancelled)
+          setState({
+            status: "ready",
+            events: h.events,
+            activity: a.activity,
+          });
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           router.replace(
-            otpHref({ purpose: "profile_access", next: ROUTES.profileHistory })
+            otpHref({ purpose: "profile_access", next: ROUTES.profileHistory }),
           );
           return;
         }
@@ -70,7 +95,7 @@ export default function ProfileHistoryPage() {
       />
     );
   }
-  if (state.events.length === 0) {
+  if (state.events.length === 0 && state.activity.length === 0) {
     return (
       <EmptyState
         title="Tarixçə boşdur"
@@ -82,49 +107,101 @@ export default function ProfileHistoryPage() {
   const groups = groupByDate(state.events);
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Qərar Tarixçəsi
-        </h1>
-        <p className="text-sm text-foreground-muted">
-          Bütün araşdırma və sorğu hərəkətlərinin xronoloji jurnalı.
-        </p>
-      </header>
+    <>
+      <Section tone="muted" padding="sm">
+        <Container size="narrow">
+          <SectionHeading
+            eyebrow="Profil"
+            title="Qərar tarixçəsi"
+            subtitle="Bütün araşdırma və sorğu hərəkətlərinin xronoloji jurnalı."
+          />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Badge tone="blue" size="md">
+              {state.events.length} qərar hadisəsi
+            </Badge>
+            <Badge tone="orange" size="md">
+              {state.activity.length} Bazar Nəbzi / nişan
+            </Badge>
+          </div>
+        </Container>
+      </Section>
 
-      {groups.map((group) => (
-        <div key={group.key} className="space-y-2">
-          <h2 className="text-xs font-medium uppercase tracking-wide text-foreground-muted">
-            {group.label}
-          </h2>
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface-elevated">
-            {group.events.map((event) => (
-              <li
-                key={event.event_id}
-                className="flex items-start justify-between gap-3 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {DECISION_HISTORY_EVENT_LABELS_AZ[event.type]}
-                  </p>
-                  <p className="mt-0.5 text-xs text-foreground-muted">
-                    {[event.trim_id, event.lead_id, event.offer_id]
-                      .filter(Boolean)
-                      .join(" · ") || "—"}
-                  </p>
-                </div>
-                <time
-                  dateTime={new Date(event.created_at).toISOString()}
-                  className="shrink-0 text-xs text-foreground-muted"
+      {state.activity.length > 0 ? (
+        <Section tone="light" padding="md">
+          <Container size="narrow" className="space-y-4">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+              Bazar Nəbzi və nişan fəaliyyəti
+            </h2>
+            <Card padding="none" tone="raised" as="ul">
+              {state.activity.map((item, i) => (
+                <li
+                  key={item.id}
+                  className={`flex items-start justify-between gap-3 px-5 py-3 ${
+                    i > 0 ? "border-t border-border" : ""
+                  }`}
                 >
-                  {TIME_FMT.format(event.created_at)}
-                </time>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </section>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {item.label}
+                    </p>
+                    {item.detail ? (
+                      <p className="mt-0.5 text-xs text-foreground-muted">
+                        {item.detail}
+                      </p>
+                    ) : null}
+                  </div>
+                  <time
+                    dateTime={new Date(item.at).toISOString()}
+                    className="shrink-0 text-xs text-foreground-muted"
+                  >
+                    {DATE_FMT.format(item.at)}
+                  </time>
+                </li>
+              ))}
+            </Card>
+          </Container>
+        </Section>
+      ) : null}
+
+      <Section tone="light" padding="md">
+        <Container size="narrow" className="space-y-8">
+          {groups.map((group) => (
+            <div key={group.key} className="space-y-3">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+                {group.label}
+              </h2>
+              <Card padding="none" tone="raised" as="ul">
+                {group.events.map((event, i) => (
+                  <li
+                    key={event.event_id}
+                    className={`flex items-start justify-between gap-3 px-5 py-3 ${
+                      i > 0 ? "border-t border-border" : ""
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {DECISION_HISTORY_EVENT_LABELS_AZ[event.type]}
+                      </p>
+                      <p className="mt-0.5 text-xs text-foreground-muted">
+                        {[event.trim_id, event.lead_id, event.offer_id]
+                          .filter(Boolean)
+                          .join(" · ") || "—"}
+                      </p>
+                    </div>
+                    <time
+                      dateTime={new Date(event.created_at).toISOString()}
+                      className="shrink-0 text-xs text-foreground-muted"
+                    >
+                      {TIME_FMT.format(event.created_at)}
+                    </time>
+                  </li>
+                ))}
+              </Card>
+            </div>
+          ))}
+        </Container>
+      </Section>
+    </>
   );
 }
 

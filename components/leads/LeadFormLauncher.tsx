@@ -1,12 +1,16 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError, apiPost } from "@/lib/api";
-import { ROUTES, otpHref } from "@/lib/routes";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
+import { Textarea } from "@/components/ui/Textarea";
+import { LeadOtpStep } from "@/components/leads/LeadOtpStep";
+import { ApiError, apiGet, apiPost } from "@/lib/api";
+import { OTP } from "@/lib/auth/constants";
+import { ROUTES } from "@/lib/routes";
 import {
-  isLeadSourceSurface,
-  isPreferredContact,
   type Lead,
   type LeadSourceSurface,
   type PreferredContact,
@@ -25,61 +29,42 @@ type FormFields = {
   note: string;
 };
 
-type SubmitState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "error"; message: string };
+type FlowState =
+  | { kind: "form"; error: string | null }
+  | { kind: "requesting_otp" }
+  | { kind: "otp"; otpSessionId: string; resendCountdown: number; otpBusy: boolean }
+  | { kind: "submitting" }
+  | { kind: "error"; message: string };
 
-const PENDING_KEY = "zlq.pending_lead";
-const PENDING_TTL_MS = 10 * 60 * 1000;
+const E164_RE = /^\+[1-9]\d{8,14}$/;
+function normalizePhoneClient(input: string): string | null {
+  const cleaned = input.replace(/[\s\-()]/g, "");
+  return E164_RE.test(cleaned) ? cleaned : null;
+}
 
-type PendingPayload = {
+async function submitLead(payload: {
   trim_id: string;
   source_surface: LeadSourceSurface;
   name?: string;
   preferred_contact?: PreferredContact;
   note?: string;
-  expires_at: number;
-};
-
-function readPending(): PendingPayload | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.sessionStorage.getItem(PENDING_KEY);
-  if (!raw) return null;
+}): Promise<
+  { ok: true; leadId: string } | { ok: false; status: number; message: string }
+> {
   try {
-    const parsed = JSON.parse(raw) as Partial<PendingPayload>;
-    if (
-      typeof parsed.trim_id !== "string" ||
-      !isLeadSourceSurface(parsed.source_surface) ||
-      typeof parsed.expires_at !== "number"
-    ) {
-      return null;
+    const res = await apiPost<{ lead: Lead }>("/api/leads", payload);
+    return { ok: true, leadId: res.lead.lead_id };
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return { ok: false, status: err.status, message: err.message };
     }
-    if (parsed.expires_at <= Date.now()) return null;
-    return {
-      trim_id: parsed.trim_id,
-      source_surface: parsed.source_surface,
-      name: typeof parsed.name === "string" ? parsed.name : undefined,
-      preferred_contact: isPreferredContact(parsed.preferred_contact)
-        ? parsed.preferred_contact
-        : undefined,
-      note: typeof parsed.note === "string" ? parsed.note : undefined,
-      expires_at: parsed.expires_at,
-    };
-  } catch {
-    return null;
+    const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+    return { ok: false, status: 0, message };
   }
-}
-
-function clearPending() {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(PENDING_KEY);
 }
 
 export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
   const [fields, setFields] = useState<FormFields>({
@@ -88,118 +73,67 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
     preferred_contact: "phone",
     note: "",
   });
-  const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
+  const [flow, setFlow] = useState<FlowState>({ kind: "form", error: null });
+  const [verified, setVerified] = useState<boolean | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
-  const submitLead = useCallback(
-    async (payload: {
-      trim_id: string;
-      source_surface: LeadSourceSurface;
-      name?: string;
-      preferred_contact?: PreferredContact;
-      note?: string;
-    }): Promise<{ ok: true; leadId: string } | { ok: false; status: number; message: string }> => {
-      try {
-        const res = await apiPost<{ lead: Lead }>("/api/leads", payload);
-        return { ok: true, leadId: res.lead.lead_id };
-      } catch (err) {
-        if (err instanceof ApiError) {
-          return { ok: false, status: err.status, message: err.message };
-        }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
-        return { ok: false, status: 0, message };
-      }
-    },
-    []
-  );
-
-  // Post-OTP auto-submit: when arriving back with ?lead_post_otp=1 and a
-  // pending payload in sessionStorage, replay the submission.
   useEffect(() => {
-    if (searchParams.get("lead_post_otp") !== "1") return;
+    if (!open) return;
     let cancelled = false;
     void (async () => {
-      const pending = readPending();
-      if (!pending) {
-        if (!cancelled) router.replace(pathname);
-        return;
+      try {
+        const me = await apiGet<{ verified_at?: number | null }>(
+          ROUTES.authMe,
+        );
+        if (cancelled) return;
+        setVerified(typeof me.verified_at === "number");
+      } catch {
+        if (cancelled) return;
+        setVerified(false);
       }
-      if (cancelled) return;
-      setOpen(true);
-      setSubmitState({ status: "submitting" });
-      const result = await submitLead({
-        trim_id: pending.trim_id,
-        source_surface: pending.source_surface,
-        name: pending.name,
-        preferred_contact: pending.preferred_contact,
-        note: pending.note,
-      });
-      if (cancelled) return;
-      clearPending();
-      if (result.ok) {
-        trackEvent("lead_form_submitted", {
-          lead_id: result.leadId,
-          trim_id: pending.trim_id,
-        });
-        router.replace(ROUTES.profileLead(result.leadId));
-        return;
-      }
-      router.replace(pathname);
-      setSubmitState({
-        status: "error",
-        message: result.message || "Sorğu göndərmək alınmadı.",
-      });
     })();
     return () => {
       cancelled = true;
     };
-  }, [pathname, router, searchParams, submitLead]);
+  }, [open]);
 
   useEffect(() => {
-    if (open && submitState.status !== "submitting") {
+    if (open && flow.kind === "form") {
       nameInputRef.current?.focus();
     }
-  }, [open, submitState.status]);
+  }, [open, flow.kind]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && submitState.status !== "submitting") {
-        setOpen(false);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, submitState.status]);
-
-  function resetForm() {
+  const resetAll = useCallback(() => {
     setFields({ name: "", phone: "", preferred_contact: "phone", note: "" });
-    setSubmitState({ status: "idle" });
-  }
+    setFlow({ kind: "form", error: null });
+    setVerified(null);
+  }, []);
+
+  const isBusy =
+    flow.kind === "requesting_otp" ||
+    flow.kind === "submitting" ||
+    (flow.kind === "otp" && flow.otpBusy);
 
   function closeModal() {
-    if (submitState.status === "submitting") return;
+    if (isBusy) return;
     setOpen(false);
-    resetForm();
+    resetAll();
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const name = fields.name.trim();
-    if (name.length === 0) {
-      setSubmitState({ status: "error", message: "Ad tələb olunur." });
-      return;
-    }
-    setSubmitState({ status: "submitting" });
-
-    const payload = {
+  const buildLeadPayload = useCallback(
+    () => ({
       trim_id: trimId,
       source_surface: sourceSurface,
-      name,
+      name: fields.name.trim(),
       preferred_contact: fields.preferred_contact,
       note: fields.note.trim() || undefined,
-    };
+    }),
+    [trimId, sourceSurface, fields],
+  );
 
+  const finalizeLead = useCallback(async () => {
+    setFlow({ kind: "submitting" });
+    const payload = buildLeadPayload();
     const result = await submitLead(payload);
     if (result.ok) {
       trackEvent("lead_form_submitted", {
@@ -207,196 +141,300 @@ export function LeadFormLauncher({ trimId, sourceSurface }: Props) {
         trim_id: trimId,
       });
       setOpen(false);
+      resetAll();
       router.push(ROUTES.profileLead(result.leadId));
       return;
     }
+    setFlow({
+      kind: "error",
+      message: result.message || "Sorğu göndərmək alınmadı.",
+    });
+  }, [buildLeadPayload, resetAll, router, trimId]);
 
-    if (result.status === 401) {
-      // Guest path: stash payload + bounce to OTP. Phone is collected by OTP.
-      const pending: PendingPayload = {
-        trim_id: trimId,
-        source_surface: sourceSurface,
-        name,
-        preferred_contact: fields.preferred_contact,
-        note: payload.note,
-        expires_at: Date.now() + PENDING_TTL_MS,
-      };
-      try {
-        window.sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
-      } catch {
-        /* sessionStorage unavailable; let OTP still proceed */
-      }
-      const next = `${pathname}?lead_post_otp=1`;
-      router.push(otpHref({ purpose: "lead_submit", next }));
+  async function handleFormSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const name = fields.name.trim();
+    if (name.length === 0) {
+      setFlow({ kind: "form", error: "Ad tələb olunur." });
       return;
     }
 
-    setSubmitState({
-      status: "error",
-      message: result.message || "Sorğu göndərmək alınmadı.",
-    });
+    if (verified) {
+      await finalizeLead();
+      return;
+    }
+
+    const normalizedPhone = normalizePhoneClient(fields.phone);
+    if (!normalizedPhone) {
+      setFlow({ kind: "form", error: "Telefon nömrəsi formatı yanlışdır." });
+      return;
+    }
+
+    setFlow({ kind: "requesting_otp" });
+    try {
+      const res = await apiPost<{
+        otp_session_id: string;
+        resend_after_seconds?: number;
+      }>("/api/auth/otp/request", {
+        phone: normalizedPhone,
+        purpose: "lead_submit",
+      });
+      setFields((s) => ({ ...s, phone: normalizedPhone }));
+      setFlow({
+        kind: "otp",
+        otpSessionId: res.otp_session_id,
+        resendCountdown:
+          res.resend_after_seconds ?? OTP.RESEND_COOLDOWN_SECONDS,
+        otpBusy: false,
+      });
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.status === 429
+            ? `${err.message}${
+                typeof err.details.retry_after_seconds === "number"
+                  ? ` — ${err.details.retry_after_seconds}s sonra yenidən cəhd edin.`
+                  : ""
+              }`
+            : err.message
+          : err instanceof Error
+            ? err.message
+            : "Şəbəkə xətası";
+      setFlow({ kind: "form", error: message });
+    }
   }
+
+  const validForm =
+    fields.name.trim().length > 0 &&
+    (verified === true || normalizePhoneClient(fields.phone) !== null);
+
+  const submitButtonVariant =
+    fields.preferred_contact === "whatsapp" ? "whatsapp" : "primary";
+
+  const dismissible = !isBusy;
+
+  const showOtp = flow.kind === "otp";
+  const eyebrow = showOtp ? "Telefon təsdiqi" : "Rəsmi qiymət istə";
+  const title = showOtp
+    ? "6 rəqəmli kod"
+    : "Rəsmi diler 1–2 saatda cavab verir";
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        size="md"
         onClick={() => {
-          resetForm();
+          resetAll();
           setOpen(true);
           trackEvent("lead_form_opened", {
             trim_id: trimId,
             surface: sourceSurface,
           });
         }}
-        className="inline-flex items-center justify-center rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg transition-opacity hover:opacity-90"
       >
         Rəsmi qiymət istə
-      </button>
+      </Button>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="lead-form-title"
-            className="w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-lg"
-          >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <h2
-                id="lead-form-title"
-                className="text-lg font-semibold text-foreground"
-              >
-                Rəsmi qiymət istə
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                disabled={submitState.status === "submitting"}
-                className="rounded-md p-1 text-foreground-muted hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Bağla"
-              >
-                ×
-              </button>
-            </div>
+      <Modal
+        open={open}
+        onClose={closeModal}
+        eyebrow={eyebrow}
+        title={title}
+        dismissible={dismissible}
+      >
+        {flow.kind === "submitting" || flow.kind === "requesting_otp" ? (
+          <p className="py-6 text-center text-sm text-foreground-muted">
+            {flow.kind === "requesting_otp"
+              ? "Kod göndərilir…"
+              : "Sorğun göndərilir…"}
+          </p>
+        ) : flow.kind === "otp" ? (
+          <LeadOtpStep
+            phone={fields.phone}
+            otpSessionId={flow.otpSessionId}
+            initialResendCountdown={flow.resendCountdown}
+            onSessionReplaced={({ otpSessionId, resendCountdown }) =>
+              setFlow({
+                kind: "otp",
+                otpSessionId,
+                resendCountdown,
+                otpBusy: false,
+              })
+            }
+            onBusyChange={(busy) =>
+              setFlow((cur) => {
+                if (cur.kind !== "otp" || cur.otpBusy === busy) return cur;
+                return { ...cur, otpBusy: busy };
+              })
+            }
+            onChangePhone={() => setFlow({ kind: "form", error: null })}
+            onVerified={() => {
+              void finalizeLead();
+            }}
+          />
+        ) : (
+          <form className="space-y-4" onSubmit={handleFormSubmit}>
+            <Input
+              id="lead-name"
+              ref={nameInputRef}
+              label="Ad"
+              type="text"
+              required
+              maxLength={80}
+              value={fields.name}
+              onChange={(e) =>
+                setFields((s) => ({ ...s, name: e.target.value }))
+              }
+            />
 
-            {submitState.status === "submitting" ? (
-              <p className="py-6 text-center text-sm text-foreground-muted">
-                Sorğun göndərilir…
-              </p>
+            {verified ? (
+              <div className="rounded-[var(--radius)] border border-success/30 bg-success/5 px-3 py-2 text-sm text-foreground">
+                <span className="text-xs font-medium uppercase tracking-wide text-foreground-muted">
+                  Təsdiqlənmiş nömrə
+                </span>
+                <span className="ml-2 font-medium">+994 ** *** ** **</span>
+              </div>
             ) : (
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div>
-                  <label
-                    className="mb-1 block text-sm font-medium text-foreground"
-                    htmlFor="lead-name"
-                  >
-                    Ad
-                  </label>
-                  <input
-                    id="lead-name"
-                    ref={nameInputRef}
-                    type="text"
-                    required
-                    maxLength={80}
-                    value={fields.name}
-                    onChange={(e) =>
-                      setFields((s) => ({ ...s, name: e.target.value }))
-                    }
-                    className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-foreground outline-none focus:border-brand"
-                  />
-                </div>
-
-                <fieldset>
-                  <legend className="mb-1 block text-sm font-medium text-foreground">
-                    Əlaqə üsulu
-                  </legend>
-                  <div className="flex gap-4 text-sm text-foreground">
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="preferred_contact"
-                        value="phone"
-                        checked={fields.preferred_contact === "phone"}
-                        onChange={() =>
-                          setFields((s) => ({ ...s, preferred_contact: "phone" }))
-                        }
-                      />
-                      Zəng
-                    </label>
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="preferred_contact"
-                        value="whatsapp"
-                        checked={fields.preferred_contact === "whatsapp"}
-                        onChange={() =>
-                          setFields((s) => ({
-                            ...s,
-                            preferred_contact: "whatsapp",
-                          }))
-                        }
-                      />
-                      WhatsApp
-                    </label>
-                  </div>
-                </fieldset>
-
-                <div>
-                  <label
-                    className="mb-1 block text-sm font-medium text-foreground"
-                    htmlFor="lead-note"
-                  >
-                    Qeyd <span className="text-foreground-muted">(istəyə bağlı)</span>
-                  </label>
-                  <textarea
-                    id="lead-note"
-                    rows={3}
-                    maxLength={500}
-                    value={fields.note}
-                    onChange={(e) =>
-                      setFields((s) => ({ ...s, note: e.target.value }))
-                    }
-                    className="w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-foreground outline-none focus:border-brand"
-                  />
-                </div>
-
-                <p className="text-xs text-foreground-muted">
-                  Sorğunu təsdiqləmək üçün telefon nömrəni növbəti addımda
-                  yoxlayacağıq.
-                </p>
-
-                {submitState.status === "error" ? (
-                  <p role="alert" className="text-sm text-danger">
-                    {submitState.message}
-                  </p>
-                ) : null}
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated"
-                  >
-                    İmtina
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg hover:opacity-90"
-                  >
-                    Sorğu göndər
-                  </button>
-                </div>
-              </form>
+              <Input
+                id="lead-phone"
+                label="Telefon nömrəsi"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+994501234567"
+                required
+                value={fields.phone}
+                onChange={(e) =>
+                  setFields((s) => ({ ...s, phone: e.target.value }))
+                }
+              />
             )}
+
+            <fieldset>
+              <legend className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-foreground-muted">
+                Əlaqə üsulu
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
+                <ContactOption
+                  checked={fields.preferred_contact === "phone"}
+                  onChange={() =>
+                    setFields((s) => ({ ...s, preferred_contact: "phone" }))
+                  }
+                  label="Zəng"
+                  icon="☎"
+                />
+                <ContactOption
+                  checked={fields.preferred_contact === "whatsapp"}
+                  onChange={() =>
+                    setFields((s) => ({ ...s, preferred_contact: "whatsapp" }))
+                  }
+                  label="WhatsApp"
+                  icon="✓"
+                  accent="green"
+                />
+              </div>
+            </fieldset>
+
+            <Textarea
+              id="lead-note"
+              label={
+                <>
+                  Qeyd <span className="lowercase opacity-70">(istəyə bağlı)</span>
+                </>
+              }
+              rows={3}
+              maxLength={500}
+              value={fields.note}
+              onChange={(e) =>
+                setFields((s) => ({ ...s, note: e.target.value }))
+              }
+            />
+
+            {flow.kind === "form" && flow.error ? (
+              <p
+                role="alert"
+                className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger"
+              >
+                {flow.error}
+              </p>
+            ) : null}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button type="button" variant="secondary" onClick={closeModal}>
+                İmtina
+              </Button>
+              <Button
+                type="submit"
+                variant={submitButtonVariant}
+                disabled={!validForm}
+              >
+                Sorğu göndər
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {flow.kind === "error" ? (
+          <div className="mt-4 space-y-3">
+            <p
+              role="alert"
+              className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger"
+            >
+              {flow.message}
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setFlow({ kind: "form", error: null })}
+              >
+                Geri
+              </Button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </Modal>
     </>
+  );
+}
+
+function ContactOption({
+  checked,
+  onChange,
+  label,
+  icon,
+  accent = "blue",
+}: {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  icon: string;
+  accent?: "blue" | "green";
+}) {
+  const activeRing =
+    accent === "green"
+      ? "border-accent-green ring-2 ring-accent-green/30"
+      : "border-accent-blue ring-2 ring-accent-blue/20";
+  const inactive = "border-border hover:border-foreground-muted";
+
+  return (
+    <label
+      className={`flex cursor-pointer items-center gap-2 rounded-[var(--radius)] border bg-surface px-3 py-2.5 text-sm font-medium transition-colors ${
+        checked ? activeRing : inactive
+      }`}
+    >
+      <input
+        type="radio"
+        name="preferred_contact"
+        className="sr-only"
+        checked={checked}
+        onChange={onChange}
+      />
+      <span aria-hidden className="text-base">
+        {icon}
+      </span>
+      <span>{label}</span>
+    </label>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
 import { trackEvent } from "@/lib/tracking/track";
 import type { LeadTrimSummary } from "@/lib/leads/types";
 
@@ -25,28 +27,36 @@ export function RelatedModelLink({ contentId, summary }: Props) {
   }
 
   return (
-    <Link
-      href={href}
-      onClick={handleClick}
-      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-elevated p-3 text-sm hover:bg-surface"
-    >
-      <div className="min-w-0">
-        <p className="truncate text-xs text-foreground-muted">
-          {summary.brand_name} · {summary.model_name}
-        </p>
-        <p className="truncate font-medium text-foreground">
-          {summary.display_name}
-        </p>
-        <p className="text-xs text-foreground-muted">
-          {summary.year} · {summary.energy_type}
-        </p>
-      </div>
-      <span
-        aria-hidden="true"
-        className="text-accent-blue underline-offset-2 hover:underline"
+    <Link href={href} onClick={handleClick} className="block h-full">
+      <Card
+        padding="md"
+        tone="raised"
+        interactive
+        className="flex h-full items-center justify-between gap-3"
       >
-        Aç →
-      </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs uppercase tracking-wide text-foreground-muted">
+            {summary.brand_name} · {summary.model_name}
+          </p>
+          <p className="truncate text-sm font-semibold text-foreground">
+            {summary.display_name}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <Badge tone="muted" size="sm">
+              {summary.year}
+            </Badge>
+            <Badge tone="blue" size="sm">
+              {summary.energy_type}
+            </Badge>
+          </div>
+        </div>
+        <span
+          aria-hidden="true"
+          className="shrink-0 text-base font-medium text-accent-blue"
+        >
+          Aç →
+        </span>
+      </Card>
     </Link>
   );
 }

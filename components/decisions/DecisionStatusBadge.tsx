@@ -1,23 +1,23 @@
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { DECISION_STATUS_LABELS_AZ } from "@/lib/decisions/labels";
 import type { DecisionStatus } from "@/lib/decisions/types";
 
 type Props = {
   status: DecisionStatus;
+  size?: "sm" | "md";
 };
 
-const TONE: Record<DecisionStatus, string> = {
-  active: "border-accent-orange/40 bg-accent-orange/10 text-accent-orange",
-  decided: "border-success/40 bg-success/10 text-success",
-  abandoned: "border-foreground-muted/40 bg-surface text-foreground-muted",
-  closed: "border-border bg-surface text-foreground-muted",
+const TONE: Record<DecisionStatus, BadgeTone> = {
+  active: "orange",
+  decided: "success",
+  abandoned: "muted",
+  closed: "neutral",
 };
 
-export function DecisionStatusBadge({ status }: Props) {
+export function DecisionStatusBadge({ status, size = "sm" }: Props) {
   return (
-    <span
-      className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${TONE[status]}`}
-    >
+    <Badge tone={TONE[status]} size={size}>
       {DECISION_STATUS_LABELS_AZ[status]}
-    </span>
+    </Badge>
   );
 }

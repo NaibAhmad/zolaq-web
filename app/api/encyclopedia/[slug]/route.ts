@@ -9,7 +9,7 @@ export async function GET(
   const { slug } = await context.params;
   const entry = getEncyclopediaBySlug(slug);
   if (!entry) {
-    return errorJson(404, "NOT_FOUND", "Bələdçi məqaləsi tapılmadı.", { slug });
+    return errorJson(404, "NOT_FOUND", "Ensiklopediya məqaləsi tapılmadı.", { slug });
   }
   return NextResponse.json({ entry });
 }

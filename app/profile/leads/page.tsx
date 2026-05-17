@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LEAD_STATE_TONE } from "@/components/leads/LeadStatusCard";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
-import type { LeadWithTrim } from "@/lib/leads/types";
+import type { LeadState, LeadWithTrim } from "@/lib/leads/types";
 import { ROUTES, otpHref } from "@/lib/routes";
 
 type FetchState =
@@ -21,6 +28,13 @@ const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
   month: "short",
   day: "numeric",
 });
+
+const TERMINAL_STATES: ReadonlySet<LeadState> = new Set([
+  "expired",
+  "no_response",
+  "closed",
+  "accepted",
+]);
 
 export default function ProfileLeadsPage() {
   const router = useRouter();
@@ -37,7 +51,7 @@ export default function ProfileLeadsPage() {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           router.replace(
-            otpHref({ purpose: "profile_access", next: ROUTES.profileLeads })
+            otpHref({ purpose: "profile_access", next: ROUTES.profileLeads }),
           );
           return;
         }
@@ -72,55 +86,132 @@ export default function ProfileLeadsPage() {
         title="Hələ sorğu yoxdur"
         note="İlk sorğunu kataloqdan və ya maşın səhifəsindən göndər."
         action={
-          <Link
-            href={ROUTES.cars}
-            className="inline-flex items-center justify-center rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg hover:opacity-90"
-          >
+          <ButtonLink href={ROUTES.cars} variant="primary">
             Maşınlara bax
-          </Link>
+          </ButtonLink>
         }
       />
     );
   }
 
+  const sorted = state.leads
+    .slice()
+    .sort((a, b) => b.updated_at - a.updated_at);
+  const active = sorted.filter((l) => !TERMINAL_STATES.has(l.state));
+  const archived = sorted.filter((l) => TERMINAL_STATES.has(l.state));
+
   return (
-    <section className="mx-auto max-w-3xl px-4 py-8 md:px-6">
-      <header className="mb-6 space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">Sorğular</h1>
-        <p className="text-sm text-foreground-muted">
-          Göndərdiyin sorğuların siyahısı və cari vəziyyət.
+    <>
+      <Section tone="muted" padding="sm">
+        <Container size="narrow">
+          <SectionHeading
+            eyebrow="Sorğular"
+            title="Mənim sorğularım"
+            subtitle="Göndərdiyin sorğuların siyahısı və cari vəziyyət."
+          />
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container size="narrow" className="space-y-8">
+          <LeadGroup
+            title="Aktiv"
+            count={active.length}
+            leads={active}
+            empty="Aktiv sorğu yoxdur."
+          />
+          {archived.length > 0 ? (
+            <LeadGroup
+              title="Arxiv"
+              count={archived.length}
+              leads={archived}
+              empty="Arxiv sorğu yoxdur."
+            />
+          ) : null}
+        </Container>
+      </Section>
+    </>
+  );
+}
+
+function LeadGroup({
+  title,
+  count,
+  leads,
+  empty,
+}: {
+  title: string;
+  count: number;
+  leads: LeadWithTrim[];
+  empty: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+          {title}
+        </h2>
+        <span className="text-xs text-foreground-muted">{count}</span>
+      </div>
+      {leads.length === 0 ? (
+        <p className="rounded-[var(--radius-lg)] border border-dashed border-border bg-surface p-6 text-center text-sm text-foreground-muted">
+          {empty}
         </p>
-      </header>
-      <ul className="space-y-3">
-        {state.leads.map((lead) => (
-          <li key={lead.lead_id}>
-            <Link
-              href={ROUTES.profileLead(lead.lead_id)}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-surface-elevated p-4 hover:bg-surface md:flex-row md:items-center md:justify-between"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {lead.trim.brand_name} · {lead.trim.model_name}
-                </p>
-                <p className="truncate text-xs text-foreground-muted">
-                  {lead.trim.display_name} · {lead.trim.year}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center rounded border border-border bg-surface px-2 py-0.5 text-xs font-medium text-foreground">
-                  {LEAD_STATE_LABELS_AZ[lead.state]}
-                </span>
-                <time
-                  dateTime={new Date(lead.created_at).toISOString()}
-                  className="text-xs text-foreground-muted"
-                >
-                  {DATE_FMT.format(lead.created_at)}
-                </time>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+      ) : (
+        <ul className="space-y-3">
+          {leads.map((lead) => (
+            <li key={lead.lead_id}>
+              <LeadRow lead={lead} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function LeadRow({ lead }: { lead: LeadWithTrim }) {
+  const tone = LEAD_STATE_TONE[lead.state];
+  return (
+    <Link
+      href={ROUTES.profileLead(lead.lead_id)}
+      className="block focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:ring-offset-2 rounded-[var(--radius-lg)]"
+    >
+      <Card
+        padding="md"
+        tone="raised"
+        interactive
+        className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-[11px] text-foreground-muted">
+            <span className="font-mono">#{lead.lead_id}</span>
+          </div>
+          <p className="mt-1 text-xs uppercase tracking-wide text-foreground-muted">
+            {lead.trim.brand_name}
+          </p>
+          <p className="text-sm font-semibold text-foreground">
+            {lead.trim.model_name} · {lead.trim.year}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-foreground-muted">
+            {lead.trim.display_name}
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-2 md:items-end">
+          <Badge tone={tone} size="md">
+            {LEAD_STATE_LABELS_AZ[lead.state]}
+          </Badge>
+          <time
+            dateTime={new Date(lead.updated_at).toISOString()}
+            className="text-xs text-foreground-muted"
+          >
+            {DATE_FMT.format(lead.updated_at)}
+          </time>
+          <span className="text-xs font-medium text-accent-blue">
+            Statusa bax →
+          </span>
+        </div>
+      </Card>
+    </Link>
   );
 }

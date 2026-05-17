@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { SavedCarWithTrim } from "@/lib/decisions/types";
@@ -36,7 +42,7 @@ export default function ProfileSavedPage() {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           router.replace(
-            otpHref({ purpose: "profile_access", next: ROUTES.profileSaved })
+            otpHref({ purpose: "profile_access", next: ROUTES.profileSaved }),
           );
           return;
         }
@@ -71,52 +77,78 @@ export default function ProfileSavedPage() {
         title="Hələ saxlanılan maşın yoxdur"
         note="Maşına baxarkən onu saxla — sonra burada müqayisə üçün toplayacaqsan."
         action={
-          <Link
-            href={ROUTES.cars}
-            className="inline-flex items-center justify-center rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg hover:opacity-90"
-          >
+          <ButtonLink href={ROUTES.cars} variant="primary">
             Maşınlara bax
-          </Link>
+          </ButtonLink>
         }
       />
     );
   }
 
+  const compareIds = state.saved.slice(0, 3).map((s) => s.trim_id).join(",");
+  const canCompare = state.saved.length >= 2;
+  const compareHref = canCompare ? `${ROUTES.compare}?ids=${compareIds}` : ROUTES.compare;
+
   return (
-    <section className="mx-auto max-w-3xl px-4 py-8 md:px-6">
-      <header className="mb-6 space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">
-          Saxlanılan maşınlar
-        </h1>
-        <p className="text-sm text-foreground-muted">
-          Müqayisə üçün topladığın maşınlar.
-        </p>
-      </header>
-      <ul className="space-y-3">
-        {state.saved.map((item) => (
-          <li key={item.saved_id}>
-            <Link
-              href={ROUTES.car(item.trim_id)}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-surface-elevated p-4 hover:bg-surface md:flex-row md:items-center md:justify-between"
+    <>
+      <Section tone="muted" padding="sm">
+        <Container size="narrow">
+          <SectionHeading
+            eyebrow="Profil"
+            title="Saxlanılan maşınlar"
+            subtitle="Müqayisə üçün topladığın maşınlar."
+          />
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Badge tone="blue" size="md">
+              {state.saved.length} maşın
+            </Badge>
+            <ButtonLink
+              href={compareHref}
+              variant={canCompare ? "primary" : "secondary"}
+              size="sm"
             >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {item.trim.brand_name} · {item.trim.model_name}
-                </p>
-                <p className="truncate text-xs text-foreground-muted">
-                  {item.trim.display_name} · {item.trim.year}
-                </p>
-              </div>
-              <time
-                dateTime={new Date(item.created_at).toISOString()}
-                className="text-xs text-foreground-muted"
-              >
-                {DATE_FMT.format(item.created_at)}
-              </time>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+              Müqayisə et
+            </ButtonLink>
+          </div>
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container size="narrow">
+          <ul className="space-y-3">
+            {state.saved.map((item) => (
+              <li key={item.saved_id}>
+                <Link href={ROUTES.car(item.trim_id)} className="block">
+                  <Card
+                    padding="md"
+                    tone="raised"
+                    interactive
+                    className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wide text-foreground-muted">
+                        {item.trim.brand_name}
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {item.trim.model_name} · {item.trim.year}
+                      </p>
+                      <p className="truncate text-xs text-foreground-muted">
+                        {item.trim.display_name}
+                      </p>
+                    </div>
+                    <time
+                      dateTime={new Date(item.created_at).toISOString()}
+                      className="text-xs text-foreground-muted"
+                    >
+                      {DATE_FMT.format(item.created_at)}
+                    </time>
+                  </Card>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
+    </>
   );
 }

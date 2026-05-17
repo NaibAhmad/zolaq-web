@@ -1,10 +1,70 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { HomeCatalogTeaser } from "@/components/home/HomeCatalogTeaser";
+import { HomeContentTeaser } from "@/components/home/HomeContentTeaser";
+import { HomeDealerTeaser } from "@/components/home/HomeDealerTeaser";
+import { HomeDecisionHelper } from "@/components/home/HomeDecisionHelper";
+import { HomeHero } from "@/components/home/HomeHero";
+import { HomeMarketPulse } from "@/components/home/HomeMarketPulse";
+import { HomeSearchBlock } from "@/components/home/HomeSearchBlock";
+import { HomeTrustStrip } from "@/components/home/HomeTrustStrip";
+import { HomeVinBetaCard } from "@/components/home/HomeVinBetaCard";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { FEATURE_VIN_BETA } from "@/lib/env";
 
 export default function HomePage() {
   return (
-    <Placeholder
-      title="Zolaq"
-      note="Ana səhifə — kəşf / mənə uyğun maşın tap. Sprint 2-də doldurulacaq."
-    />
+    <>
+      <HomeHero />
+
+      <Section tone="light" padding="sm" className="relative">
+        <Container>
+          <HomeSearchBlock />
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container>
+          <HomeTrustStrip />
+        </Container>
+      </Section>
+
+      {FEATURE_VIN_BETA ? (
+        <Section tone="muted" padding="md">
+          <Container>
+            <HomeVinBetaCard />
+          </Container>
+        </Section>
+      ) : null}
+
+      <Section tone="muted" padding="md">
+        <Container>
+          <HomeDecisionHelper />
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container>
+          <HomeCatalogTeaser />
+        </Container>
+      </Section>
+
+      <Section tone="muted" padding="md">
+        <Container>
+          <HomeContentTeaser />
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container>
+          <HomeMarketPulse />
+        </Container>
+      </Section>
+
+      <Section tone="light" padding="md">
+        <Container>
+          <HomeDealerTeaser />
+        </Container>
+      </Section>
+    </>
   );
 }

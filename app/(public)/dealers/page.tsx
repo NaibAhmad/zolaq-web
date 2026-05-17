@@ -5,9 +5,19 @@ import { DealerCard } from "@/components/dealers/DealerCard";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Stat } from "@/components/ui/Stat";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
 import type { Dealer } from "@/lib/dealers/types";
+
+const VERIFIED_STATUSES = new Set([
+  "official_dealer",
+  "verified_partner",
+  "premium_partner",
+]);
 
 type FetchState =
   | { status: "loading" }
@@ -50,45 +60,84 @@ function DealersInner() {
     setReloadKey((k) => k + 1);
   }
 
+  const stats = useMemo(() => {
+    if (state.status !== "ready") return null;
+    const total = state.dealers.length;
+    const verified = state.dealers.filter((d) =>
+      VERIFIED_STATUSES.has(d.verification_status),
+    ).length;
+    const avgSla =
+      total === 0
+        ? 0
+        : Math.round(
+            state.dealers.reduce((s, d) => s + d.response_sla_hours, 0) / total,
+          );
+    return { total, verified, avgSla };
+  }, [state]);
+
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-      <header className="mb-6 space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">Dilerlər</h1>
-        <p className="text-sm text-foreground-muted">
-          Rəsmi və təsdiqlənmiş tərəfdaşlar.
-        </p>
-      </header>
+    <>
+      <Section tone="dark" padding="md">
+        <Container>
+          <SectionHeading
+            tone="dark"
+            eyebrow="Dilerlər"
+            title="Təsdiqlənmiş tərəfdaşlar"
+            subtitle="Rəsmi diler, premium və yoxlanmış tərəfdaşların siyahısı."
+          />
+          {stats ? (
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Stat tone="dark" label="Diler" value={stats.total} />
+              <Stat
+                tone="dark"
+                label="Yoxlanmış"
+                value={stats.verified}
+                hint="rəsmi / verified / premium"
+              />
+              <Stat
+                tone="dark"
+                label="Orta cavab"
+                value={`~${stats.avgSla} saat`}
+              />
+            </div>
+          ) : null}
+        </Container>
+      </Section>
 
-      {state.status === "loading" && (
-        <LoadingState label="Dilerlər yüklənir…" />
-      )}
+      <Section tone="light" padding="md">
+        <Container>
+          {state.status === "loading" && (
+            <LoadingState label="Dilerlər yüklənir…" />
+          )}
 
-      {state.status === "error" && (
-        <ErrorState
-          title="Xəta baş verdi"
-          message={state.message}
-          code={state.code}
-          onRetry={retry}
-        />
-      )}
+          {state.status === "error" && (
+            <ErrorState
+              title="Xəta baş verdi"
+              message={state.message}
+              code={state.code}
+              onRetry={retry}
+            />
+          )}
 
-      {state.status === "ready" && state.dealers.length === 0 && (
-        <EmptyState
-          title="Diler tapılmadı"
-          note="Hələ ki aktiv diler qeydiyyatı yoxdur."
-        />
-      )}
+          {state.status === "ready" && state.dealers.length === 0 && (
+            <EmptyState
+              title="Diler tapılmadı"
+              note="Hələ ki aktiv diler qeydiyyatı yoxdur."
+            />
+          )}
 
-      {state.status === "ready" && state.dealers.length > 0 && (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {state.dealers.map((dealer) => (
-            <li key={dealer.dealer_id}>
-              <DealerCard dealer={dealer} brandLookup={brandLookup} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+          {state.status === "ready" && state.dealers.length > 0 && (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {state.dealers.map((dealer) => (
+                <li key={dealer.dealer_id} className="flex">
+                  <DealerCard dealer={dealer} brandLookup={brandLookup} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Container>
+      </Section>
+    </>
   );
 }
 

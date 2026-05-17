@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+
 type Props = {
   title?: string;
   message?: string;
@@ -17,27 +19,33 @@ export function ErrorState({
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div
         role="alert"
-        className="rounded-md border border-danger/40 bg-danger/10 px-4 py-3"
+        className="flex gap-4 rounded-[var(--radius-lg)] border border-danger/30 bg-danger/5 p-5"
       >
-        <p className="font-medium text-danger">{title}</p>
-        {message ? (
-          <p className="mt-1 text-sm text-foreground">{message}</p>
-        ) : null}
-        {code ? (
-          <p className="mt-1 font-mono text-xs text-foreground-muted">
-            {code}
-          </p>
-        ) : null}
-      </div>
-      {onRetry ? (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-4 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated"
+        <span
+          aria-hidden
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger/15 text-lg text-danger"
         >
-          Yenidən cəhd et
-        </button>
-      ) : null}
+          !
+        </span>
+        <div className="flex-1">
+          <p className="font-semibold text-danger">{title}</p>
+          {message ? (
+            <p className="mt-1 text-sm text-foreground">{message}</p>
+          ) : null}
+          {code ? (
+            <p className="mt-2 font-mono text-xs text-foreground-muted">
+              {code}
+            </p>
+          ) : null}
+          {onRetry ? (
+            <div className="mt-4">
+              <Button variant="secondary" size="sm" onClick={onRetry}>
+                Yenidən cəhd et
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

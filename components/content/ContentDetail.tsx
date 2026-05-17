@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { RelatedModelLink } from "@/components/content/RelatedModelLink";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Card } from "@/components/ui/Card";
 import { trackEvent } from "@/lib/tracking/track";
 import type { LeadTrimSummary } from "@/lib/leads/types";
 import type { ContentType } from "@/lib/content/types";
@@ -26,6 +30,12 @@ const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
   day: "numeric",
 });
 
+const TYPE_LABEL: Record<ContentType, string> = {
+  news: "Xəbər",
+  encyclopedia: "Ensiklopediya",
+  qa: "Q&A",
+};
+
 export function ContentDetail({
   contentId,
   contentType,
@@ -46,49 +56,82 @@ export function ContentDetail({
     });
   }, [contentId, contentType, slugOrId]);
 
+  const paragraphs = useMemo(
+    () => body.split(/\n\n+/).map((p) => p.trim()).filter((p) => p.length > 0),
+    [body],
+  );
+  const readMinutes = Math.max(1, Math.round(body.length / 1000));
+
   return (
-    <article className="mx-auto max-w-3xl px-4 py-8 md:px-6">
-      <nav className="mb-4 text-sm">
-        <Link
-          href={backHref}
-          className="text-accent-blue underline-offset-2 hover:underline"
-        >
-          ← {backLabel}
-        </Link>
-      </nav>
+    <>
+      <Section tone="muted" padding="sm">
+        <Container size="narrow">
+          <nav className="mb-4 text-sm">
+            <Link
+              href={backHref}
+              className="text-accent-blue underline-offset-2 hover:underline"
+            >
+              ← {backLabel}
+            </Link>
+          </nav>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+            {TYPE_LABEL[contentType]}
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">
+            {title}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground-muted">
+            <time dateTime={new Date(publishedAt).toISOString()}>
+              {DATE_FMT.format(publishedAt)}
+            </time>
+            <span aria-hidden>·</span>
+            <span>~{readMinutes} dəq oxu</span>
+          </div>
+        </Container>
+      </Section>
 
-      <header className="mb-4 space-y-2">
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-        <time
-          dateTime={new Date(publishedAt).toISOString()}
-          className="text-xs text-foreground-muted"
-        >
-          {DATE_FMT.format(publishedAt)}
-        </time>
-      </header>
+      <Section tone="light" padding="md">
+        <Container size="narrow" className="space-y-6">
+          {summary ? (
+            <p className="border-l-4 border-accent-orange bg-accent-orange-soft/40 px-4 py-3 text-lg leading-8 text-foreground">
+              {summary}
+            </p>
+          ) : null}
 
-      {summary ? (
-        <p className="mb-4 text-base text-foreground-muted">{summary}</p>
-      ) : null}
-
-      <div className="whitespace-pre-line text-base leading-relaxed text-foreground">
-        {body}
-      </div>
+          <article className="space-y-4 text-base leading-7 text-foreground">
+            {paragraphs.map((para, i) => (
+              <p key={i} className="whitespace-pre-line">
+                {para}
+              </p>
+            ))}
+          </article>
+        </Container>
+      </Section>
 
       {relatedTrims.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-base font-semibold text-foreground">
-            Əlaqəli modellər
-          </h2>
-          <ul className="space-y-2">
-            {relatedTrims.map((summary) => (
-              <li key={summary.trim_id}>
-                <RelatedModelLink contentId={contentId} summary={summary} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-    </article>
+        <Section tone="muted" padding="md">
+          <Container size="narrow">
+            <SectionHeading eyebrow="Əlaqəli" title="Əlaqəli modellər" />
+            <ul className="mt-6 grid gap-3 md:grid-cols-2">
+              {relatedTrims.map((s) => (
+                <li key={s.trim_id}>
+                  <RelatedModelLink contentId={contentId} summary={s} />
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </Section>
+      ) : (
+        <Section tone="light" padding="sm">
+          <Container size="narrow">
+            <Card padding="md" tone="muted">
+              <p className="text-sm text-foreground-muted">
+                Əlaqəli model yoxdur.
+              </p>
+            </Card>
+          </Container>
+        </Section>
+      )}
+    </>
   );
 }

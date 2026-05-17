@@ -1,4 +1,4 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { WhatsappStatusView } from "@/components/leads/WhatsappStatusView";
 
 export default async function ProfileLeadWhatsappPage({
   params,
@@ -6,10 +6,5 @@ export default async function ProfileLeadWhatsappPage({
   params: Promise<{ leadId: string }>;
 }) {
   const { leadId } = await params;
-  return (
-    <Placeholder
-      title="WhatsApp keçidi"
-      note={`leadId: ${leadId} — external handoff + tracking (Step 5 §13).`}
-    />
-  );
+  return <WhatsappStatusView leadId={leadId} />;
 }

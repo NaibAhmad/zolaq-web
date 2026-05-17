@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/cars/format";
 import { ROUTES } from "@/lib/routes";
 import { trackEvent } from "@/lib/tracking/track";
@@ -27,15 +29,15 @@ const STATUS_LABEL: Record<PriceStatus, string> = {
   not_available: "Hazırda mövcud deyil",
 };
 
-const STATUS_TONE: Record<PriceStatus, string> = {
-  estimated: "border-warning/40 bg-warning/10 text-warning",
-  catalog_price: "border-border bg-surface text-foreground",
-  dealer_quote_pending: "border-accent-blue/40 bg-accent-blue/10 text-accent-blue",
-  dealer_official_offer: "border-success/40 bg-success/10 text-success",
-  expired_offer: "border-foreground-muted/40 bg-surface text-foreground-muted",
-  conflict: "border-danger/40 bg-danger/10 text-danger",
-  price_unknown: "border-border bg-surface text-foreground-muted",
-  not_available: "border-border bg-surface text-foreground-muted",
+const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
+  estimated: "warning",
+  catalog_price: "neutral",
+  dealer_quote_pending: "blue",
+  dealer_official_offer: "success",
+  expired_offer: "muted",
+  conflict: "danger",
+  price_unknown: "muted",
+  not_available: "muted",
 };
 
 const SOURCE_LABEL: Record<SourceType, string> = {
@@ -53,6 +55,14 @@ const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
   pending: "Yoxlanılır",
   conflict: "Ziddiyyət",
   outdated: "Köhnəlib",
+};
+
+const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
+  unverified: "muted",
+  verified: "success",
+  pending: "warning",
+  conflict: "danger",
+  outdated: "muted",
 };
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("az-AZ", {
@@ -91,28 +101,22 @@ export function PriceCard({ price }: Props) {
   const showAmount = hasRenderableAmount(price.status) && price.amount > 0;
   const showValidUntil =
     hasDealerValidity(price.status) && price.valid_until != null;
-  const sourceText = (
-    <>
-      {price.source_name}{" "}
-      <span className="text-xs text-foreground-muted">
-        ({SOURCE_LABEL[price.source_type]})
-      </span>
-    </>
-  );
   const hasPdf =
     typeof price.signed_pdf_url === "string" && price.signed_pdf_url.length > 0;
 
   return (
-    <article
-      className={`rounded-lg border p-4 ${STATUS_TONE[price.status]}`}
-      aria-label={STATUS_LABEL[price.status]}
+    <Card
+      as="article"
+      padding="md"
+      tone="light"
+      className="flex h-full flex-col gap-3"
     >
-      <header className="flex items-baseline justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wide">
+      <header className="flex items-start justify-between gap-3">
+        <Badge tone={STATUS_TONE[price.status]} size="md">
           {STATUS_LABEL[price.status]}
-        </span>
+        </Badge>
         {showAmount ? (
-          <span className="text-lg font-semibold text-foreground">
+          <span className="text-2xl font-semibold leading-tight text-foreground">
             {formatPrice(price.amount, price.currency)}
           </span>
         ) : (
@@ -122,52 +126,68 @@ export function PriceCard({ price }: Props) {
         )}
       </header>
 
-      <dl className="mt-3 grid gap-x-4 gap-y-1 text-sm text-foreground sm:grid-cols-2">
-        <div className="flex gap-2">
-          <dt className="text-foreground-muted">Mənbə:</dt>
-          <dd className="font-medium">
+      <dl className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+        <div className="flex flex-col">
+          <dt className="text-xs uppercase tracking-wide text-foreground-muted">
+            Mənbə
+          </dt>
+          <dd className="font-medium text-foreground">
             {price.dealer_id ? (
               <Link
                 href={ROUTES.dealer(price.dealer_id)}
                 className="text-accent-blue underline-offset-2 hover:underline"
               >
-                {sourceText}
+                {price.source_name}
               </Link>
             ) : (
-              sourceText
+              price.source_name
             )}
+            <span className="ml-1 text-xs text-foreground-muted">
+              ({SOURCE_LABEL[price.source_type]})
+            </span>
           </dd>
         </div>
-        <div className="flex gap-2">
-          <dt className="text-foreground-muted">Yoxlama:</dt>
-          <dd className="font-medium">
-            {VERIFICATION_LABEL[price.verification_status]}
+        <div className="flex flex-col">
+          <dt className="text-xs uppercase tracking-wide text-foreground-muted">
+            Yoxlama
+          </dt>
+          <dd>
+            <Badge tone={VERIFICATION_TONE[price.verification_status]} size="sm">
+              {VERIFICATION_LABEL[price.verification_status]}
+            </Badge>
           </dd>
         </div>
-        <div className="flex gap-2">
-          <dt className="text-foreground-muted">Yenilənib:</dt>
-          <dd className="font-medium">{formatDate(price.last_updated)}</dd>
+        <div className="flex flex-col">
+          <dt className="text-xs uppercase tracking-wide text-foreground-muted">
+            Yenilənib
+          </dt>
+          <dd className="font-medium text-foreground">
+            {formatDate(price.last_updated)}
+          </dd>
         </div>
         {showValidUntil && price.valid_until ? (
-          <div className="flex gap-2">
-            <dt className="text-foreground-muted">Etibarlıdır:</dt>
-            <dd className="font-medium">{formatDate(price.valid_until)}</dd>
+          <div className="flex flex-col">
+            <dt className="text-xs uppercase tracking-wide text-foreground-muted">
+              Etibarlıdır
+            </dt>
+            <dd className="font-medium text-foreground">
+              {formatDate(price.valid_until)}
+            </dd>
           </div>
         ) : null}
       </dl>
 
       {hasPdf ? (
-        <div className="mt-3">
-          <a
-            href={price.signed_pdf_url ?? "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-elevated"
-          >
-            PDF təklif
-          </a>
-        </div>
+        <a
+          href={price.signed_pdf_url ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex w-fit items-center gap-2 rounded-[var(--radius)] border border-border bg-surface-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface"
+        >
+          <span aria-hidden>↧</span>
+          PDF təklif
+        </a>
       ) : null}
-    </article>
+    </Card>
   );
 }

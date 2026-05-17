@@ -1,20 +1,32 @@
-import {
-  DEALER_VERIFICATION_LABEL_AZ,
-  DEALER_VERIFICATION_TONE,
-} from "@/lib/dealers/labels";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { DEALER_VERIFICATION_LABEL_AZ } from "@/lib/dealers/labels";
 import type { DealerVerificationStatus } from "@/lib/dealers/types";
 
 type Props = {
   status: DealerVerificationStatus;
+  size?: "sm" | "md";
+  variant?: "on-light" | "on-dark";
 };
 
-export function DealerVerificationBadge({ status }: Props) {
+const TONE: Record<DealerVerificationStatus, BadgeTone> = {
+  official_dealer: "success",
+  verified_partner: "blue",
+  premium_partner: "brand",
+  pending: "warning",
+  rejected: "danger",
+  expired: "muted",
+};
+
+export function DealerVerificationBadge({
+  status,
+  size = "sm",
+  variant = "on-light",
+}: Props) {
+  const tone: BadgeTone =
+    variant === "on-dark" ? "on-dark" : TONE[status];
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${DEALER_VERIFICATION_TONE[status]}`}
-      aria-label={DEALER_VERIFICATION_LABEL_AZ[status]}
-    >
+    <Badge tone={tone} size={size}>
       {DEALER_VERIFICATION_LABEL_AZ[status]}
-    </span>
+    </Badge>
   );
 }

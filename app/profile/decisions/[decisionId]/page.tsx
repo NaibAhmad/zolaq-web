@@ -8,6 +8,12 @@ import { RecentActivityList } from "@/components/decisions/RecentActivityList";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { Stat } from "@/components/ui/Stat";
 import { ApiError, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
 import { ROUTES, otpHref } from "@/lib/routes";
@@ -54,7 +60,7 @@ export default function ProfileDecisionWorkspacePage({
             otpHref({
               purpose: "profile_access",
               next: ROUTES.profileDecision(decisionId),
-            })
+            }),
           );
           return;
         }
@@ -81,24 +87,23 @@ export default function ProfileDecisionWorkspacePage({
       try {
         await apiPatch<{ decision: Decision }>(
           `/api/profile/decisions/${decisionId}`,
-          { status: next }
+          { status: next },
         );
         setReloadKey((k) => k + 1);
       } catch {
-        // surface via reload-driven error path
         setReloadKey((k) => k + 1);
       } finally {
         setBusy(false);
       }
     },
-    [decisionId]
+    [decisionId],
   );
 
   const closeNow = useCallback(async () => {
     setBusy(true);
     try {
       await apiPost<{ decision: Decision }>(
-        `/api/profile/decisions/${decisionId}/close`
+        `/api/profile/decisions/${decisionId}/close`,
       );
       setReloadKey((k) => k + 1);
     } catch {
@@ -117,12 +122,9 @@ export default function ProfileDecisionWorkspacePage({
         title="Qərar tapılmadı"
         note="Bu qərar mövcud deyil və ya sənə aid deyil."
         action={
-          <Link
-            href={ROUTES.profileDecisions}
-            className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated"
-          >
+          <ButtonLink href={ROUTES.profileDecisions} variant="secondary">
             Qərarlara qayıt
-          </Link>
+          </ButtonLink>
         }
       />
     );
@@ -143,166 +145,209 @@ export default function ProfileDecisionWorkspacePage({
     decision.status === "closed" || decision.status === "abandoned";
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-6">
-      <nav className="text-xs text-foreground-muted">
-        <Link
-          href={ROUTES.profileDecisions}
-          className="hover:text-foreground hover:underline"
-        >
-          ← Qərarlar
-        </Link>
-      </nav>
-
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-foreground">
-            {decision.title}
-          </h1>
-          <DecisionStatusBadge status={decision.status} />
-        </div>
-        <p className="text-xs text-foreground-muted">
-          Qərar İş Sahəsi · {decision.candidate_trim_ids.length} namizəd ·{" "}
-          {decision.lead_ids.length} sorğu · yaradıldı{" "}
-          {DATE_FMT.format(decision.created_at)}
-        </p>
-      </header>
-
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={busy || isFinal || decision.status === "decided"}
-          onClick={() => patchStatus("decided")}
-          className="rounded-md bg-accent-orange px-4 py-2 text-sm font-medium text-accent-orange-fg hover:opacity-90 disabled:opacity-50"
-        >
-          Qərar verildi
-        </button>
-        <button
-          type="button"
-          disabled={busy || isFinal}
-          onClick={() => patchStatus("abandoned")}
-          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated disabled:opacity-50"
-        >
-          İmtina et
-        </button>
-        <button
-          type="button"
-          disabled={busy || decision.status === "closed"}
-          onClick={closeNow}
-          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated disabled:opacity-50"
-        >
-          Bağla
-        </button>
-      </div>
-
-      <Section title="Sorğular">
-        {leads.length === 0 ? (
-          <p className="text-sm text-foreground-muted">
-            Bu qərara bağlı sorğu yoxdur.
+    <>
+      <Section tone="dark" padding="md">
+        <Container size="narrow">
+          <nav className="mb-4 text-sm">
+            <Link
+              href={ROUTES.profileDecisions}
+              className="text-on-dark-muted underline-offset-2 hover:text-on-dark hover:underline"
+            >
+              ← Qərarlar
+            </Link>
+          </nav>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold text-on-dark md:text-3xl">
+              {decision.title}
+            </h1>
+            <DecisionStatusBadge status={decision.status} size="md" />
+          </div>
+          <p className="mt-2 text-sm text-on-dark-muted">
+            Yaradıldı {DATE_FMT.format(decision.created_at)}
           </p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface-elevated">
-            {leads.map((lead) => (
-              <li key={lead.lead_id}>
-                <Link
-                  href={ROUTES.profileLead(lead.lead_id)}
-                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {lead.trim.brand_name} · {lead.trim.model_name}
-                    </p>
-                    <p className="truncate text-xs text-foreground-muted">
-                      {lead.trim.display_name}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded border border-border bg-surface px-2 py-0.5 text-xs text-foreground">
-                    {LEAD_STATE_LABELS_AZ[lead.state]}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Stat
+              tone="dark"
+              label="Namizəd"
+              value={decision.candidate_trim_ids.length}
+            />
+            <Stat
+              tone="dark"
+              label="Sorğu"
+              value={decision.lead_ids.length}
+            />
+            <Stat
+              tone="dark"
+              label="Təklif"
+              value={offers.length}
+            />
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button
+              variant="primary"
+              disabled={busy || isFinal || decision.status === "decided"}
+              onClick={() => patchStatus("decided")}
+            >
+              Qərar verildi
+            </Button>
+            <Button
+              variant="secondary"
+              className="!border-border-on-dark !bg-white/5 !text-on-dark hover:!bg-white/10"
+              disabled={busy || isFinal}
+              onClick={() => patchStatus("abandoned")}
+            >
+              İmtina et
+            </Button>
+            <Button
+              variant="secondary"
+              className="!border-border-on-dark !bg-white/5 !text-on-dark hover:!bg-white/10"
+              disabled={busy || decision.status === "closed"}
+              onClick={closeNow}
+            >
+              Bağla
+            </Button>
+          </div>
+        </Container>
       </Section>
 
-      <Section title="Namizəd maşınlar">
-        {saved.length === 0 ? (
-          <p className="text-sm text-foreground-muted">
-            Namizəd maşın seçilməyib.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface-elevated">
-            {saved.map((item) => (
-              <li key={item.saved_id}>
-                <Link
-                  href={ROUTES.car(item.trim_id)}
-                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {item.trim.brand_name} · {item.trim.model_name}
-                    </p>
-                    <p className="truncate text-xs text-foreground-muted">
-                      {item.trim.display_name} · {item.trim.year}
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+      <Section tone="light" padding="md">
+        <Container size="narrow" className="space-y-6">
+          <WorkspaceSection title="Sorğular" count={leads.length}>
+            {leads.length === 0 ? (
+              <EmptyMini text="Bu qərara bağlı sorğu yoxdur." />
+            ) : (
+              <Card padding="none" tone="raised" as="ul">
+                {leads.map((lead, i) => (
+                  <li
+                    key={lead.lead_id}
+                    className={i > 0 ? "border-t border-border" : ""}
+                  >
+                    <Link
+                      href={ROUTES.profileLead(lead.lead_id)}
+                      className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-muted"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {lead.trim.brand_name} · {lead.trim.model_name}
+                        </p>
+                        <p className="truncate text-xs text-foreground-muted">
+                          {lead.trim.display_name}
+                        </p>
+                      </div>
+                      <Badge tone="blue" size="sm">
+                        {LEAD_STATE_LABELS_AZ[lead.state]}
+                      </Badge>
+                    </Link>
+                  </li>
+                ))}
+              </Card>
+            )}
+          </WorkspaceSection>
 
-      <Section title="Diler təklifləri">
-        {offers.length === 0 ? (
-          <p className="text-sm text-foreground-muted">
-            Rəsmi təklif hələ yoxdur.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface-elevated">
-            {offers.map((offer) => (
-              <li
-                key={offer.offer_id ?? `${offer.trim_id}-${offer.last_updated}`}
-                className="flex items-center justify-between gap-3 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {offer.source_name}
-                  </p>
-                  <p className="truncate text-xs text-foreground-muted">
-                    {offer.trim_id}
-                  </p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold text-foreground">
-                  {PRICE_FMT.format(offer.amount)} {offer.currency}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+          <WorkspaceSection title="Namizəd maşınlar" count={saved.length}>
+            {saved.length === 0 ? (
+              <EmptyMini text="Namizəd maşın seçilməyib." />
+            ) : (
+              <Card padding="none" tone="raised" as="ul">
+                {saved.map((item, i) => (
+                  <li
+                    key={item.saved_id}
+                    className={i > 0 ? "border-t border-border" : ""}
+                  >
+                    <Link
+                      href={ROUTES.car(item.trim_id)}
+                      className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-muted"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {item.trim.brand_name} · {item.trim.model_name}
+                        </p>
+                        <p className="truncate text-xs text-foreground-muted">
+                          {item.trim.display_name} · {item.trim.year}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </Card>
+            )}
+          </WorkspaceSection>
 
-      <Section title="Qərar tarixçəsi">
-        <RecentActivityList
-          events={history}
-          emptyLabel="Bu qərarda hələ fəaliyyət yoxdur."
-        />
+          <WorkspaceSection title="Diler təklifləri" count={offers.length}>
+            {offers.length === 0 ? (
+              <EmptyMini text="Rəsmi təklif hələ yoxdur." />
+            ) : (
+              <Card padding="none" tone="raised" as="ul">
+                {offers.map((offer, i) => (
+                  <li
+                    key={
+                      offer.offer_id ?? `${offer.trim_id}-${offer.last_updated}`
+                    }
+                    className={`flex items-center justify-between gap-3 px-5 py-3 ${
+                      i > 0 ? "border-t border-border" : ""
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {offer.source_name}
+                      </p>
+                      <p className="truncate text-xs text-foreground-muted">
+                        {offer.trim_id}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-semibold text-foreground">
+                      {PRICE_FMT.format(offer.amount)} {offer.currency}
+                    </p>
+                  </li>
+                ))}
+              </Card>
+            )}
+          </WorkspaceSection>
+
+          <WorkspaceSection title="Qərar tarixçəsi" count={history.length}>
+            <RecentActivityList
+              events={history}
+              emptyLabel="Bu qərarda hələ fəaliyyət yoxdur."
+            />
+          </WorkspaceSection>
+        </Container>
       </Section>
-    </section>
+    </>
   );
 }
 
-function Section({
+function WorkspaceSection({
   title,
+  count,
   children,
 }: {
   title: string;
+  count?: number;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <h2 className="text-base font-semibold text-foreground">{title}</h2>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
+          {title}
+        </h2>
+        {typeof count === "number" ? (
+          <Badge tone="muted" size="sm">
+            {count}
+          </Badge>
+        ) : null}
+      </div>
       {children}
     </div>
+  );
+}
+
+function EmptyMini({ text }: { text: string }) {
+  return (
+    <p className="rounded-[var(--radius-lg)] border border-dashed border-border bg-surface p-4 text-center text-sm text-foreground-muted">
+      {text}
+    </p>
   );
 }

@@ -1,0 +1,135 @@
+// Unified profile activity timeline. Aggregates from existing stores plus
+// gamification (votes, badges, points). Reader only — no new event table.
+// Owner-visible; dealer and admin paths do not query this.
+
+import { trimSummaryFor } from "@/lib/cars/summary";
+import {
+  getTimelineForLead,
+  listLeadsForUser,
+} from "@/lib/leads/store";
+import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
+import { listSavedForUser, listViewedForUser } from "@/lib/decisions/store";
+import { getTopic, listUserVotes } from "@/lib/market-pulse/store";
+import { BADGE_CATALOGUE, listUserBadges } from "./badges";
+import {
+  listUserPointGrants,
+  POINT_ACTION_LABEL_AZ,
+  type PointAction,
+} from "./points";
+
+export type ActivityItem = {
+  id: string;
+  kind:
+    | "vote"
+    | "badge"
+    | "point"
+    | "lead"
+    | "lead_status"
+    | "comparison"
+    | "saved"
+    | "viewed"
+    | "content";
+  label: string;
+  detail?: string;
+  at: number;
+};
+
+const CONTENT_ACTIONS: ReadonlySet<PointAction> = new Set([
+  "encyclopedia_read",
+  "news_read",
+]);
+
+const COMPARISON_ACTIONS: ReadonlySet<PointAction> = new Set(["comparison"]);
+
+export function listProfileActivity(userId: string): ActivityItem[] {
+  const out: ActivityItem[] = [];
+
+  for (const v of listUserVotes(userId)) {
+    const topic = getTopic(v.topic_id);
+    const optionLabel =
+      topic?.options.find((o) => o.option_id === v.option_id)?.label ??
+      v.option_id;
+    out.push({
+      id: `vote:${v.vote_id}`,
+      kind: "vote",
+      label: "Bazar Nəbzində səs verdin",
+      detail: topic ? `${topic.question} — ${optionLabel}` : optionLabel,
+      at: v.created_at,
+    });
+  }
+
+  for (const b of listUserBadges(userId)) {
+    const def = BADGE_CATALOGUE[b.badge_id];
+    out.push({
+      id: `badge:${b.badge_grant_id}`,
+      kind: "badge",
+      label: `Nişan qazandın: ${def.name}`,
+      detail: def.description,
+      at: b.granted_at,
+    });
+  }
+
+  for (const p of listUserPointGrants(userId)) {
+    if (p.reversed_at) continue;
+    const kind: ActivityItem["kind"] = CONTENT_ACTIONS.has(p.action)
+      ? "content"
+      : COMPARISON_ACTIONS.has(p.action)
+        ? "comparison"
+        : "point";
+    out.push({
+      id: `point:${p.point_grant_id}`,
+      kind,
+      label: POINT_ACTION_LABEL_AZ[p.action],
+      detail: `+${p.points} bal`,
+      at: p.granted_at,
+    });
+  }
+
+  for (const s of listSavedForUser(userId)) {
+    const t = trimSummaryFor(s.trim_id);
+    out.push({
+      id: `saved:${s.saved_id}`,
+      kind: "saved",
+      label: "Maşın saxladın",
+      detail: t.display_name,
+      at: s.created_at,
+    });
+  }
+
+  for (const v of listViewedForUser(userId)) {
+    const t = trimSummaryFor(v.trim_id);
+    out.push({
+      id: `viewed:${v.viewed_id}`,
+      kind: "viewed",
+      label: "Maşına baxdın",
+      detail: t.display_name,
+      at: v.viewed_at,
+    });
+  }
+
+  for (const lead of listLeadsForUser(userId)) {
+    const trim = trimSummaryFor(lead.trim_id);
+    out.push({
+      id: `lead:${lead.lead_id}`,
+      kind: "lead",
+      label: "Sorğu göndərdin",
+      detail: trim.display_name,
+      at: lead.created_at,
+    });
+    for (const event of getTimelineForLead(lead.lead_id)) {
+      if (!event.to_state) continue;
+      // The "lead_submitted" entry duplicates the lead-create item above; skip.
+      if (event.to_state === "submitted") continue;
+      out.push({
+        id: `lead_status:${event.event_id}`,
+        kind: "lead_status",
+        label: `Sorğu vəziyyəti: ${LEAD_STATE_LABELS_AZ[event.to_state]}`,
+        detail: trim.display_name,
+        at: event.created_at,
+      });
+    }
+  }
+
+  out.sort((a, b) => b.at - a.at);
+  return out;
+}

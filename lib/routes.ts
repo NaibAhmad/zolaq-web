@@ -36,6 +36,20 @@ export const ROUTES = {
   profileLeadWhatsapp: (leadId: string) => `/profile/leads/${leadId}/whatsapp`,
   profileDecisions: "/profile/decisions",
   profileDecision: (decisionId: string) => `/profile/decisions/${decisionId}`,
+  profileBadges: "/profile/badges",
+
+  // Sprint 8F public Q&A tabs use search params, not sub-routes, because
+  // /qa/[id] is the existing dynamic segment for individual answers.
+  qaTab: (tab: string) => (tab === "suallar" ? "/qa" : `/qa?tab=${tab}`),
+
+  // Sprint 8E admin/dealer routes.
+  adminAds: "/admin/ads",
+  adminInvoices: "/admin/invoices",
+  adminPayments: "/admin/payments",
+  adminMarketPulse: "/admin/market-pulse",
+  dealerAdRequests: "/dealer/ad-requests",
+  dealerInvoices: "/dealer/invoices",
+  dealerPaymentProof: "/dealer/payment-proof",
 } as const;
 
 export const PROTECTED_ROUTE_PREFIXES = ["/profile"] as const;

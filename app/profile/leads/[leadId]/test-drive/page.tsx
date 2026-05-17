@@ -1,4 +1,4 @@
-import { Placeholder } from "@/components/layout/Placeholder";
+import { TestDriveStatusView } from "@/components/leads/TestDriveStatusView";
 
 export default async function ProfileLeadTestDrivePage({
   params,
@@ -6,10 +6,5 @@ export default async function ProfileLeadTestDrivePage({
   params: Promise<{ leadId: string }>;
 }) {
   const { leadId } = await params;
-  return (
-    <Placeholder
-      title="Test-sürüş statusu"
-      note={`leadId: ${leadId} — request-only (Step 5 §12).`}
-    />
-  );
+  return <TestDriveStatusView leadId={leadId} />;
 }

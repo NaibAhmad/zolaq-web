@@ -8,6 +8,11 @@ import { NewDecisionForm } from "@/components/decisions/NewDecisionForm";
 import { EmptyState } from "@/components/state/EmptyState";
 import { ErrorState } from "@/components/state/ErrorState";
 import { LoadingState } from "@/components/state/LoadingState";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { ROUTES, otpHref } from "@/lib/routes";
 import { trackEvent } from "@/lib/tracking/track";
@@ -57,7 +62,7 @@ export default function ProfileDecisionsPage() {
             otpHref({
               purpose: "profile_access",
               next: ROUTES.profileDecisions,
-            })
+            }),
           );
           return;
         }
@@ -88,56 +93,78 @@ export default function ProfileDecisionsPage() {
   }
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">Qərarlar</h1>
-        <p className="text-sm text-foreground-muted">
-          Hər qərar bir alış prosesini birləşdirir: namizəd maşınlar, sorğular,
-          təkliflər.
-        </p>
-      </header>
+    <>
+      <Section tone="muted" padding="sm">
+        <Container size="narrow">
+          <SectionHeading
+            eyebrow="Qərar Mərkəzi"
+            title="Qərarlar"
+            subtitle="Hər qərar bir alış prosesini birləşdirir: namizəd maşınlar, sorğular, təkliflər."
+          />
+          <div className="mt-4">
+            <Badge tone="blue" size="md">
+              {state.decisions.length} qərar
+            </Badge>
+          </div>
+        </Container>
+      </Section>
 
-      <NewDecisionForm
-        saved={state.saved}
-        onCreated={() => setReloadKey((k) => k + 1)}
-      />
+      <Section tone="light" padding="md">
+        <Container size="narrow" className="space-y-6">
+          <NewDecisionForm
+            saved={state.saved}
+            onCreated={() => setReloadKey((k) => k + 1)}
+          />
 
-      {state.decisions.length === 0 ? (
-        <EmptyState
-          title="Hələ qərar yoxdur"
-          note="Yuxarıdakı formadan ilk qərarını yarat."
-        />
-      ) : (
-        <ul className="space-y-3">
-          {state.decisions.map((decision) => (
-            <li key={decision.decision_id}>
-              <Link
-                href={ROUTES.profileDecision(decision.decision_id)}
-                className="flex flex-col gap-2 rounded-lg border border-border bg-surface-elevated p-4 hover:bg-surface md:flex-row md:items-center md:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {decision.title}
-                  </p>
-                  <p className="truncate text-xs text-foreground-muted">
-                    {decision.candidate_trim_ids.length} namizəd ·{" "}
-                    {decision.lead_ids.length} sorğu
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <DecisionStatusBadge status={decision.status} />
-                  <time
-                    dateTime={new Date(decision.created_at).toISOString()}
-                    className="text-xs text-foreground-muted"
+          {state.decisions.length === 0 ? (
+            <EmptyState
+              title="Hələ qərar yoxdur"
+              note="Yuxarıdakı formadan ilk qərarını yarat."
+            />
+          ) : (
+            <ul className="space-y-3">
+              {state.decisions.map((decision) => (
+                <li key={decision.decision_id}>
+                  <Link
+                    href={ROUTES.profileDecision(decision.decision_id)}
+                    className="block"
                   >
-                    {DATE_FMT.format(decision.created_at)}
-                  </time>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+                    <Card
+                      padding="md"
+                      tone="raised"
+                      interactive
+                      className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">
+                          {decision.title}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <Badge tone="muted" size="sm">
+                            {decision.candidate_trim_ids.length} namizəd
+                          </Badge>
+                          <Badge tone="muted" size="sm">
+                            {decision.lead_ids.length} sorğu
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <DecisionStatusBadge status={decision.status} />
+                        <time
+                          dateTime={new Date(decision.created_at).toISOString()}
+                          className="text-xs text-foreground-muted"
+                        >
+                          {DATE_FMT.format(decision.created_at)}
+                        </time>
+                      </div>
+                    </Card>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Container>
+      </Section>
+    </>
   );
 }

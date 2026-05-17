@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errorJson } from "@/lib/auth/error";
 import { getSession } from "@/lib/auth/session";
+import { listPrices } from "@/lib/admin";
 import { trimSummaryFor } from "@/lib/cars/summary";
-import { DEALER_OFFERS } from "@/lib/cars/seed";
 import {
   getDecisionForUser,
   listHistoryForUser,
@@ -41,9 +41,11 @@ export async function GET(
     .filter((s) => candidateTrimIds.has(s.trim_id))
     .map((s) => ({ ...s, trim: trimSummaryFor(s.trim_id) }));
 
-  const offers = DEALER_OFFERS.filter(
+  const offers = listPrices({ offers_only: true }).filter(
     (o) =>
-      candidateTrimIds.has(o.trim_id) && o.status === "dealer_official_offer"
+      candidateTrimIds.has(o.trim_id) &&
+      o.status === "dealer_official_offer" &&
+      o.offer_status === "published",
   );
 
   const history = listHistoryForUser(session.userId, {
