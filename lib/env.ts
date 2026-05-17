@@ -30,3 +30,14 @@ export const FEATURE_VIN_BETA =
 
 export const FEATURE_I18N_BETA =
   (process.env.NEXT_PUBLIC_FEATURE_I18N_BETA ?? "false") === "true";
+
+// Sprint 10J: First 100 closed-beta acquisition. When the flag is on, the
+// homepage renders HomeBetaInviteCard after HomeDecisionHelper. When the
+// flag is on AND the waitlist URL is set, the CTA opens the external form
+// in a new tab. When the flag is on but the URL is empty, the CTA renders
+// a safe disabled "coming soon" state. No backend, no PII, no app route.
+
+export const FEATURE_BETA_INVITE =
+  (process.env.NEXT_PUBLIC_FEATURE_BETA_INVITE ?? "false") === "true";
+
+export const BETA_WAITLIST_URL = process.env.NEXT_PUBLIC_BETA_WAITLIST_URL ?? "";

@@ -1,4 +1,5 @@
 import { SponsoredSlot } from "@/components/ads/SponsoredSlot";
+import { HomeBetaInviteCard } from "@/components/home/HomeBetaInviteCard";
 import { HomeCatalogTeaser } from "@/components/home/HomeCatalogTeaser";
 import { HomeContentTeaser } from "@/components/home/HomeContentTeaser";
 import { HomeDealerTeaser } from "@/components/home/HomeDealerTeaser";
@@ -10,7 +11,7 @@ import { HomeTrustStrip } from "@/components/home/HomeTrustStrip";
 import { HomeVinBetaCard } from "@/components/home/HomeVinBetaCard";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
-import { FEATURE_VIN_BETA } from "@/lib/env";
+import { FEATURE_BETA_INVITE, FEATURE_VIN_BETA } from "@/lib/env";
 
 export default function HomePage() {
   return (
@@ -42,6 +43,14 @@ export default function HomePage() {
           <HomeDecisionHelper />
         </Container>
       </Section>
+
+      {FEATURE_BETA_INVITE ? (
+        <Section tone="light" padding="md">
+          <Container>
+            <HomeBetaInviteCard />
+          </Container>
+        </Section>
+      ) : null}
 
       <Section tone="light" padding="md">
         <Container>
