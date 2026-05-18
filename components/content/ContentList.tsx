@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { formatDateAz } from "@/lib/format/date";
 
 export type ContentListItem = {
   key: string;
@@ -24,12 +25,6 @@ type Props = {
   cardTone?: "blue" | "orange" | "success";
   cardLabel?: string;
 };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export function ContentList({
   heading,
@@ -91,7 +86,7 @@ export function ContentList({
                           dateTime={new Date(item.publishedAt).toISOString()}
                           className="text-xs text-foreground-muted"
                         >
-                          {DATE_FMT.format(item.publishedAt)}
+                          {formatDateAz(item.publishedAt)}
                         </time>
                         <span className="text-sm font-medium text-accent-blue">
                           Davam et →

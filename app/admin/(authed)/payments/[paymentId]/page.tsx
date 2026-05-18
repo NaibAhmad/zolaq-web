@@ -5,17 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { listDealers } from "@/lib/admin";
+import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoice } from "@/lib/invoices/store";
 import { getPaymentProof } from "@/lib/payments/store";
 import { PAYMENT_PROOF_STATUS_LABEL_AZ } from "@/lib/payments/types";
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default async function AdminPaymentDetailPage({
   params,
@@ -43,7 +36,7 @@ export default async function AdminPaymentDetailPage({
         <Field label="Referans" value={proof.reference} />
         <Field
           label="Yüklənib"
-          value={`${DATE_FMT.format(proof.uploaded_at)} · ${proof.uploaded_by}`}
+          value={`${formatDateTimeAz(proof.uploaded_at)} · ${proof.uploaded_by}`}
         />
         {proof.file_ref ? (
           <Field label="Fayl referansı" value={proof.file_ref} />

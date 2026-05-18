@@ -7,17 +7,8 @@ import {
   NEWS_ARTICLES,
   QA_ENTRIES,
 } from "@/lib/content/seed";
+import { formatDateAz } from "@/lib/format/date";
 import { ROUTES } from "@/lib/routes";
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-function formatDate(ts: number): string {
-  return DATE_FMT.format(new Date(ts));
-}
 
 export function HomeContentTeaser() {
   const news = NEWS_ARTICLES[0];
@@ -28,7 +19,7 @@ export function HomeContentTeaser() {
     <div className="flex flex-col gap-6">
       <SectionHeading
         eyebrow="Məzmun"
-        title="Ensiklopediya, xəbərlər və Q&A"
+        title="Ensiklopediya, xəbərlər və sorğular"
         subtitle="Maşın seçimini dəstəkləyən praktik məqalələr."
         action={{ label: "Bütün ensiklopediya", href: ROUTES.encyclopedia }}
       />
@@ -49,7 +40,7 @@ export function HomeContentTeaser() {
               </h3>
               <p className="text-sm text-foreground-muted">{news.summary}</p>
               <p className="mt-auto text-xs text-foreground-muted">
-                {formatDate(news.published_at)}
+                {formatDateAz(news.published_at)}
               </p>
             </Card>
           </Link>
@@ -73,7 +64,7 @@ export function HomeContentTeaser() {
               </h3>
               <p className="text-sm text-foreground-muted">{enc.summary}</p>
               <p className="mt-auto text-xs text-foreground-muted">
-                {formatDate(enc.published_at)}
+                {formatDateAz(enc.published_at)}
               </p>
             </Card>
           </Link>
@@ -87,7 +78,7 @@ export function HomeContentTeaser() {
               className="flex h-full min-h-[200px] flex-col gap-3"
             >
               <Badge tone="success" size="sm">
-                Q&A
+                Sorğu
               </Badge>
               <h3 className="text-base font-semibold text-foreground">
                 {qa.question}
@@ -96,7 +87,7 @@ export function HomeContentTeaser() {
                 {qa.answer.slice(0, 140)}…
               </p>
               <p className="mt-auto text-xs text-foreground-muted">
-                {formatDate(qa.published_at)}
+                {formatDateAz(qa.published_at)}
               </p>
             </Card>
           </Link>

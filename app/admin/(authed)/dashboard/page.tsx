@@ -5,8 +5,11 @@ import { listDealers, listPrices } from "@/lib/admin";
 import { listAuditLog } from "@/lib/audit/repository";
 import { listSubmissions } from "@/lib/dealer/submissions/store";
 import { listNews, listEncyclopedia, listQA } from "@/lib/content/admin-store";
+import { formatDateTimeAz } from "@/lib/format/date";
+import { getServerT } from "@/lib/i18n/server";
 
 export default async function AdminDashboardPage() {
+  const t = await getServerT();
   const pendingOffers = listPrices({ offers_only: true }).filter(
     (p) =>
       p.offer_status === "submitted" ||
@@ -26,18 +29,18 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Admin paneli</h1>
+      <h1 className="text-xl font-semibold">{t("adminDashboard.title")}</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label="Açıq müraciətlər" value={pendingSubmissions.length} href="/admin/offers" />
-        <KpiCard label="Yoxlanılan təkliflər" value={pendingOffers.length} href="/admin/offers" />
-        <KpiCard label="Pending dilerlər" value={pendingDealers.length} href="/admin/dealers" />
-        <KpiCard label="Qaralama məzmun" value={draftContent.length} href="/admin/content/news" />
+        <KpiCard label={t("adminDashboard.openSubmissions")} value={pendingSubmissions.length} href="/admin/offers" />
+        <KpiCard label={t("adminDashboard.pendingOffers")} value={pendingOffers.length} href="/admin/offers" />
+        <KpiCard label={t("adminDashboard.pendingDealers")} value={pendingDealers.length} href="/admin/dealers" />
+        <KpiCard label={t("adminDashboard.draftContent")} value={draftContent.length} href="/admin/content/news" />
       </div>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Son audit hadisələri</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("adminDashboard.recentEvents")}</h2>
         {recentAudit.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Hələ heç bir hadisə yoxdur.</p>
+          <p className="text-sm text-foreground-muted">{t("adminDashboard.noEvents")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {recentAudit.map((e) => (
@@ -49,7 +52,7 @@ export default async function AdminDashboardPage() {
                   </span>
                 </div>
                 <span className="text-xs text-foreground-muted">
-                  {new Date(e.created_at).toLocaleString()}
+                  {formatDateTimeAz(e.created_at)}
                 </span>
               </li>
             ))}
@@ -58,9 +61,9 @@ export default async function AdminDashboardPage() {
       </Card>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Yoxlanmaq üçün təkliflər</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("adminDashboard.offersToReview")}</h2>
         {pendingOffers.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Bütün təkliflər təmizdir.</p>
+          <p className="text-sm text-foreground-muted">{t("adminDashboard.allOffersClean")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {pendingOffers.slice(0, 6).map((o) => (

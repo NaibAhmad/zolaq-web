@@ -1,3 +1,5 @@
+"use client";
+
 import { CarImage } from "@/components/catalog/CarImage";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
@@ -5,6 +7,7 @@ import { Container } from "@/components/ui/Container";
 import { Stat } from "@/components/ui/Stat";
 import { formatAzn } from "@/lib/cars/format";
 import { getBrand, getPricesForTrim, getTrimById } from "@/lib/cars/lookup";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 import type { PriceRecord, Trim } from "@/lib/cars/types";
 
@@ -29,6 +32,7 @@ function pickBest(prices: PriceRecord[]): PriceRecord | null {
 }
 
 export function HomeHero() {
+  const t = useT();
   const trim = getTrimById(HERO_TRIM_ID);
   const brand = trim ? getBrand(trim.brand_id) : null;
   const bestPrice = trim ? pickBest(getPricesForTrim(trim.trim_id)) : null;
@@ -41,20 +45,18 @@ export function HomeHero() {
           <div className="flex flex-col gap-6">
             <Badge tone="on-dark" size="md" className="w-fit">
               <span className="h-1.5 w-1.5 rounded-full bg-accent-orange" />
-              Zolaq · 2026
+              {t("homeHero.yearBadge")}
             </Badge>
             <h1 className="text-3xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
-              Maşın almadan əvvəl{" "}
-              <span className="text-accent-blue">Zolaq</span>-da yoxla.
+              {t("home.heroTitlePre")}{" "}
+              <span className="text-accent-blue">{t("home.heroTitleBrand")}</span>
             </h1>
             <p className="max-w-xl text-base text-on-dark-muted md:text-lg">
-              Azərbaycanın rəsmi diler məlumatına və yoxlanmış qiymət təkliflərinə
-              əsaslanan ilk avtomobil seçim platforması. Müqayisə et, sorğu göndər,
-              rəsmi təklif al.
+              {t("home.heroSubtitle")}
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
               <ButtonLink href={ROUTES.cars} variant="primary" size="lg">
-                Maşın seç
+                {t("home.heroCtaPick")}
               </ButtonLink>
               <ButtonLink
                 href={ROUTES.profileDecisions}
@@ -62,24 +64,29 @@ export function HomeHero() {
                 size="lg"
                 className="!border-border-on-dark !bg-white/5 !text-on-dark hover:!bg-white/10"
               >
-                Mənə uyğun tap
+                {t("home.heroCtaMatch")}
               </ButtonLink>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border-on-dark pt-6 md:gap-6">
               <Stat
                 tone="dark"
-                label="Rəsmi diler"
+                label={t("home.trustOfficialDealer")}
                 value="7"
-                hint="Brend təsdiqi"
+                hint={t("homeHero.brandTrustHint")}
               />
               <Stat
                 tone="dark"
-                label="Yoxlanmış təklif"
+                label={t("homeHero.verifiedOfferLabel")}
                 value="6"
-                hint="PDF-li qiymət"
+                hint={t("home.trustPdfTitle")}
               />
-              <Stat tone="dark" label="Müqayisə" value="2-3" hint="Yan-yana" />
+              <Stat
+                tone="dark"
+                label={t("home.trustCompareTitle")}
+                value="2-3"
+                hint={t("homeHero.sideBySideHint")}
+              />
             </div>
           </div>
 
@@ -88,6 +95,7 @@ export function HomeHero() {
               trim={trim}
               brandName={brand.name}
               price={bestPrice}
+              t={t}
             />
           ) : null}
         </div>
@@ -100,16 +108,17 @@ type PreviewProps = {
   trim: Trim;
   brandName: string;
   price: PriceRecord | null;
+  t: ReturnType<typeof useT>;
 };
 
-function HeroPreviewCard({ trim, brandName, price }: PreviewProps) {
+function HeroPreviewCard({ trim, brandName, price, t }: PreviewProps) {
   return (
     <div className="relative">
       <div className="rounded-[var(--radius-xl)] border border-border-on-dark bg-surface-dark-elevated p-4 shadow-[var(--shadow-hero)] md:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-on-dark-muted">
-              Rəsmi təklif
+              {t("catalogCard.statusOfficial")}
             </p>
             <p className="mt-1 text-base font-semibold md:text-lg">
               {trim.display_name}
@@ -117,7 +126,7 @@ function HeroPreviewCard({ trim, brandName, price }: PreviewProps) {
           </div>
           <Badge tone="success" size="sm" className="shrink-0">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent-green" />
-            Rəsmi diler
+            {t("catalogCard.sourceDealer")}
           </Badge>
         </div>
         <div className="mt-4">
@@ -130,19 +139,19 @@ function HeroPreviewCard({ trim, brandName, price }: PreviewProps) {
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
           <div>
-            <p className="text-on-dark-muted">Güc</p>
+            <p className="text-on-dark-muted">{t("carDetail.powerLabel")}</p>
             <p className="text-sm font-semibold">
               {trim.power_hp ? `${trim.power_hp} a.g.` : "—"}
             </p>
           </div>
           <div>
-            <p className="text-on-dark-muted">Yürüş</p>
+            <p className="text-on-dark-muted">{t("carDetail.rangeLabel")}</p>
             <p className="text-sm font-semibold">
               {trim.range_km ? `${trim.range_km} km` : "—"}
             </p>
           </div>
           <div>
-            <p className="text-on-dark-muted">İl</p>
+            <p className="text-on-dark-muted">{t("carDetail.yearLabel")}</p>
             <p className="text-sm font-semibold">{trim.year}</p>
           </div>
         </div>

@@ -1,30 +1,37 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 
-const CATALOG_LINKS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: ROUTES.cars, label: "Maşınlar" },
-  { href: ROUTES.compare, label: "Müqayisə" },
-  { href: ROUTES.dealers, label: "Dilerlər" },
+type FooterLink = { href: string; labelKey: TranslationKey };
+
+const CATALOG_LINKS: ReadonlyArray<FooterLink> = [
+  { href: ROUTES.cars, labelKey: "nav.cars" },
+  { href: ROUTES.compare, labelKey: "nav.compare" },
+  { href: ROUTES.dealers, labelKey: "nav.dealers" },
 ];
 
-const CONTENT_LINKS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: ROUTES.news, label: "Xəbərlər" },
-  { href: ROUTES.encyclopedia, label: "Ensiklopediya" },
-  { href: ROUTES.qa, label: "Q&A" },
+const CONTENT_LINKS: ReadonlyArray<FooterLink> = [
+  { href: ROUTES.news, labelKey: "nav.news" },
+  { href: ROUTES.encyclopedia, labelKey: "nav.encyclopedia" },
+  { href: ROUTES.qa, labelKey: "nav.qa" },
 ];
 
-const ACCOUNT_LINKS: ReadonlyArray<{ href: string; label: string }> = [
-  { href: ROUTES.profile, label: "Mən" },
-  { href: ROUTES.profileSaved, label: "Saxlanılan" },
-  { href: ROUTES.profileLeads, label: "Sorğularım" },
+const ACCOUNT_LINKS: ReadonlyArray<FooterLink> = [
+  { href: ROUTES.profile, labelKey: "nav.profileShort" },
+  { href: ROUTES.profileSaved, labelKey: "nav.savedItems" },
+  { href: ROUTES.profileLeads, labelKey: "nav.myLeads" },
 ];
 
 const linkClass =
   "text-sm text-on-dark-muted transition-colors hover:text-on-dark";
 
 export function Footer() {
+  const t = useT();
   const year = new Date().getFullYear();
 
   return (
@@ -34,18 +41,21 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <Logo variant="dark" />
             <p className="max-w-xs text-sm text-on-dark-muted">
-              Zolaq — maşın seçimini öyrən, müqayisə et və rəsmi diler təklifi al.
+              {t("footer.tagline")}
             </p>
           </div>
 
-          <FooterColumn title="Kataloq" links={CATALOG_LINKS} />
-          <FooterColumn title="Ensiklopediya" links={CONTENT_LINKS} />
-          <FooterColumn title="Hesab" links={ACCOUNT_LINKS} />
+          <FooterColumn title={t("footer.catalog")} links={CATALOG_LINKS} />
+          <FooterColumn
+            title={t("footer.encyclopedia")}
+            links={CONTENT_LINKS}
+          />
+          <FooterColumn title={t("footer.account")} links={ACCOUNT_LINKS} />
         </div>
 
         <div className="flex flex-col gap-2 border-t border-border-on-dark py-6 text-xs text-on-dark-muted md:flex-row md:items-center md:justify-between">
-          <p>© {year} Zolaq. MVP prototip — qiymətlər və mövcudluq dəyişə bilər.</p>
-          <p>Bakı, Azərbaycan</p>
+          <p>{t("footer.copyright", { year })}</p>
+          <p>{t("footer.location")}</p>
         </div>
       </Container>
     </footer>
@@ -57,8 +67,9 @@ function FooterColumn({
   links,
 }: {
   title: string;
-  links: ReadonlyArray<{ href: string; label: string }>;
+  links: ReadonlyArray<FooterLink>;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-on-dark">
@@ -68,7 +79,7 @@ function FooterColumn({
         {links.map((link) => (
           <li key={link.href}>
             <Link href={link.href} className={linkClass}>
-              {link.label}
+              {t(link.labelKey)}
             </Link>
           </li>
         ))}

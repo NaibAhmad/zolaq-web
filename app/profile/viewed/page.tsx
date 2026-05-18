@@ -13,6 +13,8 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { ViewedCarWithTrim } from "@/lib/decisions/types";
 
@@ -21,14 +23,9 @@ type FetchState =
   | { status: "error"; message: string; code: string }
   | { status: "ready"; viewed: ViewedCarWithTrim[] };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
 export default function ProfileViewedPage() {
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -50,21 +47,21 @@ export default function ProfileViewedPage() {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, router]);
+  }, [reloadKey, router, t]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Baxılan maşınlar yüklənir…" />;
+    return <LoadingState label={t("profileViewed.title")} />;
   }
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Baxılan maşınlar yüklənmədi"
+        title={t("errors.loadFailed")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -74,11 +71,11 @@ export default function ProfileViewedPage() {
   if (state.viewed.length === 0) {
     return (
       <EmptyState
-        title="Hələ baxılan maşın yoxdur"
-        note="Maşınlara baxmağa başlayanda onlar burada görünəcək."
+        title={t("profileViewed.emptyTitle")}
+        note={t("profileViewed.emptyNote")}
         action={
           <ButtonLink href={ROUTES.cars} variant="primary">
-            Maşınlara bax
+            {t("nav.cars")}
           </ButtonLink>
         }
       />
@@ -129,7 +126,7 @@ export default function ProfileViewedPage() {
                       dateTime={new Date(item.viewed_at).toISOString()}
                       className="text-xs text-foreground-muted"
                     >
-                      {DATE_FMT.format(item.viewed_at)}
+                      {formatDateAz(item.viewed_at)}
                     </time>
                   </Card>
                 </Link>

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { apiGet } from "@/lib/api";
+import { useT } from "@/lib/i18n/client";
 import type { AdPlacementArea } from "@/lib/ads/types";
 
 type Placement = {
@@ -30,6 +31,7 @@ type FetchState =
   | { status: "error" };
 
 export function SponsoredSlot({ area, variant = "card" }: Props) {
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
   useEffect(() => {
@@ -55,11 +57,9 @@ export function SponsoredSlot({ area, variant = "card" }: Props) {
   }
 
   const { placement } = state;
-  const label = placement?.label ?? "Demo reklam yeri";
+  const label = placement?.label ?? t("ads.demoSlot");
   const tone = placement ? "orange" : "muted";
-  const note =
-    placement?.campaign_note ??
-    "Bu sahə təsdiqlənmiş sponsorlu yerləşdirmələr üçün ayrılıb.";
+  const note = placement?.campaign_note ?? t("ads.slotPlaceholderBody");
 
   const padding = variant === "strip" ? "md" : "lg";
 
@@ -75,13 +75,13 @@ export function SponsoredSlot({ area, variant = "card" }: Props) {
             {label}
           </Badge>
           <span className="text-[11px] uppercase tracking-wide text-foreground-muted">
-            Sponsorlu yerləşdirmə
+            {t("ads.sponsoredPlacement")}
           </span>
         </div>
         <p className="text-sm text-foreground">{note}</p>
       </div>
       <span className="text-[11px] text-foreground-muted">
-        Bu rəsmi qiymət təklifi deyil.
+        {t("ads.notOfficialQuote")}
       </span>
     </Card>
   );

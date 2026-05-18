@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { listNews } from "@/lib/content/admin-store";
+import { formatDateAz } from "@/lib/format/date";
 
 export default function AdminNewsPage() {
   const items = listNews();
@@ -41,7 +42,7 @@ export default function AdminNewsPage() {
           {
             key: "published_at",
             header: "Tarix",
-            cell: (n) => new Date(n.published_at).toLocaleDateString(),
+            cell: (n) => formatDateAz(n.published_at),
           },
         ]}
       />

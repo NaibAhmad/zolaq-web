@@ -1,3 +1,5 @@
+"use client";
+
 // Sprint 10J: First 100 closed-beta invite card. Renders only when
 // NEXT_PUBLIC_FEATURE_BETA_INVITE=true. If NEXT_PUBLIC_BETA_WAITLIST_URL is
 // set, the CTA opens it in a new tab. If empty, the CTA falls back to a
@@ -7,8 +9,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BETA_WAITLIST_URL } from "@/lib/env";
+import { useT } from "@/lib/i18n/client";
 
 export function HomeBetaInviteCard() {
+  const t = useT();
   const waitlistUrl = BETA_WAITLIST_URL.trim();
   const hasWaitlist = waitlistUrl.length > 0;
 
@@ -18,18 +22,17 @@ export function HomeBetaInviteCard() {
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="muted" size="sm">
-              Beta · Qapalı
+              {t("betaInvite.statusBadge")}
             </Badge>
             <h2 className="text-xl font-semibold text-foreground">
-              Zolaq Beta — ilk 100 istifadəçidən biri olun
+              {t("betaInvite.title")}
             </h2>
           </div>
           <p className="max-w-2xl text-sm text-foreground-muted">
-            Avtomobil seçimi, müqayisə, VIN beta yoxlaması və diler təkliflərini
-            ilk test edənlərdən olun.
+            {t("betaInvite.body")}
           </p>
           <p className="text-xs text-foreground-muted">
-            Qapalı beta · Məhdud yerlər · Geribildirim tələb olunur
+            {t("betaInvite.note")}
           </p>
         </div>
         <div className="md:shrink-0">
@@ -40,9 +43,9 @@ export function HomeBetaInviteCard() {
               rel="noopener noreferrer"
               size="md"
               variant="primary"
-              ariaLabel="Beta üçün qeydiyyat formasını yeni tabda açın"
+              ariaLabel={t("betaInvite.cta")}
             >
-              Beta üçün qeydiyyat
+              {t("betaInvite.cta")}
             </ButtonLink>
           ) : (
             <Button
@@ -51,7 +54,7 @@ export function HomeBetaInviteCard() {
               disabled
               aria-disabled="true"
             >
-              Qeydiyyat linki tezliklə aktiv olacaq
+              {t("betaInvite.comingSoon")}
             </Button>
           )}
         </div>

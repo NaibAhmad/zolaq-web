@@ -8,7 +8,7 @@ type Props = {
   aspect?: Aspect;
   className?: string;
   categoryLabel?: string;
-  moduleLabel?: "Ensiklopediya" | "Xəbər";
+  moduleLabel?: string;
   priority?: boolean;
 };
 

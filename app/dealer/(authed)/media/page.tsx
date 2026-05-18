@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { getDealerSession } from "@/lib/auth/dealer-session";
+import { formatDateAz } from "@/lib/format/date";
 import { listMediaAssets, type MediaStatus } from "@/lib/media/repository";
 
 const STATUS_LABEL: Record<MediaStatus, string> = {
@@ -97,7 +98,7 @@ export default async function DealerMediaPage() {
                 <div className="flex items-center justify-between text-xs">
                   <Badge tone={STATUS_TONE[m.status] ?? "muted"}>{STATUS_LABEL[m.status]}</Badge>
                   <span className="text-foreground-muted">
-                    {new Date(m.created_at).toLocaleDateString()}
+                    {formatDateAz(m.created_at)}
                   </span>
                 </div>
                 <div className="break-all text-xs text-foreground-muted">{m.public_url}</div>

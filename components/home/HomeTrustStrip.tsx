@@ -1,44 +1,49 @@
+"use client";
+
 import { Card } from "@/components/ui/Card";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 type Item = {
-  label: string;
-  value: string;
-  hint: string;
+  labelKey: TranslationKey;
+  valueKey: TranslationKey;
+  hintKey: TranslationKey;
   glyph: string;
 };
 
 const ITEMS: ReadonlyArray<Item> = [
   {
-    label: "Rəsmi diler",
-    value: "100%",
-    hint: "Yalnız rəsmi və təsdiqlənmiş tərəfdaşlar",
+    labelKey: "home.trustOfficialDealer",
+    valueKey: "home.trustOfficialDealerValue",
+    hintKey: "home.trustOfficialDealerNote",
     glyph: "◇",
   },
   {
-    label: "PDF-li təklif",
-    value: "İmzalı",
-    hint: "Rəsmi qiymət sənədini endir və saxla",
+    labelKey: "home.trustPdfTitle",
+    valueKey: "home.trustPdfValue",
+    hintKey: "home.trustPdfNote",
     glyph: "✓",
   },
   {
-    label: "Gündəlik qiymət",
-    value: "24 saat",
-    hint: "Mənbə və yoxlama statusu açıq",
+    labelKey: "home.trustDailyTitle",
+    valueKey: "home.trustDailyValue",
+    hintKey: "home.trustDailyNote",
     glyph: "⟳",
   },
   {
-    label: "Müqayisə",
-    value: "2-3 maşın",
-    hint: "Texniki və qiymət göstəriciləri",
+    labelKey: "home.trustCompareTitle",
+    valueKey: "home.trustCompareValue",
+    hintKey: "home.trustCompareNote",
     glyph: "⇄",
   },
 ];
 
 export function HomeTrustStrip() {
+  const t = useT();
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {ITEMS.map((it) => (
-        <li key={it.label}>
+        <li key={it.labelKey}>
           <Card
             padding="md"
             tone="raised"
@@ -54,12 +59,12 @@ export function HomeTrustStrip() {
               </span>
               <div className="flex flex-col">
                 <p className="text-xs uppercase tracking-wide text-foreground-muted">
-                  {it.label}
+                  {t(it.labelKey)}
                 </p>
                 <p className="mt-0.5 text-lg font-semibold text-foreground">
-                  {it.value}
+                  {t(it.valueKey)}
                 </p>
-                <p className="mt-1 text-xs text-foreground-muted">{it.hint}</p>
+                <p className="mt-1 text-xs text-foreground-muted">{t(it.hintKey)}</p>
               </div>
             </div>
           </Card>

@@ -4,11 +4,13 @@ import { Card } from "@/components/ui/Card";
 import { getDealer, listPrices } from "@/lib/admin";
 import { getDealerSession } from "@/lib/auth/dealer-session";
 import { listSubmissions } from "@/lib/dealer/submissions/store";
+import { getServerT } from "@/lib/i18n/server";
 import { listLeadsForTrims } from "@/lib/leads/store";
 
 export default async function DealerDashboardPage() {
   // Layout has already guarded; session is non-null here.
   const session = (await getDealerSession())!;
+  const t = await getServerT();
   const dealer = getDealer(session.dealerId);
   const offers = listPrices({ dealer_id: session.dealerId, offers_only: true });
   const published = offers.filter((o) => o.offer_status === "published");
@@ -21,18 +23,18 @@ export default async function DealerDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">{dealer?.display_name ?? "Diler paneli"}</h1>
+      <h1 className="text-xl font-semibold">{dealer?.display_name ?? t("dealerDashboard.title")}</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Kpi label="Açıq müraciətlər" value={open.length} href="/dealer/submissions" />
-        <Kpi label="Aktiv təkliflər" value={published.length} href="/dealer/offers" />
-        <Kpi label="Cəmi sorğular" value={leads.length} href="/dealer/leads" />
-        <Kpi label="SLA (saat)" value={dealer?.response_sla_hours ?? 0} href="/dealer/profile" />
+        <Kpi label={t("dealerDashboard.openSubmissions")} value={open.length} href="/dealer/submissions" />
+        <Kpi label={t("dealerDashboard.activeOffers")} value={published.length} href="/dealer/offers" />
+        <Kpi label={t("dealerDashboard.totalLeads")} value={leads.length} href="/dealer/leads" />
+        <Kpi label={t("dealerDashboard.slaHours")} value={dealer?.response_sla_hours ?? 0} href="/dealer/profile" />
       </div>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Açıq müraciətlər</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("dealerDashboard.openSubmissionsTitle")}</h2>
         {open.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Açıq müraciət yoxdur.</p>
+          <p className="text-sm text-foreground-muted">{t("dealerDashboard.openSubmissionsEmpty")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {open.map((s) => (

@@ -15,6 +15,8 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Stat";
 import { ApiError, apiGet, apiPatch, apiPost } from "@/lib/api";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type {
@@ -28,12 +30,6 @@ type FetchState =
   | { status: "error"; message: string; code: string; notFound?: boolean }
   | { status: "ready"; data: DecisionWorkspaceResponse };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
 const PRICE_FMT = new Intl.NumberFormat("az-AZ");
 
 export default function ProfileDecisionWorkspacePage({
@@ -43,6 +39,7 @@ export default function ProfileDecisionWorkspacePage({
 }) {
   const { decisionId } = use(params);
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -73,13 +70,13 @@ export default function ProfileDecisionWorkspacePage({
           });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [decisionId, reloadKey, router]);
+  }, [decisionId, reloadKey, router, t]);
 
   const patchStatus = useCallback(
     async (next: DecisionStatus) => {
@@ -163,7 +160,7 @@ export default function ProfileDecisionWorkspacePage({
             <DecisionStatusBadge status={decision.status} size="md" />
           </div>
           <p className="mt-2 text-sm text-on-dark-muted">
-            Yaradıldı {DATE_FMT.format(decision.created_at)}
+            Yaradıldı {formatDateAz(decision.created_at)}
           </p>
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">

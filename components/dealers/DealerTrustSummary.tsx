@@ -1,6 +1,10 @@
+"use client";
+
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { DEALER_SERVICE_LABEL_AZ } from "@/lib/dealers/labels";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import type { Dealer } from "@/lib/dealers/types";
 
 type Props = {
@@ -8,19 +12,8 @@ type Props = {
   brandLookup: Map<string, string>;
 };
 
-const DATE_FORMATTER = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return DATE_FORMATTER.format(d);
-}
-
 export function DealerTrustSummary({ dealer, brandLookup }: Props) {
+  const t = useT();
   const brandNames = dealer.represented_brands.map(
     (b) => brandLookup.get(b) ?? b,
   );
@@ -29,7 +22,7 @@ export function DealerTrustSummary({ dealer, brandLookup }: Props) {
     <div className="grid gap-4 lg:grid-cols-3">
       <Card padding="lg" tone="raised">
         <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-          Təmsil olunan markalar
+          {t("dealerTrust.representedBrands")}
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {brandNames.length === 0 ? (
@@ -46,7 +39,7 @@ export function DealerTrustSummary({ dealer, brandLookup }: Props) {
 
       <Card padding="lg" tone="raised">
         <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-          Ünvan və iş saatları
+          {t("dealerTrust.addressHours")}
         </p>
         <p className="mt-3 text-sm font-medium text-foreground">
           {dealer.address}
@@ -66,7 +59,7 @@ export function DealerTrustSummary({ dealer, brandLookup }: Props) {
           )}
         </ul>
         <div className="mt-3 flex items-center justify-between text-sm">
-          <span className="text-foreground-muted">Cavab müddəti</span>
+          <span className="text-foreground-muted">{t("dealerTrust.responseTime")}</span>
           <span className="font-medium text-foreground">
             ~{dealer.response_sla_hours} saat
           </span>
@@ -75,7 +68,7 @@ export function DealerTrustSummary({ dealer, brandLookup }: Props) {
 
       <Card padding="lg" tone="raised">
         <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-          Xidmətlər
+          {t("dealerTrust.services")}
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {dealer.services.length === 0 ? (
@@ -89,7 +82,7 @@ export function DealerTrustSummary({ dealer, brandLookup }: Props) {
           )}
         </div>
         <p className="mt-4 text-xs text-foreground-muted">
-          Mənbə: {dealer.source_name} · Yenilənib: {formatDate(dealer.updated_at)}
+          {t("dealerTrust.source")}: {dealer.source_name} · {t("dealerTrust.updated")}: {formatDateAz(dealer.updated_at)}
         </p>
       </Card>
     </div>

@@ -1,6 +1,13 @@
 // Sprint 8F Bazar Nəbzi (market pulse). Lightweight community sentiment module.
 // NOT gambling — no wager, no payout, no odds. Allowed verbs: səs ver,
 // proqnoz ver, iştirak et. See docs/sprint-7j/MARKET_PULSE_MODULE.md.
+//
+// Sprint 10I-C: `question`, `BazarOption.label`, and `market_summary` are now
+// LocalizedText so seed/demo content can carry az/en/ru variants. Callers
+// render through getLocalizedText() — plain strings still work for
+// backwards compatibility with API-provided content.
+
+import type { LocalizedText } from "@/lib/i18n/localized";
 
 export const BAZAR_CADENCES = ["daily", "weekly", "monthly"] as const;
 export type BazarCadence = (typeof BAZAR_CADENCES)[number];
@@ -18,12 +25,12 @@ export type BazarTopicStatus = (typeof BAZAR_TOPIC_STATUSES)[number];
 
 export type BazarOption = {
   option_id: string;
-  label: string;
+  label: LocalizedText;
 };
 
 export type BazarTopic = {
   topic_id: string;
-  question: string;
+  question: LocalizedText;
   cadence: BazarCadence;
   status: BazarTopicStatus;
   options: BazarOption[];
@@ -32,7 +39,7 @@ export type BazarTopic = {
   sponsored: boolean;
   sponsor_ad_request_id?: string;
   sponsor_name?: string;
-  market_summary?: string; // Zolaq market summary written at resolve time
+  market_summary?: LocalizedText; // Zolaq market summary written at resolve time
   rejection_reason?: string;
   created_by: string;
   created_at: number;
@@ -55,7 +62,7 @@ export type BazarAggregate = {
   topic_id: string;
   options: ReadonlyArray<{
     option_id: string;
-    label: string;
+    label: LocalizedText;
     count: number;
     pct: number;
   }>;

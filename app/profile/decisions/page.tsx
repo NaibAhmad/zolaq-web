@@ -14,6 +14,8 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES, otpHref } from "@/lib/routes";
 import { trackEvent } from "@/lib/tracking/track";
 import type {
@@ -26,14 +28,9 @@ type FetchState =
   | { status: "error"; message: string; code: string }
   | { status: "ready"; decisions: Decision[]; saved: SavedCarWithTrim[] };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
 export default function ProfileDecisionsPage() {
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -70,16 +67,16 @@ export default function ProfileDecisionsPage() {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [load, reloadKey, router]);
+  }, [load, reloadKey, router, t]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Qərarlar yüklənir…" />;
+    return <LoadingState label={t("profileDecisions.loading")} />;
   }
   if (state.status === "error") {
     return (
@@ -154,7 +151,7 @@ export default function ProfileDecisionsPage() {
                           dateTime={new Date(decision.created_at).toISOString()}
                           className="text-xs text-foreground-muted"
                         >
-                          {DATE_FMT.format(decision.created_at)}
+                          {formatDateAz(decision.created_at)}
                         </time>
                       </div>
                     </Card>

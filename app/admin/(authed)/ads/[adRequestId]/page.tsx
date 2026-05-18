@@ -13,14 +13,9 @@ import {
   AD_STATUS_LABEL_AZ,
 } from "@/lib/ads/labels";
 import { AD_LABELS, AD_PLACEMENT_AREAS } from "@/lib/ads/types";
+import { formatDateAz } from "@/lib/format/date";
 import { listInvoices } from "@/lib/invoices/store";
 import { INVOICE_STATUS_LABEL_AZ } from "@/lib/invoices/types";
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export default async function AdminAdDetailPage({
   params,
@@ -63,11 +58,11 @@ export default async function AdminAdDetailPage({
         <Field label="Bitmə" value={row.end_date ?? "—"} />
         <Field
           label="Yaradılıb"
-          value={DATE_FMT.format(row.created_at)}
+          value={formatDateAz(row.created_at)}
         />
         <Field
           label="Yenilənib"
-          value={DATE_FMT.format(row.updated_at)}
+          value={formatDateAz(row.updated_at)}
         />
         {row.campaign_note ? (
           <div className="sm:col-span-2">

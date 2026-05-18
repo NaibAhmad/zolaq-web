@@ -26,7 +26,7 @@ export default async function QaDetailPage({
       body={qa.answer}
       publishedAt={qa.published_at}
       backHref={ROUTES.qa}
-      backLabel="Q&A-ya qayıt"
+      backLabel="Sorğuya qayıt"
       relatedTrims={relatedTrims}
     />
   );

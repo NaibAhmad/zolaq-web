@@ -21,3 +21,15 @@ export function formatDateAzIso(input: string | number | Date): string {
   if (!d) return typeof input === "string" ? input : "";
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
+
+export function formatDateTimeAz(input: string | number | Date): string {
+  const d = toDate(input);
+  if (!d) return typeof input === "string" ? input : "";
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+export function formatTimeAz(input: string | number | Date): string {
+  const d = toDate(input);
+  if (!d) return typeof input === "string" ? input : "";
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}

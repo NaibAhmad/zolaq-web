@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { LeadOtpStep } from "@/components/leads/LeadOtpStep";
 import { ApiError, apiGet, apiPost } from "@/lib/api";
 import { OTP } from "@/lib/auth/constants";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 import {
   type Lead,
@@ -24,10 +25,6 @@ type Props = {
   sourceSurface: LeadSourceSurface;
   intent?: LeadIntent;
 };
-
-const TEST_DRIVE_NOTE_PREFIX = "[Test sürüşü tələbi]";
-const TEST_DRIVE_BETA_NOTE =
-  "Test sürüşü sorğusu beta mərhələsindədir. Sorğu göndərmək üçün əlaqə məlumatı tələb olunur.";
 
 type FormFields = {
   name: string;
@@ -49,13 +46,16 @@ function normalizePhoneClient(input: string): string | null {
   return E164_RE.test(cleaned) ? cleaned : null;
 }
 
-async function submitLead(payload: {
-  trim_id: string;
-  source_surface: LeadSourceSurface;
-  name?: string;
-  preferred_contact?: PreferredContact;
-  note?: string;
-}): Promise<
+async function submitLead(
+  payload: {
+    trim_id: string;
+    source_surface: LeadSourceSurface;
+    name?: string;
+    preferred_contact?: PreferredContact;
+    note?: string;
+  },
+  networkErrorFallback: string,
+): Promise<
   { ok: true; leadId: string } | { ok: false; status: number; message: string }
 > {
   try {
@@ -65,7 +65,7 @@ async function submitLead(payload: {
     if (err instanceof ApiError) {
       return { ok: false, status: err.status, message: err.message };
     }
-    const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+    const message = err instanceof Error ? err.message : networkErrorFallback;
     return { ok: false, status: 0, message };
   }
 }
@@ -76,6 +76,7 @@ export function LeadFormLauncher({
   intent = "price_request",
 }: Props) {
   const router = useRouter();
+  const t = useT();
   const isTestDrive = intent === "test_drive";
 
   const [open, setOpen] = useState(false);
@@ -135,10 +136,11 @@ export function LeadFormLauncher({
   const buildLeadPayload = useCallback(
     () => {
       const baseNote = fields.note.trim();
+      const testDrivePrefix = t("leads.testDrivePrefix");
       const note = isTestDrive
         ? baseNote
-          ? `${TEST_DRIVE_NOTE_PREFIX} ${baseNote}`
-          : TEST_DRIVE_NOTE_PREFIX
+          ? `${testDrivePrefix} ${baseNote}`
+          : testDrivePrefix
         : baseNote || undefined;
       return {
         trim_id: trimId,
@@ -148,13 +150,13 @@ export function LeadFormLauncher({
         note,
       };
     },
-    [trimId, sourceSurface, fields, isTestDrive],
+    [trimId, sourceSurface, fields, isTestDrive, t],
   );
 
   const finalizeLead = useCallback(async () => {
     setFlow({ kind: "submitting" });
     const payload = buildLeadPayload();
-    const result = await submitLead(payload);
+    const result = await submitLead(payload, t("leads.networkError"));
     if (result.ok) {
       trackEvent("lead_form_submitted", {
         lead_id: result.leadId,
@@ -167,15 +169,15 @@ export function LeadFormLauncher({
     }
     setFlow({
       kind: "error",
-      message: result.message || "Sorğu göndərmək alınmadı.",
+      message: result.message || t("leads.submitError"),
     });
-  }, [buildLeadPayload, resetAll, router, trimId]);
+  }, [buildLeadPayload, resetAll, router, trimId, t]);
 
   async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     const name = fields.name.trim();
     if (name.length === 0) {
-      setFlow({ kind: "form", error: "Ad tələb olunur." });
+      setFlow({ kind: "form", error: t("leads.nameRequired") });
       return;
     }
 
@@ -186,7 +188,7 @@ export function LeadFormLauncher({
 
     const normalizedPhone = normalizePhoneClient(fields.phone);
     if (!normalizedPhone) {
-      setFlow({ kind: "form", error: "Telefon nömrəsi formatı yanlışdır." });
+      setFlow({ kind: "form", error: t("leads.phoneFormatError") });
       return;
     }
 
@@ -213,13 +215,13 @@ export function LeadFormLauncher({
           ? err.status === 429
             ? `${err.message}${
                 typeof err.details.retry_after_seconds === "number"
-                  ? ` — ${err.details.retry_after_seconds}s sonra yenidən cəhd edin.`
+                  ? ` — ${t("leads.retryAfter", { seconds: err.details.retry_after_seconds })}`
                   : ""
               }`
             : err.message
           : err instanceof Error
             ? err.message
-            : "Şəbəkə xətası";
+            : t("leads.networkError");
       setFlow({ kind: "form", error: message });
     }
   }
@@ -235,18 +237,20 @@ export function LeadFormLauncher({
 
   const showOtp = flow.kind === "otp";
   const eyebrow = showOtp
-    ? "Telefon təsdiqi"
+    ? t("leads.otpEyebrow")
     : isTestDrive
-      ? "Test sürüşü (beta)"
-      : "Rəsmi qiymət istə";
+      ? t("leads.testDriveEyebrow")
+      : t("leads.quoteEyebrow");
   const title = showOtp
-    ? "6 rəqəmli kod"
+    ? t("leads.otpTitle")
     : isTestDrive
-      ? "Test sürüşü istə"
-      : "Rəsmi diler 1–2 saatda cavab verir";
+      ? t("leads.testDriveTitle")
+      : t("leads.quoteTitle");
 
   const triggerVariant = isTestDrive ? "secondary" : "primary";
-  const triggerLabel = isTestDrive ? "Test sürüşü istə" : "Rəsmi qiymət istə";
+  const triggerLabel = isTestDrive
+    ? t("actions.testDrive")
+    : t("actions.officialQuote");
 
   return (
     <>
@@ -275,8 +279,8 @@ export function LeadFormLauncher({
         {flow.kind === "submitting" || flow.kind === "requesting_otp" ? (
           <p className="py-6 text-center text-sm text-foreground-muted">
             {flow.kind === "requesting_otp"
-              ? "Kod göndərilir…"
-              : "Sorğun göndərilir…"}
+              ? t("leads.codeSending")
+              : t("leads.submitting")}
           </p>
         ) : flow.kind === "otp" ? (
           <LeadOtpStep
@@ -306,13 +310,13 @@ export function LeadFormLauncher({
           <form className="space-y-4" onSubmit={handleFormSubmit}>
             {isTestDrive ? (
               <p className="rounded-[var(--radius)] border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-foreground">
-                {TEST_DRIVE_BETA_NOTE}
+                {t("leads.testDriveBetaNote")}
               </p>
             ) : null}
             <Input
               id="lead-name"
               ref={nameInputRef}
-              label="Ad"
+              label={t("leads.nameLabel")}
               type="text"
               required
               maxLength={80}
@@ -325,14 +329,14 @@ export function LeadFormLauncher({
             {verified ? (
               <div className="rounded-[var(--radius)] border border-success/30 bg-success/5 px-3 py-2 text-sm text-foreground">
                 <span className="text-xs font-medium uppercase tracking-wide text-foreground-muted">
-                  Təsdiqlənmiş nömrə
+                  {t("leads.verifiedPhone")}
                 </span>
                 <span className="ml-2 font-medium">+994 ** *** ** **</span>
               </div>
             ) : (
               <Input
                 id="lead-phone"
-                label="Telefon nömrəsi"
+                label={t("leads.phoneLabel")}
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
@@ -347,7 +351,7 @@ export function LeadFormLauncher({
 
             <fieldset>
               <legend className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-foreground-muted">
-                Əlaqə üsulu
+                {t("leads.contactMethod")}
               </legend>
               <div className="grid grid-cols-2 gap-2">
                 <ContactOption
@@ -355,7 +359,7 @@ export function LeadFormLauncher({
                   onChange={() =>
                     setFields((s) => ({ ...s, preferred_contact: "phone" }))
                   }
-                  label="Zəng"
+                  label={t("leads.contactPhone")}
                   icon="☎"
                 />
                 <ContactOption
@@ -363,7 +367,7 @@ export function LeadFormLauncher({
                   onChange={() =>
                     setFields((s) => ({ ...s, preferred_contact: "whatsapp" }))
                   }
-                  label="WhatsApp"
+                  label={t("leads.contactWhatsapp")}
                   icon="✓"
                   accent="green"
                 />
@@ -374,7 +378,10 @@ export function LeadFormLauncher({
               id="lead-note"
               label={
                 <>
-                  Qeyd <span className="lowercase opacity-70">(istəyə bağlı)</span>
+                  {t("leads.noteLabel")}{" "}
+                  <span className="lowercase opacity-70">
+                    {t("leads.noteOptional")}
+                  </span>
                 </>
               }
               rows={3}
@@ -396,14 +403,14 @@ export function LeadFormLauncher({
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button type="button" variant="secondary" onClick={closeModal}>
-                İmtina
+                {t("leads.cancel")}
               </Button>
               <Button
                 type="submit"
                 variant={submitButtonVariant}
                 disabled={!validForm}
               >
-                Sorğu göndər
+                {t("leads.submit")}
               </Button>
             </div>
           </form>
@@ -423,7 +430,7 @@ export function LeadFormLauncher({
                 variant="secondary"
                 onClick={() => setFlow({ kind: "form", error: null })}
               >
-                Geri
+                {t("leads.back")}
               </Button>
             </div>
           </div>

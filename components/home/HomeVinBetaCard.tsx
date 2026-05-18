@@ -9,9 +9,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { VinCheckBetaModal } from "@/components/vin/VinCheckBetaModal";
+import { useT } from "@/lib/i18n/client";
 
 export function HomeVinBetaCard() {
   const [open, setOpen] = useState(false);
+  const t = useT();
 
   return (
     <>
@@ -20,20 +22,19 @@ export function HomeVinBetaCard() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="blue" size="sm">
-                Beta
+                {t("common.beta")}
               </Badge>
               <h2 className="text-xl font-semibold text-foreground">
-                VIN üzrə risk yoxlaması
+                {t("vinBeta.cardTitle")}
               </h2>
             </div>
             <p className="max-w-2xl text-sm text-foreground-muted">
-              Avtomobili almadan əvvəl VIN kodunu yoxla. Bu beta yoxlama ilkin
-              risk siqnalıdır və ekspert yoxlamasını əvəz etmir.
+              {t("vin.cardBody")}
             </p>
           </div>
           <div className="md:shrink-0">
             <Button onClick={() => setOpen(true)} size="md">
-              VIN yoxla
+              {t("vinBeta.cardCta")}
             </Button>
           </div>
         </div>

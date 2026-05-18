@@ -6,30 +6,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 
-const ITEMS: { href: string; label: string }[] = [
-  { href: "/dealer/dashboard", label: "Panel" },
-  { href: "/dealer/profile", label: "Profil" },
-  { href: "/dealer/offers", label: "Təkliflər" },
-  { href: "/dealer/media", label: "Media" },
-  { href: "/dealer/submissions", label: "Müraciətlər" },
-  { href: "/dealer/leads", label: "Sorğular" },
-  { href: "/dealer/test-drives", label: "Test-sürüş" },
-  { href: "/dealer/ad-requests", label: "Reklam tələblərim" },
-  { href: "/dealer/invoices", label: "Hesab-fakturalar" },
-  { href: "/dealer/payment-proof", label: "Ödəniş təsdiqi" },
-  { href: "/dealer/settings", label: "Tənzimləmələr" },
+const ITEMS: { href: string; labelKey: TranslationKey }[] = [
+  { href: "/dealer/dashboard", labelKey: "dealerNav.dashboard" },
+  { href: "/dealer/profile", labelKey: "dealerNav.profile" },
+  { href: "/dealer/offers", labelKey: "dealerNav.offers" },
+  { href: "/dealer/media", labelKey: "dealerNav.media" },
+  { href: "/dealer/submissions", labelKey: "dealerNav.submissions" },
+  { href: "/dealer/leads", labelKey: "dealerNav.leads" },
+  { href: "/dealer/test-drives", labelKey: "dealerNav.testDrives" },
+  { href: "/dealer/ad-requests", labelKey: "dealerNav.adRequests" },
+  { href: "/dealer/invoices", labelKey: "dealerNav.invoices" },
+  { href: "/dealer/payment-proof", labelKey: "dealerNav.paymentProof" },
+  { href: "/dealer/settings", labelKey: "dealerNav.settings" },
 ];
 
 export function DealerSidebar() {
   const pathname = usePathname();
+  const t = useT();
   return (
     <nav
-      aria-label="Diler naviqasiya"
+      aria-label={t("dealerNav.ariaLabel")}
       className="flex w-60 shrink-0 flex-col gap-1 border-r border-border bg-surface-muted/40 p-4"
     >
       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Zolaq Diler
+        {t("dealerNav.brandTitle")}
       </div>
       {ITEMS.map((item) => {
         const active =
@@ -44,7 +47,7 @@ export function DealerSidebar() {
                 : "text-foreground-muted hover:bg-surface hover:text-foreground"
             }`}
           >
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         );
       })}

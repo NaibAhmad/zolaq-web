@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Card } from "@/components/ui/Card";
 import { getDealer } from "@/lib/admin";
 import { getSubmission } from "@/lib/dealer/submissions/store";
+import { formatDateTimeAz } from "@/lib/format/date";
 
 export default async function AdminSubmissionPage({
   params,
@@ -25,8 +26,8 @@ export default async function AdminSubmissionPage({
         <dl className="grid gap-3 sm:grid-cols-2 text-sm">
           <Detail label="Diler" value={dealer?.display_name ?? submission.dealer_id} />
           <Detail label="Göndərən" value={submission.submitted_by} />
-          <Detail label="Yaradılıb" value={new Date(submission.created_at).toLocaleString()} />
-          <Detail label="Yenilənib" value={new Date(submission.updated_at).toLocaleString()} />
+          <Detail label="Yaradılıb" value={formatDateTimeAz(submission.created_at)} />
+          <Detail label="Yenilənib" value={formatDateTimeAz(submission.updated_at)} />
           {submission.review_note ? (
             <Detail label="Reviewer qeydi" value={submission.review_note} />
           ) : null}

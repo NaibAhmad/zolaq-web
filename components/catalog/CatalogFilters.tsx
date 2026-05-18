@@ -10,6 +10,7 @@ import { QuickSearch } from "@/components/catalog/QuickSearch";
 import { listTrimsForModel } from "@/lib/cars/client-lookup";
 import { getGenerationById } from "@/lib/cars/generations";
 import { BRANDS, TRIMS } from "@/lib/cars/seed";
+import { useT } from "@/lib/i18n/client";
 import {
   AVAILABILITY_LABEL,
   AVAILABILITY_OPTIONS,
@@ -18,6 +19,7 @@ import {
   SORT_LABEL,
   SORT_OPTIONS,
 } from "@/lib/cars/taxonomy";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 
 // Sprint 8H Correction v2: identity dimensions (brand/model/generation/year-
@@ -46,24 +48,27 @@ const FILTER_KEYS = [
 ] as const;
 type FilterKey = (typeof FILTER_KEYS)[number];
 
-const FILTER_LABEL: Record<FilterKey, string> = {
-  q: "Açar söz",
-  brand: "Marka",
-  model: "Model",
-  generation: "Nəsil",
-  trim: "Komplektasiya",
-  year: "İl",
-  year_from: "İl, min.",
-  year_to: "İl, maks.",
-  energy_type: "Enerji",
-  body_type: "Kuzov",
-  price_min: "Qiymət, min.",
-  price_max: "Qiymət, maks.",
-  range_min: "Yürüş, min.",
-  range_max: "Yürüş, maks.",
-  dealer_verified: "Rəsmi diler",
-  availability: "Mövcudluq",
-  sort: "Sıralama",
+// Sprint 10I-B: range_min/range_max target range_km (EV electric range), not
+// odometer mileage — UI label changed from "Yürüş" to "Avtonomiya" / "Range" /
+// "Запас хода" via the dictionary.
+const FILTER_LABEL_KEY: Record<FilterKey, TranslationKey> = {
+  q: "catalogFilters.keyword",
+  brand: "catalogFilters.brand",
+  model: "catalogFilters.model",
+  generation: "catalogFilters.generation",
+  trim: "catalogFilters.trim",
+  year: "catalogFilters.year",
+  year_from: "catalogFilters.yearMin",
+  year_to: "catalogFilters.yearMax",
+  energy_type: "catalogFilters.energyTypeShort",
+  body_type: "catalogFilters.bodyTypeShort",
+  price_min: "catalogFilters.priceMin",
+  price_max: "catalogFilters.priceMax",
+  range_min: "catalogFilters.rangeMinShort",
+  range_max: "catalogFilters.rangeMaxShort",
+  dealer_verified: "catalogFilters.dealerVerified",
+  availability: "catalogFilters.availability",
+  sort: "catalogFilters.sortLabel",
 };
 
 const ADVANCED_KEYS: FilterKey[] = [
@@ -88,6 +93,7 @@ type Props = {
 export function CatalogFilters({ count }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useT();
 
   const bodyOptions = useMemo(
     () =>
@@ -186,7 +192,7 @@ export function CatalogFilters({ count }: Props) {
       } else if (k === "sort") {
         display = SORT_LABEL[raw as keyof typeof SORT_LABEL] ?? raw;
       } else if (k === "dealer_verified") {
-        display = "Bəli";
+        display = t("catalogFilters.dealerVerifiedYes");
       }
       return { key: k, display };
     },
@@ -205,39 +211,41 @@ export function CatalogFilters({ count }: Props) {
       {advancedOpen ? (
         <div className="space-y-4 border-t border-border pt-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-            Ətraflı filtr
+            {t("catalogFilters.advancedLabel")}
           </p>
 
           {/* Row 1: Komplektasiya + Kuzov */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Select
-              label="Komplektasiya"
+              label={t("catalogFilters.trim")}
               value={currentTrim}
               onChange={(e) =>
                 pushParams({ trim: e.target.value || null })
               }
               placeholderOption={
-                currentModel ? "Hamısı" : "Əvvəlcə model seçin"
+                currentModel
+                  ? t("catalogFilters.all")
+                  : t("catalogFilters.selectModelFirst")
               }
               disabled={!currentModel}
               options={trimOptions}
               helpText={
                 currentGeneration
-                  ? "Seçilmiş nəsilə uyğunlaşır"
-                  : "Marka və modeldən asılıdır"
+                  ? t("catalogFilters.matchesGeneration")
+                  : t("catalogFilters.dependsOnBrandModel")
               }
             />
             <Select
-              label="Kuzov tipi"
+              label={t("catalogFilters.bodyType")}
               value={searchParams.get("body_type") ?? ""}
               onChange={(e) =>
                 pushParams({ body_type: e.target.value || null })
               }
-              placeholderOption="Hamısı"
+              placeholderOption={t("catalogFilters.all")}
               options={bodyOptions}
             />
             <Input
-              label="Yürüş, min. (km)"
+              label={t("catalogFilters.rangeMin")}
               type="number"
               inputMode="numeric"
               min={0}
@@ -249,7 +257,7 @@ export function CatalogFilters({ count }: Props) {
               inputClassName="min-w-0"
             />
             <Input
-              label="Yürüş, maks. (km)"
+              label={t("catalogFilters.rangeMax")}
               type="number"
               inputMode="numeric"
               min={0}
@@ -275,22 +283,22 @@ export function CatalogFilters({ count }: Props) {
                 }
                 className="h-4 w-4 accent-accent-orange"
               />
-              <span>Yalnız rəsmi diler (yoxlanmış)</span>
+              <span>{t("catalogFilters.dealerVerifiedOnly")}</span>
             </label>
             <Select
-              label="Mövcudluq"
+              label={t("catalogFilters.availability")}
               value={searchParams.get("availability") ?? ""}
               onChange={(e) =>
                 pushParams({ availability: e.target.value || null })
               }
-              placeholderOption="Hamısı"
+              placeholderOption={t("catalogFilters.all")}
               options={availabilityOptions}
             />
             <Select
-              label="Sıralama"
+              label={t("catalogFilters.sortLabel")}
               value={searchParams.get("sort") ?? ""}
               onChange={(e) => pushParams({ sort: e.target.value || null })}
-              placeholderOption="Tövsiyə"
+              placeholderOption={t("catalogFilters.sortRecommended")}
               options={sortOptions}
             />
           </div>
@@ -300,31 +308,34 @@ export function CatalogFilters({ count }: Props) {
       {activeChips.length > 0 ? (
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           <span className="text-xs uppercase tracking-wide text-foreground-muted">
-            Aktiv filtrlər:
+            {t("catalogFilters.activeFilters")}
           </span>
-          {activeChips.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              onClick={() => removeParam(chip.key)}
-              aria-label={`${FILTER_LABEL[chip.key]} filtrini sil`}
-              className="rounded-full transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/40"
-            >
-              <Badge tone="blue" size="md">
-                <span className="text-[10px] uppercase tracking-wide opacity-70">
-                  {FILTER_LABEL[chip.key]}
-                </span>
-                {chip.display}
-                <span aria-hidden>×</span>
-              </Badge>
-            </button>
-          ))}
+          {activeChips.map((chip) => {
+            const chipLabel = t(FILTER_LABEL_KEY[chip.key]);
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => removeParam(chip.key)}
+                aria-label={t("catalogFilters.chipRemoveAria", { label: chipLabel })}
+                className="rounded-full transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/40"
+              >
+                <Badge tone="blue" size="md">
+                  <span className="text-[10px] uppercase tracking-wide opacity-70">
+                    {chipLabel}
+                  </span>
+                  {chip.display}
+                  <span aria-hidden>×</span>
+                </Badge>
+              </button>
+            );
+          })}
           <button
             type="button"
             onClick={reset}
             className="ml-auto text-xs font-medium text-foreground-muted underline-offset-2 hover:text-foreground hover:underline"
           >
-            Hamısını sıfırla
+            {t("catalogFilters.clearAll")}
           </button>
         </div>
       ) : null}

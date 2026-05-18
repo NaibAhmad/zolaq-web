@@ -3,6 +3,7 @@ import { AdminTable } from "@/components/admin/AdminTable";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { listDealers } from "@/lib/admin";
+import { formatDateAz } from "@/lib/format/date";
 import { listInvoices } from "@/lib/invoices/store";
 import { INVOICE_STATUS_LABEL_AZ, type InvoiceStatus } from "@/lib/invoices/types";
 
@@ -14,12 +15,6 @@ const STATUS_TONE: Record<InvoiceStatus, "blue" | "warning" | "success" | "dange
   overdue: "danger",
   cancelled: "muted",
 };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export default function AdminInvoicesPage() {
   const invoices = listInvoices();
@@ -78,7 +73,7 @@ export default function AdminInvoicesPage() {
           {
             key: "updated",
             header: "Yenilənib",
-            cell: (r) => DATE_FMT.format(r.updated_at),
+            cell: (r) => formatDateAz(r.updated_at),
           },
         ]}
       />

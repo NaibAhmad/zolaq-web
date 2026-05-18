@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
+import { useT } from "@/lib/i18n/client";
 import {
   getSavedIds,
   subscribe,
@@ -21,6 +22,7 @@ function getServerSnapshot(): string {
 }
 
 export function SaveToggleButton({ trimId }: Props) {
+  const t = useT();
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const ids = snapshot ? snapshot.split(",") : [];
   const saved = ids.includes(trimId);
@@ -40,7 +42,7 @@ export function SaveToggleButton({ trimId }: Props) {
       <span aria-hidden className="text-base leading-none">
         {saved ? "✓" : "♡"}
       </span>
-      {saved ? "Saxlanıldı" : "Saxla"}
+      {saved ? t("actions.saved") : t("actions.save")}
     </Button>
   );
 }

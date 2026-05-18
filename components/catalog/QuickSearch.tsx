@@ -23,6 +23,8 @@ import {
 } from "@/lib/cars/generations";
 import { BRANDS } from "@/lib/cars/seed";
 import { ENERGY_TYPES, type EnergyType } from "@/lib/cars/types";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 
 type Mode = "navigate" | "syncUrl";
@@ -35,14 +37,13 @@ type Props = {
   advancedOpen?: boolean;
 };
 
-// Short Azerbaijani labels for the Energy select. Dizel is intentionally not
-// listed — current Trim model has no diesel split (TODO when fuel_type lands).
-const ENERGY_LABEL: Record<EnergyType, string> = {
-  EV: "EV (elektrik)",
-  PHEV: "Plug-in hibrid",
-  EREV: "EREV",
-  HEV: "Hibrid",
-  ICE: "Benzin",
+// Energy type → translation key (resolved at render via useT).
+const ENERGY_LABEL_KEY: Record<EnergyType, TranslationKey> = {
+  EV: "quickSearch.energyEv",
+  PHEV: "quickSearch.energyPhev",
+  EREV: "quickSearch.energyErev",
+  HEV: "quickSearch.energyHybrid",
+  ICE: "quickSearch.energyPetrol",
 };
 
 export function QuickSearch({
@@ -53,6 +54,7 @@ export function QuickSearch({
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useT();
 
   // Local state used only in "navigate" mode (homepage).
   const [localBrand, setLocalBrand] = useState("");
@@ -117,8 +119,8 @@ export function QuickSearch({
   }, [brand, model]);
   const energyOptions = useMemo(
     () =>
-      ENERGY_TYPES.map((e) => ({ value: e, label: ENERGY_LABEL[e] })),
-    [],
+      ENERGY_TYPES.map((e) => ({ value: e, label: t(ENERGY_LABEL_KEY[e]) })),
+    [t],
   );
 
   function pushSync(updates: Record<string, string | null | undefined>) {
@@ -223,51 +225,51 @@ export function QuickSearch({
 
   const ctaText =
     mode === "syncUrl" && typeof count === "number"
-      ? `${count} avtomobili göstər`
-      : "Avtomobilləri göstər";
+      ? t("quickSearch.submitCount", { count })
+      : t("quickSearch.submit");
 
   const keywordValue = mode === "syncUrl" ? qDraft : localQ;
 
   return (
     <form
       onSubmit={onSubmit}
-      aria-label="Sürətli axtarış"
+      aria-label={t("quickSearch.aria")}
       className="flex flex-col gap-3"
     >
       {/* Identity row: Marka, Model, Nəsil, keyword */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Select
-          label="Marka"
+          label={t("quickSearch.brand")}
           value={brand}
           onChange={(e) => onBrandChange(e.target.value)}
-          placeholderOption="Bütün markalar"
+          placeholderOption={t("quickSearch.brandAll")}
           options={brandOptions}
         />
         <Select
-          label="Model"
+          label={t("quickSearch.model")}
           value={model}
           onChange={(e) => onModelChange(e.target.value)}
-          placeholderOption={brand ? "Bütün modellər" : "Əvvəlcə marka seçin"}
+          placeholderOption={brand ? t("quickSearch.modelAll") : t("quickSearch.modelPickBrand")}
           disabled={!brand}
           options={modelOptions}
         />
         <Select
-          label="Nəsil"
+          label={t("quickSearch.generation")}
           value={generation}
           onChange={(e) => onGenerationChange(e.target.value)}
           placeholderOption={
-            model ? "Bütün nəsillər" : "Əvvəlcə model seçin"
+            model ? t("quickSearch.generationAll") : t("quickSearch.generationPickModel")
           }
           disabled={!model}
           options={generationOptions}
           helpText={
             model && generationOptions.length === 0
-              ? "Bu model üçün nəsil qeydi yoxdur"
+              ? t("quickSearch.generationNone")
               : undefined
           }
         />
         <Input
-          label="Açar söz"
+          label={t("quickSearch.keyword")}
           type="search"
           value={keywordValue}
           onChange={(e) =>
@@ -280,14 +282,14 @@ export function QuickSearch({
               ? () => pushSync({ q: qDraft.trim() || null })
               : undefined
           }
-          placeholder="Marka, model, nəsil, komplektasiya və ya açar söz"
+          placeholder={t("quickSearch.keywordPh")}
         />
       </div>
 
       {/* Narrows row: year range, price range, energy */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Input
-          label="İl, min."
+          label={t("quickSearch.yearMin")}
           type="number"
           inputMode="numeric"
           min={1990}
@@ -298,7 +300,7 @@ export function QuickSearch({
           inputClassName="min-w-0"
         />
         <Input
-          label="İl, maks."
+          label={t("quickSearch.yearMax")}
           type="number"
           inputMode="numeric"
           min={1990}
@@ -309,7 +311,7 @@ export function QuickSearch({
           inputClassName="min-w-0"
         />
         <Input
-          label="Qiymət, min. (AZN)"
+          label={t("quickSearch.priceMin")}
           type="number"
           inputMode="numeric"
           min={0}
@@ -319,7 +321,7 @@ export function QuickSearch({
           inputClassName="min-w-0"
         />
         <Input
-          label="Qiymət, maks. (AZN)"
+          label={t("quickSearch.priceMax")}
           type="number"
           inputMode="numeric"
           min={0}
@@ -329,10 +331,10 @@ export function QuickSearch({
           inputClassName="min-w-0"
         />
         <Select
-          label="Enerji növü"
+          label={t("quickSearch.energy")}
           value={energy}
           onChange={(e) => setField("energy_type", e.target.value)}
-          placeholderOption="Hamısı"
+          placeholderOption={t("quickSearch.energyAll")}
           options={energyOptions}
         />
       </div>
@@ -346,14 +348,14 @@ export function QuickSearch({
             onClick={onToggleAdvanced}
             className="text-sm font-medium text-accent-blue underline-offset-2 hover:underline"
           >
-            {advancedOpen ? "Ətraflı filtri gizlət ▲" : "Ətraflı filtr ▾"}
+            {advancedOpen ? t("quickSearch.advancedToggleHide") : t("quickSearch.advancedToggleShow")}
           </button>
         ) : (
           <Link
             href={ROUTES.cars}
             className="text-sm font-medium text-accent-blue underline-offset-2 hover:underline"
           >
-            Ətraflı filtr aç →
+            {t("quickSearch.advancedOpen")}
           </Link>
         )}
         <Button type="submit" variant="dark">

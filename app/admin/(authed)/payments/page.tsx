@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { Badge } from "@/components/ui/Badge";
 import { listDealers } from "@/lib/admin";
+import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoice } from "@/lib/invoices/store";
 import { listPaymentProofs } from "@/lib/payments/store";
 import {
@@ -14,14 +15,6 @@ const TONE: Record<PaymentProofStatus, "warning" | "success" | "danger"> = {
   approved: "success",
   rejected: "danger",
 };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default function AdminPaymentsPage() {
   const proofs = listPaymentProofs();
@@ -78,7 +71,7 @@ export default function AdminPaymentsPage() {
           {
             key: "uploaded",
             header: "Yüklənib",
-            cell: (p) => DATE_FMT.format(p.uploaded_at),
+            cell: (p) => formatDateTimeAz(p.uploaded_at),
           },
           {
             key: "status",

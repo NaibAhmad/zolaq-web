@@ -3,6 +3,7 @@ import { AdminTable } from "@/components/admin/AdminTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { listDealers, listPrices, listTrims } from "@/lib/admin";
 import { listSubmissions } from "@/lib/dealer/submissions/store";
+import { formatDateTimeAz } from "@/lib/format/date";
 
 export default function AdminOffersPage() {
   const offers = listPrices({ offers_only: true });
@@ -57,7 +58,7 @@ export default function AdminOffersPage() {
             {
               key: "submitted",
               header: "Göndərildi",
-              cell: (s) => new Date(s.created_at).toLocaleString(),
+              cell: (s) => formatDateTimeAz(s.created_at),
             },
           ]}
         />

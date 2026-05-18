@@ -1,3 +1,8 @@
+"use client";
+
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
+import { formatDateTimeAz } from "@/lib/format/date";
 import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
 import type {
   LeadState,
@@ -22,15 +27,15 @@ type StageStatus = "complete" | "current" | "upcoming";
 
 type Stage = {
   key: StageKey;
-  label: string;
+  labelKey: TranslationKey;
 };
 
 const STAGES: readonly Stage[] = [
-  { key: "submitted", label: "Sorğu göndərildi" },
-  { key: "dealer_opened", label: "Diler açdı" },
-  { key: "official_offer", label: "Təklif gəldi" },
-  { key: "test_drive", label: "Test-sürüş" },
-  { key: "closed", label: "Bağlandı" },
+  { key: "submitted", labelKey: "leadsTimeline.sent" },
+  { key: "dealer_opened", labelKey: "leadsTimeline.dealerOpened" },
+  { key: "official_offer", labelKey: "leadsTimeline.quoteReceived" },
+  { key: "test_drive", labelKey: "leadsTimeline.testDrive" },
+  { key: "closed", labelKey: "leadsTimeline.closed" },
 ];
 
 const STATE_TO_STAGE_INDEX: Record<LeadState, number> = {
@@ -65,13 +70,6 @@ const EVENT_TO_STAGE: Partial<Record<LeadTimelineEventType, StageKey>> = {
   lead_no_response: "dealer_opened",
 };
 
-const DATE_TIME_FMT = new Intl.DateTimeFormat("az-AZ", {
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 function computeStageStatuses(
   state: LeadState,
   events: LeadTimelineEvent[],
@@ -98,13 +96,14 @@ export function LeadTimeline({
   events,
   showEventLog = true,
 }: Props) {
+  const t = useT();
   const stageStatuses = computeStageStatuses(state, events);
   const sortedEvents = [...events].sort((a, b) => a.created_at - b.created_at);
 
   return (
     <div className="space-y-6">
       <ol
-        aria-label="Sorğu mərhələləri"
+        aria-label={t("leadsTimeline.stagesAria")}
         className="grid gap-3 md:grid-cols-5"
       >
         {STAGES.map((stage, i) => {
@@ -124,10 +123,10 @@ export function LeadTimeline({
                       : "text-foreground"
                   }`}
                 >
-                  {stage.label}
+                  {t(stage.labelKey)}
                 </p>
                 <p className="text-xs text-foreground-muted">
-                  {statusLabel(status)}
+                  {statusLabel(status, t)}
                 </p>
               </div>
             </li>
@@ -138,7 +137,7 @@ export function LeadTimeline({
       {showEventLog ? (
         sortedEvents.length === 0 ? (
           <p className="rounded-[var(--radius-lg)] border border-dashed border-border bg-surface p-6 text-center text-sm text-foreground-muted">
-            Hələ tarixçə qeydi yoxdur.
+            {t("leadsTimeline.emptyLog")}
           </p>
         ) : (
           <ol className="relative space-y-4 border-l-2 border-border pl-6">
@@ -158,14 +157,14 @@ export function LeadTimeline({
                         {label}
                       </span>
                       <span className="ml-2 text-xs text-foreground-muted">
-                        {actorLabel(event.actor)}
+                        {actorLabel(event.actor, t)}
                       </span>
                     </div>
                     <time
                       dateTime={new Date(event.created_at).toISOString()}
                       className="text-xs text-foreground-muted"
                     >
-                      {DATE_TIME_FMT.format(event.created_at)}
+                      {formatDateTimeAz(event.created_at)}
                     </time>
                   </div>
                 </li>
@@ -215,14 +214,17 @@ function StageDot({
   );
 }
 
-function statusLabel(status: StageStatus): string {
-  if (status === "complete") return "Tamamlandı";
-  if (status === "current") return "İndi";
-  return "Gözlənilir";
+function statusLabel(status: StageStatus, t: ReturnType<typeof useT>): string {
+  if (status === "complete") return t("leadsTimeline.statusComplete");
+  if (status === "current") return t("leadsTimeline.statusCurrent");
+  return t("leadsTimeline.statusUpcoming");
 }
 
-function actorLabel(actor: LeadTimelineEvent["actor"]): string {
-  if (actor === "user") return "· Sən";
-  if (actor === "internal_operator") return "· Diler";
-  return "· Sistem";
+function actorLabel(
+  actor: LeadTimelineEvent["actor"],
+  t: ReturnType<typeof useT>,
+): string {
+  if (actor === "user") return t("leadsTimeline.actorUser");
+  if (actor === "internal_operator") return t("leadsTimeline.actorDealer");
+  return t("leadsTimeline.actorSystem");
 }

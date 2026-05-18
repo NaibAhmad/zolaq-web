@@ -27,7 +27,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
     label: "Ensiklopediya",
     translationKey: "nav.encyclopedia",
   },
-  { href: ROUTES.qa, label: "Q&A", translationKey: "nav.qa" },
+  { href: ROUTES.qa, label: "Sorğu", translationKey: "nav.qa" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -37,6 +37,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Header() {
   const pathname = usePathname();
+  const t = useT();
   const profileActive = isActive(pathname, ROUTES.profile);
 
   return (
@@ -69,7 +70,7 @@ export function Header() {
             >
               M
             </span>
-            <span className="hidden sm:inline">Mən</span>
+            <span className="hidden sm:inline">{t("nav.profileShort")}</span>
           </Link>
         </div>
       </div>
@@ -80,14 +81,16 @@ export function Header() {
 function HeaderNavLinks({
   pathname,
   resolveLabel,
+  navAriaLabel,
 }: {
   pathname: string;
   resolveLabel: (item: NavItem) => string;
+  navAriaLabel: string;
 }) {
   return (
     <nav
       className="hidden items-center gap-7 lg:flex"
-      aria-label="Əsas naviqasiya"
+      aria-label={navAriaLabel}
     >
       {NAV_ITEMS.map((item) => {
         const active = isActive(pathname, item.href);
@@ -117,8 +120,13 @@ function HeaderNavLinks({
 }
 
 function HeaderNavStatic({ pathname }: { pathname: string }) {
+  const t = useT();
   return (
-    <HeaderNavLinks pathname={pathname} resolveLabel={(item) => item.label} />
+    <HeaderNavLinks
+      pathname={pathname}
+      resolveLabel={(item) => t(item.translationKey)}
+      navAriaLabel={t("nav.mainNavAria")}
+    />
   );
 }
 
@@ -128,12 +136,14 @@ function HeaderNavI18n({ pathname }: { pathname: string }) {
     <HeaderNavLinks
       pathname={pathname}
       resolveLabel={(item) => t(item.translationKey)}
+      navAriaLabel={t("nav.mainNavAria")}
     />
   );
 }
 
 function HeaderSearch() {
   const router = useRouter();
+  const t = useT();
   const [value, setValue] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -147,16 +157,20 @@ function HeaderSearch() {
     router.push(target);
   }
 
+  const searchAria = t("search.carSearchAria");
+  const searchLabel = t("search.carSearchLabel");
+  const searchPlaceholder = t("search.placeholder");
+
   return (
     <>
       <form
         role="search"
         onSubmit={submit}
         className="hidden md:flex md:w-56 lg:w-72"
-        aria-label="Maşın axtarışı"
+        aria-label={searchAria}
       >
         <label htmlFor="header-search" className="sr-only">
-          Maşın axtarışı
+          {searchLabel}
         </label>
         <div className="relative w-full">
           <input
@@ -164,7 +178,7 @@ function HeaderSearch() {
             type="search"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="Marka, model və ya komplektasiya axtar"
+            placeholder={searchPlaceholder}
             className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-3 text-sm text-foreground outline-none transition-colors focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20"
           />
           <span
@@ -178,7 +192,7 @@ function HeaderSearch() {
 
       <button
         type="button"
-        aria-label="Axtarışı aç"
+        aria-label={t("search.openMobileAria")}
         aria-expanded={mobileOpen}
         onClick={() => setMobileOpen((v) => !v)}
         className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:bg-surface-muted md:hidden"
@@ -188,9 +202,9 @@ function HeaderSearch() {
 
       {mobileOpen ? (
         <div className="absolute left-0 right-0 top-16 z-30 border-b border-border bg-surface px-4 py-3 shadow-sm md:hidden">
-          <form role="search" onSubmit={submit} aria-label="Maşın axtarışı">
+          <form role="search" onSubmit={submit} aria-label={searchAria}>
             <label htmlFor="header-search-mobile" className="sr-only">
-              Maşın axtarışı
+              {searchLabel}
             </label>
             <input
               id="header-search-mobile"
@@ -198,7 +212,7 @@ function HeaderSearch() {
               autoFocus
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Marka, model və ya komplektasiya axtar"
+              placeholder={searchPlaceholder}
               className="h-11 w-full rounded-[var(--radius)] border border-border bg-surface px-3 text-sm text-foreground outline-none focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20"
             />
           </form>

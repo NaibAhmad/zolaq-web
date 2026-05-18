@@ -9,6 +9,7 @@ import {
   AD_STATUS_LABEL_AZ,
 } from "@/lib/ads/labels";
 import { listDealers } from "@/lib/admin";
+import { formatDateAz } from "@/lib/format/date";
 
 const STATUS_TONE: Record<string, "blue" | "warning" | "success" | "danger" | "muted" | "orange"> = {
   draft: "muted",
@@ -25,12 +26,6 @@ const STATUS_TONE: Record<string, "blue" | "warning" | "success" | "danger" | "m
   rejected: "danger",
   cancelled: "muted",
 };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export default function AdminAdsPage() {
   const rows = listAdRequests();
@@ -110,7 +105,7 @@ export default function AdminAdsPage() {
           {
             key: "updated",
             header: "Yenilənib",
-            cell: (r) => DATE_FMT.format(r.updated_at),
+            cell: (r) => formatDateAz(r.updated_at),
           },
         ]}
       />

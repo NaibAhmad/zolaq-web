@@ -12,6 +12,8 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { DECISION_HISTORY_EVENT_LABELS_AZ } from "@/lib/decisions/labels";
+import { formatDateAz, formatTimeAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { DecisionHistoryEvent } from "@/lib/decisions/types";
 
@@ -32,19 +34,9 @@ type FetchState =
       activity: ActivityItem[];
     };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-const TIME_FMT = new Intl.DateTimeFormat("az-AZ", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 export default function ProfileHistoryPage() {
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -74,21 +66,21 @@ export default function ProfileHistoryPage() {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, router]);
+  }, [reloadKey, router, t]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Tarixçə yüklənir…" />;
+    return <LoadingState label={t("profileHistory.loading")} />;
   }
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Tarixçə yüklənmədi"
+        title={t("profileHistory.loadFailed")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -98,8 +90,8 @@ export default function ProfileHistoryPage() {
   if (state.events.length === 0 && state.activity.length === 0) {
     return (
       <EmptyState
-        title="Tarixçə boşdur"
-        note="Axtarış, maşına baxış və sorğu kimi fəaliyyətlər burada toplanacaq."
+        title={t("profileHistory.emptyTitle")}
+        note={t("profileHistory.emptyNote")}
       />
     );
   }
@@ -111,9 +103,9 @@ export default function ProfileHistoryPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Profil"
-            title="Qərar tarixçəsi"
-            subtitle="Bütün araşdırma və sorğu hərəkətlərinin xronoloji jurnalı."
+            eyebrow={t("nav.profile")}
+            title={t("profileHistory.title")}
+            subtitle={t("profileHistory.subtitle")}
           />
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge tone="blue" size="md">
@@ -154,7 +146,7 @@ export default function ProfileHistoryPage() {
                     dateTime={new Date(item.at).toISOString()}
                     className="shrink-0 text-xs text-foreground-muted"
                   >
-                    {DATE_FMT.format(item.at)}
+                    {formatDateAz(item.at)}
                   </time>
                 </li>
               ))}
@@ -192,7 +184,7 @@ export default function ProfileHistoryPage() {
                       dateTime={new Date(event.created_at).toISOString()}
                       className="shrink-0 text-xs text-foreground-muted"
                     >
-                      {TIME_FMT.format(event.created_at)}
+                      {formatTimeAz(event.created_at)}
                     </time>
                   </li>
                 ))}
@@ -222,7 +214,7 @@ function groupByDate(events: DecisionHistoryEvent[]): Group[] {
     } else {
       map.set(key, {
         key,
-        label: DATE_FMT.format(event.created_at),
+        label: formatDateAz(event.created_at),
         events: [event],
       });
     }

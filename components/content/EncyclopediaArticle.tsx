@@ -8,6 +8,8 @@ import { ContentViewTracker } from "@/components/content/ContentViewTracker";
 import { RelatedModelDarkCard } from "@/components/content/RelatedModelDarkCard";
 import { RelatedModelLink } from "@/components/content/RelatedModelLink";
 import { categoryLabel } from "@/lib/content/encyclopedia-categories";
+import { formatDateAz } from "@/lib/format/date";
+import { getServerT } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import type { EncyclopediaEntry } from "@/lib/content/types";
 import type { LeadTrimSummary } from "@/lib/leads/types";
@@ -17,19 +19,8 @@ type Props = {
   relatedTrims: readonly LeadTrimSummary[];
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-const LONG_DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
+export async function EncyclopediaArticle({ entry, relatedTrims }: Props) {
+  const t = await getServerT();
   const catLabel = categoryLabel(entry.category);
   const coverAlt =
     entry.image_alt ?? `${entry.title} — Zolaq ensiklopediya`;
@@ -59,12 +50,12 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
               href={ROUTES.encyclopedia}
               className="hover:text-foreground hover:underline"
             >
-              Ensiklopediya
+              {t("content.encyclopediaBreadcrumb")}
             </Link>
             <span aria-hidden className="mx-2">·</span>
             <span>{catLabel}</span>
             <span aria-hidden className="mx-2">·</span>
-            <span>Yenilənib {DATE_FMT.format(entry.published_at)}</span>
+            <span>{t("dates.updated")} {formatDateAz(entry.published_at)}</span>
           </nav>
           <h1 className="mt-4 text-3xl font-semibold leading-tight text-foreground md:text-4xl">
             {entry.title}
@@ -77,7 +68,7 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
             alt={coverAlt}
             aspect="21/9"
             categoryLabel={catLabel}
-            moduleLabel="Ensiklopediya"
+            moduleLabel={t("content.moduleEncyclopedia")}
             className="mt-8"
             priority
           />
@@ -112,7 +103,7 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
               ) : null}
 
               {paragraphs.map((para, i) => {
-                const heading = i === 0 ? "Necə işləyir?" : null;
+                const heading = i === 0 ? t("content.howItWorks") : null;
                 return (
                   <div key={i} className="space-y-4">
                     {heading ? (
@@ -130,7 +121,7 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
               {extraTrims.length > 0 ? (
                 <div className="space-y-3 pt-4">
                   <h2 className="text-base font-semibold text-foreground">
-                    Digər əlaqəli modellər
+                    {t("content.moreRelatedModels")}
                   </h2>
                   <ul className="grid gap-3 md:grid-cols-2">
                     {extraTrims.map((s) => (
@@ -162,17 +153,19 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
                 {entry.source ? (
                   <Card tone="raised" padding="md" className="space-y-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground-muted">
-                      Mənbə və etibarlılıq
+                      {t("content.sourceAndTrust")}
                     </p>
                     {entry.source.verified ? (
                       <Badge tone="success" size="sm">
-                        ✓ Təsdiqlənib
+                        ✓ {t("content.verified")}
                       </Badge>
                     ) : null}
                     <p className="text-sm text-foreground-muted">
-                      Mənbə: {entry.source.name} · {entry.source.source_count}{" "}
-                      mənbə · Yenilənmə:{" "}
-                      {DATE_FMT.format(entry.published_at)}
+                      {t("content.sourceLine", {
+                        name: entry.source.name,
+                        count: entry.source.source_count,
+                        date: formatDateAz(entry.published_at),
+                      })}
                     </p>
                   </Card>
                 ) : null}
@@ -188,10 +181,10 @@ export function EncyclopediaArticle({ entry, relatedTrims }: Props) {
             href={ROUTES.encyclopedia}
             className="inline-flex items-center gap-2 text-sm font-medium text-accent-blue hover:underline"
           >
-            ← Ensiklopediyaya qayıt
+            ← {t("content.backToEncyclopedia")}
           </Link>
           <p className="mt-2 text-xs text-foreground-muted">
-            Yenilənmə: {LONG_DATE_FMT.format(entry.published_at)}
+            {t("dates.updated")}: {formatDateAz(entry.published_at)}
           </p>
         </Container>
       </Section>

@@ -7,6 +7,9 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card } from "@/components/ui/Card";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { trackEvent } from "@/lib/tracking/track";
 import type { LeadTrimSummary } from "@/lib/leads/types";
 import type { ContentType } from "@/lib/content/types";
@@ -24,16 +27,10 @@ type Props = {
   relatedTrims: readonly LeadTrimSummary[];
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-const TYPE_LABEL: Record<ContentType, string> = {
-  news: "Xəbər",
-  encyclopedia: "Ensiklopediya",
-  qa: "Q&A",
+const TYPE_KEY: Record<ContentType, TranslationKey> = {
+  news: "content.typeNews",
+  encyclopedia: "content.typeEncyclopedia",
+  qa: "content.typeQa",
 };
 
 export function ContentDetail({
@@ -48,6 +45,7 @@ export function ContentDetail({
   backLabel,
   relatedTrims,
 }: Props) {
+  const t = useT();
   useEffect(() => {
     trackEvent("content_viewed", {
       content_id: contentId,
@@ -75,17 +73,17 @@ export function ContentDetail({
             </Link>
           </nav>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
-            {TYPE_LABEL[contentType]}
+            {t(TYPE_KEY[contentType])}
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">
             {title}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground-muted">
             <time dateTime={new Date(publishedAt).toISOString()}>
-              {DATE_FMT.format(publishedAt)}
+              {formatDateAz(publishedAt)}
             </time>
             <span aria-hidden>·</span>
-            <span>~{readMinutes} dəq oxu</span>
+            <span>{t("content.readMinutes", { count: readMinutes })}</span>
           </div>
         </Container>
       </Section>
@@ -111,7 +109,7 @@ export function ContentDetail({
       {relatedTrims.length > 0 ? (
         <Section tone="muted" padding="md">
           <Container size="narrow">
-            <SectionHeading eyebrow="Əlaqəli" title="Əlaqəli modellər" />
+            <SectionHeading eyebrow={t("content.relatedEyebrow")} title={t("content.relatedModels")} />
             <ul className="mt-6 grid gap-3 md:grid-cols-2">
               {relatedTrims.map((s) => (
                 <li key={s.trim_id}>
@@ -126,7 +124,7 @@ export function ContentDetail({
           <Container size="narrow">
             <Card padding="md" tone="muted">
               <p className="text-sm text-foreground-muted">
-                Əlaqəli model yoxdur.
+                {t("content.noRelatedModels")}
               </p>
             </Card>
           </Container>

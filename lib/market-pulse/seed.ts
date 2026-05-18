@@ -1,16 +1,27 @@
 import type { BazarTopic, BazarVote } from "./types";
 
+// Sprint 10I-C: question / option label / market_summary now carry az/en/ru
+// so the homepage Bazar Nəbzi card and the /qa page localize correctly.
+// Brand and model names stay identical across locales — they're proper nouns.
+
 export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
   {
     topic_id: "bz_daily_2026_05_16",
-    question: "Bu gün ən çox sorğu hansı brendə gedəcək?",
+    question: {
+      az: "Bu gün ən çox sorğu hansı brendə gedəcək?",
+      en: "Which brand will get the most inquiries today?",
+      ru: "На какой бренд сегодня будет больше всего запросов?",
+    },
     cadence: "daily",
     status: "active",
     options: [
       { option_id: "opt_byd", label: "BYD" },
       { option_id: "opt_volvo", label: "Volvo" },
       { option_id: "opt_hongqi", label: "Hongqi" },
-      { option_id: "opt_other", label: "Digər" },
+      {
+        option_id: "opt_other",
+        label: { az: "Digər", en: "Other", ru: "Другое" },
+      },
     ],
     start_date: "2026-05-16",
     end_date: "2026-05-16",
@@ -21,7 +32,11 @@ export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
   },
   {
     topic_id: "bz_weekly_2026_w20",
-    question: "Bu həftə ən çox maraq görəcək model hansıdır?",
+    question: {
+      az: "Bu həftə ən çox maraq görəcək model hansıdır?",
+      en: "Which model will draw the most interest this week?",
+      ru: "Какая модель вызовет наибольший интерес на этой неделе?",
+    },
     cadence: "weekly",
     status: "active",
     options: [
@@ -39,13 +54,30 @@ export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
   },
   {
     topic_id: "bz_monthly_2026_05",
-    question: "EV marağı bu ay artacaq, azalacaq, yoxsa sabit qalacaq?",
+    question: {
+      az: "EV marağı bu ay artacaq, azalacaq, yoxsa sabit qalacaq?",
+      en: "Will EV interest grow, drop, or stay flat this month?",
+      ru: "Интерес к электромобилям в этом месяце вырастет, упадёт или останется прежним?",
+    },
     cadence: "monthly",
     status: "active",
     options: [
-      { option_id: "opt_up", label: "Artacaq" },
-      { option_id: "opt_flat", label: "Sabit qalacaq" },
-      { option_id: "opt_down", label: "Azalacaq" },
+      {
+        option_id: "opt_up",
+        label: { az: "Artacaq", en: "Will grow", ru: "Вырастет" },
+      },
+      {
+        option_id: "opt_flat",
+        label: {
+          az: "Sabit qalacaq",
+          en: "Will stay flat",
+          ru: "Останется прежним",
+        },
+      },
+      {
+        option_id: "opt_down",
+        label: { az: "Azalacaq", en: "Will drop", ru: "Упадёт" },
+      },
     ],
     start_date: "2026-05-01",
     end_date: "2026-05-31",
@@ -56,7 +88,11 @@ export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
   },
   {
     topic_id: "bz_weekly_2026_w19_archive",
-    question: "Keçən həftə ən çox müqayisə edilən model?",
+    question: {
+      az: "Keçən həftə ən çox müqayisə edilən model?",
+      en: "Most compared model last week?",
+      ru: "Самая сравниваемая модель на прошлой неделе?",
+    },
     cadence: "weekly",
     status: "resolved",
     options: [
@@ -67,8 +103,11 @@ export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
     start_date: "2026-05-04",
     end_date: "2026-05-10",
     sponsored: false,
-    market_summary:
-      "Bu həftə BYD Song Plus müqayisədə öndə oldu — istifadəçilər qiymət/şəbəkə müqayisəsini əsas etdi.",
+    market_summary: {
+      az: "Bu həftə BYD Song Plus müqayisədə öndə oldu — istifadəçilər qiymət/şəbəkə müqayisəsini əsas etdi.",
+      en: "BYD Song Plus led the comparisons this week — users focused on price and charging network.",
+      ru: "На этой неделе лидером сравнений стал BYD Song Plus — пользователи учитывали цену и зарядную сеть.",
+    },
     created_by: "admin_content",
     created_at: Date.parse("2026-05-04T08:00:00+04:00"),
     updated_at: Date.parse("2026-05-11T09:00:00+04:00"),
@@ -77,19 +116,39 @@ export const BAZAR_TOPIC_SEED: readonly BazarTopic[] = [
   },
   {
     topic_id: "bz_monthly_2026_04_archive",
-    question: "Aprel ayında qiymət istiqaməti necə oldu?",
+    question: {
+      az: "Aprel ayında qiymət istiqaməti necə oldu?",
+      en: "How did prices trend in April?",
+      ru: "Каким был тренд цен в апреле?",
+    },
     cadence: "monthly",
     status: "archived",
     options: [
-      { option_id: "opt_a_up", label: "Artdı" },
-      { option_id: "opt_a_flat", label: "Sabit qaldı" },
-      { option_id: "opt_a_down", label: "Azaldı" },
+      {
+        option_id: "opt_a_up",
+        label: { az: "Artdı", en: "Rose", ru: "Выросли" },
+      },
+      {
+        option_id: "opt_a_flat",
+        label: {
+          az: "Sabit qaldı",
+          en: "Stayed flat",
+          ru: "Остались прежними",
+        },
+      },
+      {
+        option_id: "opt_a_down",
+        label: { az: "Azaldı", en: "Fell", ru: "Упали" },
+      },
     ],
     start_date: "2026-04-01",
     end_date: "2026-04-30",
     sponsored: false,
-    market_summary:
-      "Aprel ayında orta listinq qiyməti sabit qaldı — kiçik dalğalanma model səviyyəsində oldu.",
+    market_summary: {
+      az: "Aprel ayında orta listinq qiyməti sabit qaldı — kiçik dalğalanma model səviyyəsində oldu.",
+      en: "Average listing price stayed flat in April — small fluctuations only at the model level.",
+      ru: "Средняя цена объявлений в апреле осталась прежней — небольшие колебания только на уровне моделей.",
+    },
     created_by: "admin_content",
     created_at: Date.parse("2026-04-01T08:00:00+04:00"),
     updated_at: Date.parse("2026-05-02T09:00:00+04:00"),

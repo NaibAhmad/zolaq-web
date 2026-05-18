@@ -1,12 +1,9 @@
-import { DECISION_HISTORY_EVENT_LABELS_AZ } from "@/lib/decisions/labels";
-import type { DecisionHistoryEvent } from "@/lib/decisions/types";
+"use client";
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+import { DECISION_HISTORY_EVENT_LABELS_AZ } from "@/lib/decisions/labels";
+import { formatDateTimeAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
+import type { DecisionHistoryEvent } from "@/lib/decisions/types";
 
 type Props = {
   events: DecisionHistoryEvent[];
@@ -15,12 +12,13 @@ type Props = {
 };
 
 export function RecentActivityList({ events, limit, emptyLabel }: Props) {
+  const t = useT();
   const visible = limit !== undefined ? events.slice(0, limit) : events;
 
   if (visible.length === 0) {
     return (
       <p className="rounded-[var(--radius-lg)] border border-dashed border-border bg-surface p-6 text-center text-sm text-foreground-muted">
-        {emptyLabel ?? "Fəaliyyət hələ qeydə alınmayıb."}
+        {emptyLabel ?? t("decisions.emptyActivity")}
       </p>
     );
   }
@@ -48,7 +46,7 @@ export function RecentActivityList({ events, limit, emptyLabel }: Props) {
               dateTime={new Date(event.created_at).toISOString()}
               className="shrink-0 text-xs text-foreground-muted"
             >
-              {DATE_FMT.format(event.created_at)}
+              {formatDateTimeAz(event.created_at)}
             </time>
           </div>
         </li>

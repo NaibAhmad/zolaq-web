@@ -14,6 +14,8 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
+import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
 import type { LeadState, LeadWithTrim } from "@/lib/leads/types";
 import { ROUTES, otpHref } from "@/lib/routes";
@@ -22,12 +24,6 @@ type FetchState =
   | { status: "loading" }
   | { status: "error"; message: string; code: string }
   | { status: "ready"; leads: LeadWithTrim[] };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 const TERMINAL_STATES: ReadonlySet<LeadState> = new Set([
   "expired",
@@ -38,6 +34,7 @@ const TERMINAL_STATES: ReadonlySet<LeadState> = new Set([
 
 export default function ProfileLeadsPage() {
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -59,21 +56,21 @@ export default function ProfileLeadsPage() {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, router]);
+  }, [reloadKey, router, t]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Sorğular yüklənir…" />;
+    return <LoadingState label={t("profileLeads.loading")} />;
   }
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Sorğular yüklənmədi"
+        title={t("profileLeads.loadFailed")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -83,11 +80,11 @@ export default function ProfileLeadsPage() {
   if (state.leads.length === 0) {
     return (
       <EmptyState
-        title="Hələ sorğu yoxdur"
-        note="İlk sorğunu kataloqdan və ya maşın səhifəsindən göndər."
+        title={t("profileLeads.emptyTitle")}
+        note={t("profileLeads.emptyNote")}
         action={
           <ButtonLink href={ROUTES.cars} variant="primary">
-            Maşınlara bax
+            {t("nav.cars")}
           </ButtonLink>
         }
       />
@@ -105,9 +102,9 @@ export default function ProfileLeadsPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Sorğular"
-            title="Mənim sorğularım"
-            subtitle="Göndərdiyin sorğuların siyahısı və cari vəziyyət."
+            eyebrow={t("profileLeads.eyebrow")}
+            title={t("profileLeads.title")}
+            subtitle={t("profileLeads.subtitle")}
           />
         </Container>
       </Section>
@@ -115,17 +112,17 @@ export default function ProfileLeadsPage() {
       <Section tone="light" padding="md">
         <Container size="narrow" className="space-y-8">
           <LeadGroup
-            title="Aktiv"
+            title={t("profileLeads.sectionActive")}
             count={active.length}
             leads={active}
-            empty="Aktiv sorğu yoxdur."
+            empty={t("profileLeads.noActive")}
           />
           {archived.length > 0 ? (
             <LeadGroup
-              title="Arxiv"
+              title={t("profileLeads.sectionArchive")}
               count={archived.length}
               leads={archived}
-              empty="Arxiv sorğu yoxdur."
+              empty={t("profileLeads.noArchive")}
             />
           ) : null}
         </Container>
@@ -171,6 +168,7 @@ function LeadGroup({
 }
 
 function LeadRow({ lead }: { lead: LeadWithTrim }) {
+  const t = useT();
   const tone = LEAD_STATE_TONE[lead.state];
   return (
     <Link
@@ -205,10 +203,10 @@ function LeadRow({ lead }: { lead: LeadWithTrim }) {
             dateTime={new Date(lead.updated_at).toISOString()}
             className="text-xs text-foreground-muted"
           >
-            {DATE_FMT.format(lead.updated_at)}
+            {formatDateAz(lead.updated_at)}
           </time>
           <span className="text-xs font-medium text-accent-blue">
-            Statusa bax →
+            {t("profileLeads.viewStatus")}
           </span>
         </div>
       </Card>

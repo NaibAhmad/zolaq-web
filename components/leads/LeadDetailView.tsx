@@ -17,6 +17,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet, apiPost } from "@/lib/api";
 import { formatPrice } from "@/lib/cars/format";
+import { formatDateAz, formatDateTimeAz } from "@/lib/format/date";
 import { BRANDS } from "@/lib/cars/seed";
 import type { PriceRecord, Trim } from "@/lib/cars/types";
 import {
@@ -53,20 +54,6 @@ type FetchState =
       bestOffer: PriceRecord | null;
       dealer: Dealer | null;
     };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
-const DATE_TIME_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 const CONTACT_LABEL: Record<"phone" | "whatsapp", string> = {
   phone: "Zəng",
@@ -417,8 +404,8 @@ export function LeadDetailView({ leadId }: Props) {
           />
           <LeadTimeline state={lead.state} events={timeline} />
           <p className="text-xs text-foreground-muted">
-            Yaradılıb: {DATE_TIME_FMT.format(lead.created_at)} · Son yenilənmə:{" "}
-            {DATE_FMT.format(lead.updated_at)}
+            Yaradılıb: {formatDateTimeAz(lead.created_at)} · Son yenilənmə:{" "}
+            {formatDateAz(lead.updated_at)}
           </p>
         </Container>
       </Section>
@@ -587,7 +574,5 @@ function SubPageLinks({ lead }: { lead: Lead }) {
 }
 
 function formatDateIso(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return DATE_FMT.format(d);
+  return formatDateAz(iso);
 }

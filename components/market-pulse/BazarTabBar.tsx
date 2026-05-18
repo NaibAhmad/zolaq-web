@@ -1,29 +1,48 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 
-export const QA_TABS = [
-  { key: "suallar", label: "Suallar" },
-  { key: "bazar-nebzi", label: "Bazar Nəbzi" },
-  { key: "gunluk", label: "Günlük" },
-  { key: "heftelik", label: "Həftəlik" },
-  { key: "ayliq", label: "Aylıq" },
-  { key: "tarixce", label: "Tarixçə" },
-] as const;
+type TabDef = { key: QaTabKey; labelKey: TranslationKey; fallback: string };
 
-export type QaTabKey = (typeof QA_TABS)[number]["key"];
+const TABS: ReadonlyArray<TabDef> = [
+  { key: "suallar", labelKey: "nav.qa", fallback: "Sorğu" },
+  { key: "bazar-nebzi", labelKey: "bazar.badge", fallback: "Bazar Nəbzi" },
+  { key: "gunluk", labelKey: "bazar.daily", fallback: "Gündəlik" },
+  { key: "heftelik", labelKey: "bazar.weekly", fallback: "Həftəlik" },
+  { key: "ayliq", labelKey: "bazar.monthly", fallback: "Aylıq" },
+  { key: "tarixce", labelKey: "bazar.tabHistory", fallback: "Tarixçə" },
+];
+
+export const QA_TABS = TABS.map((t) => ({ key: t.key, label: t.fallback })) as ReadonlyArray<{
+  key: QaTabKey;
+  label: string;
+}>;
+
+export type QaTabKey =
+  | "suallar"
+  | "bazar-nebzi"
+  | "gunluk"
+  | "heftelik"
+  | "ayliq"
+  | "tarixce";
 
 export function isQaTab(value: string | null | undefined): value is QaTabKey {
-  return !!value && QA_TABS.some((t) => t.key === value);
+  return !!value && TABS.some((t) => t.key === value);
 }
 
 export function BazarTabBar({ activeTab }: { activeTab: QaTabKey }) {
+  const t = useT();
   return (
     <nav
-      aria-label="Sual-cavab bölmələri"
+      aria-label={t("nav.qaSections")}
       className="-mx-3 mt-4 flex flex-wrap gap-1 overflow-x-auto px-3"
     >
-      {QA_TABS.map((tab) => {
+      {TABS.map((tab) => {
         const active = tab.key === activeTab;
         const href = tab.key === "suallar" ? "/qa" : `/qa?tab=${tab.key}`;
+        const label = t(tab.labelKey);
         return (
           <Link
             key={tab.key}
@@ -35,7 +54,7 @@ export function BazarTabBar({ activeTab }: { activeTab: QaTabKey }) {
                 : "bg-surface text-foreground-muted hover:bg-surface-muted hover:text-foreground"
             }`}
           >
-            {tab.label}
+            {label}
           </Link>
         );
       })}

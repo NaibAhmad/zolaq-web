@@ -5,6 +5,8 @@ import { ContentCoverImage } from "@/components/content/ContentCoverImage";
 import { ContentViewTracker } from "@/components/content/ContentViewTracker";
 import { RelatedModelDarkCard } from "@/components/content/RelatedModelDarkCard";
 import { RelatedModelLink } from "@/components/content/RelatedModelLink";
+import { formatDateAz } from "@/lib/format/date";
+import { getServerT } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 import type { NewsArticle as NewsArticleType } from "@/lib/content/types";
 import type { LeadTrimSummary } from "@/lib/leads/types";
@@ -14,21 +16,10 @@ type Props = {
   relatedTrims: readonly LeadTrimSummary[];
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-const LONG_DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-export function NewsArticle({ article, relatedTrims }: Props) {
+export async function NewsArticle({ article, relatedTrims }: Props) {
+  const t = await getServerT();
   const categoryLabel =
-    article.category ?? article.source_name ?? "Bazar";
+    article.category ?? article.source_name ?? t("content.categoryFallback");
   const coverAlt = article.image_alt ?? `${article.title} — Zolaq xəbər`;
   const paragraphs = article.body
     .split(/\n\n+/)
@@ -56,12 +47,12 @@ export function NewsArticle({ article, relatedTrims }: Props) {
               href={ROUTES.news}
               className="hover:text-foreground hover:underline"
             >
-              Xəbərlər
+              {t("content.newsBreadcrumb")}
             </Link>
             <span aria-hidden className="mx-2">·</span>
             <span>{categoryLabel}</span>
             <span aria-hidden className="mx-2">·</span>
-            <span>Dərc olundu {DATE_FMT.format(article.published_at)}</span>
+            <span>{t("content.publishedOn")} {formatDateAz(article.published_at)}</span>
           </nav>
           <h1 className="mt-4 text-3xl font-semibold leading-tight text-foreground md:text-4xl">
             {article.title}
@@ -74,7 +65,7 @@ export function NewsArticle({ article, relatedTrims }: Props) {
             alt={coverAlt}
             aspect="21/9"
             categoryLabel={categoryLabel}
-            moduleLabel="Xəbər"
+            moduleLabel={t("content.moduleNews")}
             className="mt-8"
             priority
           />
@@ -98,15 +89,15 @@ export function NewsArticle({ article, relatedTrims }: Props) {
               ))}
               {article.source_name ? (
                 <p className="pt-4 text-sm text-foreground-muted">
-                  Mənbə: {article.source_name} · Dərc olundu{" "}
-                  {LONG_DATE_FMT.format(article.published_at)}
+                  {t("dealerTrust.source")}: {article.source_name} · {t("content.publishedOn")}{" "}
+                  {formatDateAz(article.published_at)}
                 </p>
               ) : null}
 
               {extraTrims.length > 0 ? (
                 <div className="space-y-3 pt-4">
                   <h2 className="text-base font-semibold text-foreground">
-                    Digər əlaqəli modellər
+                    {t("content.moreRelatedModels")}
                   </h2>
                   <ul className="grid gap-3 md:grid-cols-2">
                     {extraTrims.map((s) => (
@@ -145,7 +136,7 @@ export function NewsArticle({ article, relatedTrims }: Props) {
             href={ROUTES.news}
             className="inline-flex items-center gap-2 text-sm font-medium text-accent-blue hover:underline"
           >
-            ← Xəbərlərə qayıt
+            ← {t("content.backToNews")}
           </Link>
         </Container>
       </Section>

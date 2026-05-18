@@ -1,3 +1,5 @@
+"use client";
+
 import { CarImage } from "@/components/catalog/CarImage";
 import { CompareToggleButton } from "@/components/compare/CompareToggleButton";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -5,6 +7,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/cars/format";
 import { getGenerationById } from "@/lib/cars/generations";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 import type {
   PriceRecord,
@@ -31,15 +35,15 @@ function deriveTrimSuffix(displayName: string, brandName: string, modelName: str
   return displayName;
 }
 
-const STATUS_LABEL: Record<PriceStatus, string> = {
-  estimated: "Təxmini",
-  catalog_price: "Kataloq",
-  dealer_quote_pending: "Gözləmədə",
-  dealer_official_offer: "Rəsmi təklif",
-  expired_offer: "Müddəti bitib",
-  conflict: "Ziddiyyət",
-  price_unknown: "Soruş",
-  not_available: "Mövcud deyil",
+const STATUS_KEY: Record<PriceStatus, TranslationKey> = {
+  estimated: "catalogCard.statusEstimated",
+  catalog_price: "catalogCard.statusCatalog",
+  dealer_quote_pending: "catalogCard.statusPending",
+  dealer_official_offer: "catalogCard.statusOfficial",
+  expired_offer: "catalogCard.statusExpired",
+  conflict: "catalogCard.statusConflict",
+  price_unknown: "catalogCard.statusAsk",
+  not_available: "catalogCard.statusUnavailable",
 };
 
 const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
@@ -53,12 +57,12 @@ const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
   not_available: "muted",
 };
 
-const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
-  unverified: "Yoxlanılmayıb",
-  verified: "Təsdiqlənib",
-  pending: "Yoxlanılır",
-  conflict: "Ziddiyyət",
-  outdated: "Köhnəlib",
+const VERIFICATION_KEY: Record<VerificationStatus, TranslationKey> = {
+  unverified: "catalogCard.verifyUnverified",
+  verified: "catalogCard.verifyVerified",
+  pending: "catalogCard.verifyPending",
+  conflict: "catalogCard.verifyConflict",
+  outdated: "catalogCard.verifyOutdated",
 };
 
 const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
@@ -69,16 +73,17 @@ const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
   outdated: "muted",
 };
 
-const SOURCE_LABEL: Record<SourceType, string> = {
-  official_dealer: "Rəsmi diler",
-  catalog: "Kataloq",
-  partner: "Tərəfdaş",
-  estimate: "Təxmin",
-  zolaq_manual: "Zolaq",
-  imported: "İdxal",
+const SOURCE_KEY: Record<SourceType, TranslationKey> = {
+  official_dealer: "catalogCard.sourceDealer",
+  catalog: "catalogCard.sourceCatalog",
+  partner: "catalogCard.sourcePartner",
+  estimate: "catalogCard.sourceEstimate",
+  zolaq_manual: "catalogCard.sourceZolaq",
+  imported: "catalogCard.sourceImport",
 };
 
 export function CarCard({ trim, brandName, bestPrice = null }: Props) {
+  const t = useT();
   const trimSuffix = deriveTrimSuffix(trim.display_name, brandName, trim.model_name);
   const generation = getGenerationById(trim.generation_id);
   const detailHref = ROUTES.car(trim.trim_id);
@@ -114,7 +119,7 @@ export function CarCard({ trim, brandName, bestPrice = null }: Props) {
             {trimSuffix || trim.display_name}
           </h3>
           <p className="text-[11px] uppercase tracking-wide text-foreground-muted">
-            Komplektasiya
+            {t("catalogCard.trim")}
           </p>
         </header>
 
@@ -140,42 +145,42 @@ export function CarCard({ trim, brandName, bestPrice = null }: Props) {
         <div className="flex flex-col gap-1.5 rounded-[var(--radius)] border border-border bg-surface-muted px-3 py-2">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-xs uppercase tracking-wide text-foreground-muted">
-              Qiymət
+              {t("catalogCard.price")}
             </span>
             <span className="text-base font-semibold text-foreground">
               {hasPriceAmount && bestPrice
                 ? formatPrice(bestPrice.amount, bestPrice.currency)
                 : bestPrice
-                  ? "Qiymət soruş"
+                  ? t("catalogCard.askPrice")
                   : "—"}
             </span>
           </div>
           {bestPrice ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge tone={STATUS_TONE[bestPrice.status]} size="sm">
-                {STATUS_LABEL[bestPrice.status]}
+                {t(STATUS_KEY[bestPrice.status])}
               </Badge>
               <Badge
                 tone={VERIFICATION_TONE[bestPrice.verification_status]}
                 size="sm"
               >
-                {VERIFICATION_LABEL[bestPrice.verification_status]}
+                {t(VERIFICATION_KEY[bestPrice.verification_status])}
               </Badge>
               <span className="text-[11px] text-foreground-muted">
-                {SOURCE_LABEL[bestPrice.source_type]}
+                {t(SOURCE_KEY[bestPrice.source_type])}
                 {bestPrice.source_name ? ` · ${bestPrice.source_name}` : ""}
               </span>
             </div>
           ) : (
             <span className="text-[11px] text-foreground-muted">
-              Hələ qiymət qeyd edilməyib
+              {t("catalogCard.noPriceYet")}
             </span>
           )}
         </div>
 
         <div className="mt-auto flex flex-col gap-2 pt-2">
           <ButtonLink href={detailHref} variant="primary" fullWidth>
-            Ətraflı bax
+            {t("catalogCard.viewDetails")}
           </ButtonLink>
           <ButtonLink
             href={`${detailHref}?source=catalog#sorgu`}
@@ -183,7 +188,7 @@ export function CarCard({ trim, brandName, bestPrice = null }: Props) {
             size="sm"
             fullWidth
           >
-            Sorğu göndər
+            {t("catalogCard.submitLead")}
           </ButtonLink>
           <CompareToggleButton trimId={trim.trim_id} />
         </div>

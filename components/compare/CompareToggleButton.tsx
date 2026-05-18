@@ -8,6 +8,7 @@ import {
   subscribe,
   toggleCompareId,
 } from "@/lib/compare/client-store";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
   trimId: string;
@@ -22,16 +23,17 @@ function getServerSnapshot(): string {
 }
 
 export function CompareToggleButton({ trimId }: Props) {
+  const t = useT();
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const ids = snapshot ? snapshot.split(",") : [];
   const selected = ids.includes(trimId);
   const atLimit = !selected && ids.length >= MAX_COMPARE;
 
   const label = selected
-    ? "Müqayisədən çıxar"
+    ? t("actions.compareRemove")
     : atLimit
-      ? `Maksimum ${MAX_COMPARE}`
-      : "Müqayisəyə əlavə et";
+      ? t("actions.compareMax", { count: MAX_COMPARE })
+      : t("actions.compareAdd");
 
   return (
     <Button

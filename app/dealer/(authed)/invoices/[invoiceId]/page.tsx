@@ -4,18 +4,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { getDealerSession } from "@/lib/auth/dealer-session";
+import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoiceForDealer } from "@/lib/invoices/store";
 import { INVOICE_STATUS_LABEL_AZ } from "@/lib/invoices/types";
 import { listPaymentProofs } from "@/lib/payments/store";
 import { PAYMENT_PROOF_STATUS_LABEL_AZ } from "@/lib/payments/types";
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default async function DealerInvoiceDetailPage({
   params,
@@ -50,8 +43,8 @@ export default async function DealerInvoiceDetailPage({
           value={`${inv.amount.toLocaleString("az-AZ")} ${inv.currency}`}
         />
         <Field label="Son ödəniş tarixi" value={inv.due_at} />
-        <Field label="Yaradılıb" value={DATE_FMT.format(inv.created_at)} />
-        <Field label="Yenilənib" value={DATE_FMT.format(inv.updated_at)} />
+        <Field label="Yaradılıb" value={formatDateTimeAz(inv.created_at)} />
+        <Field label="Yenilənib" value={formatDateTimeAz(inv.updated_at)} />
         {inv.notes ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
@@ -122,7 +115,7 @@ export default async function DealerInvoiceDetailPage({
                   {p.reference}
                 </span>
                 <span className="text-foreground-muted">
-                  {DATE_FMT.format(p.uploaded_at)}
+                  {formatDateTimeAz(p.uploaded_at)}
                 </span>
                 <Badge tone="blue" size="sm">
                   {PAYMENT_PROOF_STATUS_LABEL_AZ[p.status]}

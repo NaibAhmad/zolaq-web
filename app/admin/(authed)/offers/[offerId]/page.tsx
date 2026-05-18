@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Card } from "@/components/ui/Card";
 import { getDealer, getOfferById, getTrim } from "@/lib/admin";
 import { listAuditLog } from "@/lib/audit/repository";
+import { formatDateTimeAz } from "@/lib/format/date";
 
 export default async function AdminOfferDetailPage({
   params,
@@ -62,7 +63,7 @@ export default async function AdminOfferDetailPage({
               <li key={e.audit_id} className="border-b border-border pb-2 last:border-b-0">
                 <div className="font-medium">{e.action}</div>
                 <div className="text-xs text-foreground-muted">
-                  {e.actor_type}:{e.actor_id} — {new Date(e.created_at).toLocaleString()}
+                  {e.actor_type}:{e.actor_id} — {formatDateTimeAz(e.created_at)}
                 </div>
                 {e.note ? <div className="text-xs">{e.note}</div> : null}
               </li>

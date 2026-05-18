@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
+import { getLocalizedText } from "@/lib/i18n/localized";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { aggregateTopic, listTopics } from "@/lib/market-pulse/store";
 import {
   BAZAR_CADENCE_LABEL_AZ,
@@ -19,37 +21,38 @@ const TONE: Record<BazarTopicStatus, "muted" | "warning" | "success" | "blue" | 
   rejected: "danger",
 };
 
-export default function AdminMarketPulsePage() {
+export default async function AdminMarketPulsePage() {
   const topics = listTopics();
+  const t = await getServerT();
+  const locale = await getServerLocale();
   return (
     <div className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Bazar Nəbzi</h1>
+          <h1 className="text-xl font-semibold">{t("adminContent.marketPulseTitle")}</h1>
           <p className="mt-1 text-sm text-foreground-muted">
-            Günlük / həftəlik / aylıq icma proqnozları. Mərc, qumar və ya pul
-            mükafatı yoxdur — yalnız iştirakçı səsi və açıq nəticə.
+            {t("adminContent.marketPulseDescription")}
           </p>
         </div>
-        <ButtonLink href="/admin/market-pulse/new">Yeni mövzu</ButtonLink>
+        <ButtonLink href="/admin/market-pulse/new">{t("adminContent.newTopic")}</ButtonLink>
       </header>
       <AdminTable
         rows={topics}
-        rowKey={(t) => t.topic_id}
-        empty="Hələ mövzu yoxdur."
+        rowKey={(row) => row.topic_id}
+        empty={t("adminContent.emptyTopics")}
         columns={[
           {
             key: "question",
-            header: "Sual",
-            cell: (t) => (
+            header: t("adminContent.question"),
+            cell: (row) => (
               <Link
-                href={`/admin/market-pulse/${t.topic_id}`}
+                href={`/admin/market-pulse/${row.topic_id}`}
                 className="font-medium hover:underline"
               >
-                {t.question}
-                {t.sponsored ? (
+                {getLocalizedText(row.question, locale)}
+                {row.sponsored ? (
                   <Badge tone="orange" size="sm" className="ml-2">
-                    Sponsorlu
+                    {t("adminContent.sponsored")}
                   </Badge>
                 ) : null}
               </Link>
@@ -57,25 +60,25 @@ export default function AdminMarketPulsePage() {
           },
           {
             key: "cadence",
-            header: "Tezlik",
-            cell: (t) => BAZAR_CADENCE_LABEL_AZ[t.cadence],
+            header: t("adminContent.cadence"),
+            cell: (row) => BAZAR_CADENCE_LABEL_AZ[row.cadence],
           },
           {
             key: "window",
-            header: "Pəncərə",
-            cell: (t) => `${t.start_date} → ${t.end_date}`,
+            header: t("adminContent.window"),
+            cell: (row) => `${row.start_date} → ${row.end_date}`,
           },
           {
             key: "participants",
-            header: "İştirakçı",
-            cell: (t) => aggregateTopic(t.topic_id)?.total ?? 0,
+            header: t("adminContent.participants"),
+            cell: (row) => aggregateTopic(row.topic_id)?.total ?? 0,
           },
           {
             key: "status",
-            header: "Status",
-            cell: (t) => (
-              <Badge tone={TONE[t.status]} size="sm">
-                {BAZAR_STATUS_LABEL_AZ[t.status]}
+            header: t("adminContent.statusCol"),
+            cell: (row) => (
+              <Badge tone={TONE[row.status]} size="sm">
+                {BAZAR_STATUS_LABEL_AZ[row.status]}
               </Badge>
             ),
           },

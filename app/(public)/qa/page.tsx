@@ -1,10 +1,6 @@
 import { BazarTabBar, isQaTab, type QaTabKey } from "@/components/market-pulse/BazarTabBar";
-import { BazarTopicCard } from "@/components/market-pulse/BazarTopicCard";
-import { ContentList } from "@/components/content/ContentList";
-import { EmptyState } from "@/components/state/EmptyState";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getSession } from "@/lib/auth/session";
 import {
   aggregateTopic,
@@ -17,6 +13,7 @@ import {
 } from "@/lib/market-pulse/types";
 import { listQA } from "@/lib/content/lookup";
 import { ROUTES } from "@/lib/routes";
+import { QaPageChrome } from "./_components/QaPageChrome";
 
 type Search = { tab?: string };
 
@@ -46,15 +43,7 @@ export default async function QaPage({
     return (
       <>
         <TabHeader activeTab={activeTab} />
-        <ContentList
-          eyebrow="Q&A"
-          heading="Suallar və cavablar"
-          intro="Ekspert cavabları və real alıcı sualları."
-          emptyTitle="Hələ sual yoxdur"
-          items={items}
-          cardTone="success"
-          cardLabel="Sual"
-        />
+        <QaPageChrome kind="suallar" items={items} />
       </>
     );
   }
@@ -72,61 +61,23 @@ export default async function QaPage({
     topics = topics.filter((t) => t.status === "active");
   }
 
-  const heading: Record<QaTabKey, string> = {
-    suallar: "Suallar və cavablar",
-    "bazar-nebzi": "Bazar Nəbzi",
-    gunluk: "Günlük",
-    heftelik: "Həftəlik",
-    ayliq: "Aylıq",
-    tarixce: "Tarixçə",
-  };
-  const subtitle: Record<QaTabKey, string> = {
-    suallar: "Ekspert cavabları və real alıcı sualları.",
-    "bazar-nebzi":
-      "İcma proqnozları. Mərc və pul mükafatı yoxdur — yalnız iştirakçı səsi.",
-    gunluk: "Günlük Bazar Nəbzi mövzuları.",
-    heftelik: "Həftəlik Bazar Nəbzi mövzuları.",
-    ayliq: "Aylıq Bazar Nəbzi mövzuları.",
-    tarixce: "Bağlanmış, yekunlaşmış və arxivlənmiş mövzular.",
-  };
+  const entries = topics.map((topic) => ({
+    topic,
+    aggregate: aggregateTopic(topic.topic_id),
+    userVoteOptionId: session
+      ? hasVoted(topic.topic_id, session.userId)?.option_id ?? null
+      : null,
+  }));
 
   return (
     <>
       <TabHeader activeTab={activeTab} />
-      <Section tone="muted" padding="sm">
-        <Container>
-          <SectionHeading
-            eyebrow="Bazar Nəbzi"
-            title={heading[activeTab]}
-            subtitle={subtitle[activeTab]}
-          />
-        </Container>
-      </Section>
-      <Section tone="light" padding="md">
-        <Container>
-          {topics.length === 0 ? (
-            <EmptyState
-              title="Hələ mövzu yoxdur"
-              note="Yeni mövzu açılanda burada görünəcək."
-            />
-          ) : (
-            <ul className="grid gap-4 md:grid-cols-2">
-              {topics.map((t) => (
-                <li key={t.topic_id}>
-                  <BazarTopicCard
-                    topic={t}
-                    aggregate={aggregateTopic(t.topic_id)}
-                    userVoteOptionId={
-                      session ? hasVoted(t.topic_id, session.userId)?.option_id ?? null : null
-                    }
-                    isAuthenticated={!!session}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Container>
-      </Section>
+      <QaPageChrome
+        kind="bazar"
+        activeTab={activeTab}
+        entries={entries}
+        isAuthenticated={!!session}
+      />
     </>
   );
 }

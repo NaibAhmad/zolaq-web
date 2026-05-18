@@ -9,84 +9,87 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminRole } from "@/lib/auth/constants";
 import { adminCan, type Permission } from "@/lib/auth/permissions";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 type Item = {
   href: string;
-  label: string;
+  labelKey: TranslationKey;
   // If omitted, item is visible to every admin role. Otherwise the item is
   // shown only when adminCan(role, permission) returns true.
   permission?: Permission;
 };
 
-type Section = { label: string; items: Item[] };
+type Section = { labelKey: TranslationKey; items: Item[] };
 
 const SECTIONS: Section[] = [
   {
-    label: "Ümumi",
+    labelKey: "adminNav.sectionGeneral",
     items: [
-      { href: "/admin/dashboard", label: "Panel" },
-      { href: "/admin/audit-log", label: "Audit jurnalı", permission: "audit.read" },
+      { href: "/admin/dashboard", labelKey: "adminNav.dashboard" },
+      { href: "/admin/audit-log", labelKey: "adminNav.auditLog", permission: "audit.read" },
     ],
   },
   {
-    label: "Kataloq",
+    labelKey: "adminNav.sectionCatalog",
     items: [
-      { href: "/admin/catalog/brands", label: "Markalar", permission: "catalog.write" },
-      { href: "/admin/catalog/models", label: "Modellər", permission: "catalog.write" },
-      { href: "/admin/catalog/generations", label: "Nəsillər", permission: "catalog.write" },
-      { href: "/admin/catalog/trims", label: "Komplektasiyalar", permission: "catalog.write" },
-      { href: "/admin/catalog/prices", label: "Qiymətlər", permission: "catalog.write" },
+      { href: "/admin/catalog/brands", labelKey: "adminNav.brands", permission: "catalog.write" },
+      { href: "/admin/catalog/models", labelKey: "adminNav.models", permission: "catalog.write" },
+      { href: "/admin/catalog/generations", labelKey: "adminNav.generations", permission: "catalog.write" },
+      { href: "/admin/catalog/trims", labelKey: "adminNav.trims", permission: "catalog.write" },
+      { href: "/admin/catalog/prices", labelKey: "adminNav.prices", permission: "catalog.write" },
     ],
   },
   {
-    label: "Dilerlər",
+    labelKey: "adminNav.dealers",
     items: [
-      { href: "/admin/dealers", label: "Dilerlər", permission: "dealers.manage" },
-      { href: "/admin/offers", label: "Təkliflər", permission: "offers.review" },
-      { href: "/admin/media", label: "Media", permission: "media.review" },
+      { href: "/admin/dealers", labelKey: "adminNav.dealers", permission: "dealers.manage" },
+      { href: "/admin/offers", labelKey: "dealerNav.offers", permission: "offers.review" },
+      { href: "/admin/media", labelKey: "dealerNav.media", permission: "media.review" },
     ],
   },
   {
-    label: "Müraciətlər",
+    labelKey: "adminNav.submissions",
     items: [
-      { href: "/admin/leads", label: "Sorğular", permission: "leads.read" },
+      { href: "/admin/leads", labelKey: "adminNav.leads", permission: "leads.read" },
     ],
   },
   {
-    label: "Məzmun",
+    labelKey: "adminNav.sectionContent",
     items: [
-      { href: "/admin/content/news", label: "Xəbərlər", permission: "content.write" },
-      { href: "/admin/content/encyclopedia", label: "Ensiklopediya", permission: "content.write" },
-      { href: "/admin/content/qa", label: "Sual-cavab", permission: "qa.moderate" },
-      { href: "/admin/market-pulse", label: "Bazar Nəbzi", permission: "market_pulse.write" },
+      { href: "/admin/content/news", labelKey: "adminNav.news", permission: "content.write" },
+      { href: "/admin/content/encyclopedia", labelKey: "adminNav.encyclopedia", permission: "content.write" },
+      { href: "/admin/content/qa", labelKey: "adminNav.qa", permission: "qa.moderate" },
+      { href: "/admin/market-pulse", labelKey: "adminNav.marketPulse", permission: "market_pulse.write" },
     ],
   },
   {
-    label: "Reklam",
+    labelKey: "adminNav.sectionAds",
     items: [
-      { href: "/admin/ads", label: "Reklam tələbləri", permission: "ads.manage" },
-      { href: "/admin/invoices", label: "Fakturalar", permission: "invoices.manage" },
-      { href: "/admin/payments", label: "Ödəniş təsdiqi", permission: "payments.manage" },
+      { href: "/admin/ads", labelKey: "adminNav.adRequests", permission: "ads.manage" },
+      { href: "/admin/invoices", labelKey: "adminNav.invoices", permission: "invoices.manage" },
+      { href: "/admin/payments", labelKey: "adminNav.paymentProof", permission: "payments.manage" },
     ],
   },
   {
-    label: "Sistem",
+    labelKey: "adminNav.sectionSystem",
     items: [
-      { href: "/admin/users", label: "İstifadəçilər", permission: "users.manage" },
-      { href: "/admin/roles", label: "Rollar", permission: "roles.read" },
+      { href: "/admin/users", labelKey: "adminNav.users", permission: "users.manage" },
+      { href: "/admin/roles", labelKey: "adminNav.roles", permission: "roles.read" },
     ],
   },
 ];
 
 export function AdminSidebar({ role }: { role: AdminRole }) {
   const pathname = usePathname();
+  const t = useT();
   return (
     <nav
-      aria-label="Admin naviqasiya"
+      aria-label={t("adminNav.ariaLabel")}
       className="flex w-60 shrink-0 flex-col gap-4 border-r border-border bg-surface-muted/40 p-4"
     >
       <div className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Zolaq Admin
+        {t("adminNav.brandTitle")}
       </div>
       {SECTIONS.map((section) => {
         const items = section.items.filter(
@@ -94,9 +97,9 @@ export function AdminSidebar({ role }: { role: AdminRole }) {
         );
         if (items.length === 0) return null;
         return (
-          <div key={section.label} className="flex flex-col gap-1">
+          <div key={section.labelKey} className="flex flex-col gap-1">
             <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
-              {section.label}
+              {t(section.labelKey)}
             </div>
             <ul className="flex flex-col">
               {items.map((item) => {
@@ -112,7 +115,7 @@ export function AdminSidebar({ role }: { role: AdminRole }) {
                           : "text-foreground-muted hover:bg-surface hover:text-foreground"
                       }`}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </Link>
                   </li>
                 );

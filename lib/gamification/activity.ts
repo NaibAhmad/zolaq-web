@@ -3,6 +3,8 @@
 // Owner-visible; dealer and admin paths do not query this.
 
 import { trimSummaryFor } from "@/lib/cars/summary";
+import { getLocalizedText } from "@/lib/i18n/localized";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import {
   getTimelineForLead,
   listLeadsForUser,
@@ -46,14 +48,18 @@ export function listProfileActivity(userId: string): ActivityItem[] {
 
   for (const v of listUserVotes(userId)) {
     const topic = getTopic(v.topic_id);
-    const optionLabel =
-      topic?.options.find((o) => o.option_id === v.option_id)?.label ??
-      v.option_id;
+    const rawOption = topic?.options.find((o) => o.option_id === v.option_id);
+    const optionLabel = rawOption
+      ? getLocalizedText(rawOption.label, DEFAULT_LOCALE)
+      : v.option_id;
+    const questionLabel = topic
+      ? getLocalizedText(topic.question, DEFAULT_LOCALE)
+      : null;
     out.push({
       id: `vote:${v.vote_id}`,
       kind: "vote",
       label: "Bazar Nəbzində səs verdin",
-      detail: topic ? `${topic.question} — ${optionLabel}` : optionLabel,
+      detail: questionLabel ? `${questionLabel} — ${optionLabel}` : optionLabel,
       at: v.created_at,
     });
   }

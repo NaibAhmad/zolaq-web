@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
+import { formatDateTimeAz } from "@/lib/format/date";
 import { listMediaAssets, type MediaStatus } from "@/lib/media/repository";
 
 const STATUS_TONE: Record<MediaStatus, "muted" | "brand" | "blue" | "danger" | "neutral"> = {
@@ -112,7 +113,7 @@ export default async function AdminMediaPage({
                   <div className="break-all text-foreground-muted">{m.public_url}</div>
                   <div className="text-foreground-muted">
                     {m.original_file_name} · {Math.round(m.size_bytes / 1024)} KB ·{" "}
-                    {new Date(m.created_at).toLocaleString()}
+                    {formatDateTimeAz(m.created_at)}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

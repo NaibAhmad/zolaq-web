@@ -7,19 +7,33 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ApiError, apiPost } from "@/lib/api";
+import { formatDateAz } from "@/lib/format/date";
+import { useT, useCurrentLocale } from "@/lib/i18n/client";
+import { getLocalizedText } from "@/lib/i18n/localized";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { otpHref, ROUTES } from "@/lib/routes";
 import {
-  BAZAR_CADENCE_LABEL_AZ,
-  BAZAR_STATUS_LABEL_AZ,
   type BazarAggregate,
+  type BazarCadence,
   type BazarTopic,
+  type BazarTopicStatus,
 } from "@/lib/market-pulse/types";
 
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
+const CADENCE_KEY: Record<BazarCadence, TranslationKey> = {
+  daily: "bazar.daily",
+  weekly: "bazar.weekly",
+  monthly: "bazar.monthly",
+};
+
+const STATUS_KEY: Record<BazarTopicStatus, TranslationKey> = {
+  draft: "bazar.statusDraft",
+  sponsored_pending_approval: "bazar.statusSponsoredPending",
+  active: "bazar.statusActive",
+  closed: "bazar.statusClosed",
+  resolved: "bazar.statusResolved",
+  archived: "bazar.statusArchived",
+  rejected: "bazar.statusRejected",
+};
 
 type Props = {
   topic: BazarTopic;
@@ -37,12 +51,14 @@ export function BazarTopicCard({
   variant = "full",
 }: Props) {
   const router = useRouter();
+  const t = useT();
+  const locale = useCurrentLocale();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [optimisticOption, setOptimisticOption] = useState<string | null>(null);
   const showResults = userVoteOptionId !== null || optimisticOption !== null;
   const isClosed = topic.status !== "active";
-  const closingLabel = DATE_FMT.format(Date.parse(topic.end_date));
+  const closingLabel = formatDateAz(topic.end_date);
 
   function vote(optionId: string) {
     setError(null);
@@ -62,7 +78,7 @@ export function BazarTopicCard({
         if (e instanceof ApiError) {
           setError(e.message);
         } else {
-          setError("Şəbəkə xətası");
+          setError(t("leads.networkError"));
         }
       }
     });
@@ -74,25 +90,26 @@ export function BazarTopicCard({
     <Card padding="md" tone="raised" className="flex h-full flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="blue" size="sm">
-          Bazar Nəbzi
+          {t("bazar.badge")}
         </Badge>
         <Badge tone="muted" size="sm">
-          {BAZAR_CADENCE_LABEL_AZ[topic.cadence]}
+          {t(CADENCE_KEY[topic.cadence])}
         </Badge>
         {topic.sponsored ? (
           <Badge tone="orange" size="sm">
-            Sponsorlu{topic.sponsor_name ? ` · ${topic.sponsor_name}` : ""}
+            {t("price.sponsored")}
+            {topic.sponsor_name ? ` · ${topic.sponsor_name}` : ""}
           </Badge>
         ) : null}
         {isClosed ? (
           <Badge tone="muted" size="sm">
-            {BAZAR_STATUS_LABEL_AZ[topic.status]}
+            {t(STATUS_KEY[topic.status])}
           </Badge>
         ) : null}
       </div>
 
       <h3 className="text-base font-semibold leading-snug text-foreground">
-        {topic.question}
+        {getLocalizedText(topic.question, locale)}
       </h3>
 
       <ul className="flex flex-col gap-2">
@@ -113,13 +130,13 @@ export function BazarTopicCard({
                     : "border-border bg-surface text-foreground hover:bg-surface-muted disabled:hover:bg-surface"
                 } disabled:cursor-default`}
               >
-                <span className="font-medium">{o.label}</span>
+                <span className="font-medium">{getLocalizedText(o.label, locale)}</span>
                 {showResults || isClosed ? (
                   <span className="text-xs text-foreground-muted">
                     {a?.count ?? 0} · {pct}%
                   </span>
                 ) : (
-                  <span className="text-xs text-accent-blue">Sən də seç</span>
+                  <span className="text-xs text-accent-blue">{t("bazar.vote")}</span>
                 )}
               </button>
               {(showResults || isClosed) && (
@@ -140,8 +157,8 @@ export function BazarTopicCard({
       ) : null}
 
       <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2 text-xs text-foreground-muted">
-        <span>{participantCount} iştirakçı</span>
-        <span>Bağlanır: {closingLabel}</span>
+        <span>{participantCount} {t("bazar.participants")}</span>
+        <span>{t("bazar.closes")}: {closingLabel}</span>
       </div>
 
       {variant === "compact" ? (
@@ -154,22 +171,22 @@ export function BazarTopicCard({
               onClick={() => vote(topic.options[0]!.option_id)}
               disabled={pending}
             >
-              Sən də seç
+              {t("bazar.vote")}
             </Button>
           ) : null}
           <Link
             href={`${ROUTES.qa}?tab=bazar-nebzi`}
             className="inline-flex items-center text-xs font-medium text-accent-blue hover:underline"
           >
-            Tarixçəyə bax →
+            {t("bazar.viewHistory")}
           </Link>
         </div>
       ) : null}
 
       {topic.market_summary ? (
         <div className="rounded-[var(--radius)] border border-border bg-surface-muted/40 px-3 py-2 text-xs text-foreground-muted">
-          <strong className="text-foreground">Zolaq market summary: </strong>
-          {topic.market_summary}
+          <strong className="text-foreground">{t("bazar.marketSummaryLabel")} </strong>
+          {getLocalizedText(topic.market_summary, locale)}
         </div>
       ) : null}
     </Card>

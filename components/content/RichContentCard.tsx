@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ContentCoverImage } from "@/components/content/ContentCoverImage";
+import { formatDateAz } from "@/lib/format/date";
 
 type CategoryTone = "blue" | "orange" | "success";
 
@@ -14,17 +15,11 @@ type Props = {
   cover: {
     src?: string;
     alt: string;
-    moduleLabel?: "Ensiklopediya" | "Xəbər";
+    moduleLabel?: string;
   };
   hasRelatedModel?: boolean;
   dateLabel?: string;
 };
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export function RichContentCard({
   href,
@@ -69,7 +64,7 @@ export function RichContentCard({
               dateTime={new Date(publishedAt).toISOString()}
               className="text-xs text-foreground-muted"
             >
-              {dateLabel} {DATE_FMT.format(publishedAt)}
+              {dateLabel} {formatDateAz(publishedAt)}
             </time>
             <Badge tone={hasRelatedModel ? "orange" : "muted"} size="sm">
               {hasRelatedModel ? "Modelə bağlı" : "Ümumi"}

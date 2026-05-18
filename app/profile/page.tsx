@@ -12,6 +12,7 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { DecisionCenterSummary } from "@/lib/decisions/types";
 
@@ -22,6 +23,7 @@ type FetchState =
 
 export default function ProfileDecisionCenterPage() {
   const router = useRouter();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -43,21 +45,21 @@ export default function ProfileDecisionCenterPage() {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, router]);
+  }, [reloadKey, router, t]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Qərar Mərkəzi yüklənir…" />;
+    return <LoadingState label={t("profile.loading")} />;
   }
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Qərar Mərkəzi yüklənmədi"
+        title={t("profile.loadFailed")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -73,9 +75,9 @@ export default function ProfileDecisionCenterPage() {
         <Container>
           <SectionHeading
             tone="dark"
-            eyebrow="Qərar Mərkəzi"
-            title="Sənin maşın seçim mərkəzin"
-            subtitle="Hazırlıq qiyməti, aktiv sorğular, müqayisələr və növbəti addım — hamısı bir nəzərdə."
+            eyebrow={t("profile.decisionCenterEyebrow")}
+            title={t("profile.decisionCenterTitle")}
+            subtitle={t("profile.decisionCenterSubtitle")}
           />
         </Container>
       </Section>
@@ -84,22 +86,22 @@ export default function ProfileDecisionCenterPage() {
         <Container>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <CountTile
-              label="Aktiv sorğu"
+              label={t("profile.activeLeads")}
               count={summary.active_leads_count}
               href={ROUTES.profileLeads}
             />
             <CountTile
-              label="Saxlanılan maşın"
+              label={t("profile.savedCars")}
               count={summary.saved_cars_count}
               href={ROUTES.profileSaved}
             />
             <CountTile
-              label="Müqayisə"
+              label={t("profile.compares")}
               count={summary.comparisons_count}
               href={ROUTES.compare}
             />
             <CountTile
-              label="Diler təklifi"
+              label={t("profile.dealerOffers")}
               count={summary.dealer_offers_count}
               href={ROUTES.profileLeads}
             />
@@ -111,41 +113,41 @@ export default function ProfileDecisionCenterPage() {
 
           <div className="mt-10 space-y-4">
             <SectionHeading
-              eyebrow="Fəaliyyət"
-              title="Son fəaliyyət"
-              action={{ label: "Hamısına bax", href: ROUTES.profileHistory }}
+              eyebrow={t("profile.activityEyebrow")}
+              title={t("profile.recentActivity")}
+              action={{ label: t("profile.viewAll"), href: ROUTES.profileHistory }}
             />
             <RecentActivityList
               events={summary.recent_activity}
               limit={5}
-              emptyLabel="Son fəaliyyət yoxdur."
+              emptyLabel={t("profile.emptyActivity")}
             />
           </div>
 
           <div className="mt-10 space-y-4">
             <SectionHeading
-              eyebrow="Tez keçidlər"
-              title="Davam et"
+              eyebrow={t("profile.quickLinksEyebrow")}
+              title={t("profile.quickLinksTitle")}
             />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <QuickLink
-                label="Maşın kataloqu"
-                note="Yeni modelləri kəşf et"
+                label={t("profile.catalogLinkTitle")}
+                note={t("profile.catalogLinkNote")}
                 href={ROUTES.cars}
               />
               <QuickLink
-                label="Yeni qərar"
-                note="Müqayisə və izləmə başlat"
+                label={t("profile.newDecisionTitle")}
+                note={t("profile.newDecisionNote")}
                 href={ROUTES.profileDecisions}
               />
               <QuickLink
-                label="Aktiv sorğular"
-                note="Diler cavablarını izlə"
+                label={t("profile.activeLeadsTitle")}
+                note={t("profile.activeLeadsNote")}
                 href={ROUTES.profileLeads}
               />
               <QuickLink
-                label="Nişanlarım"
-                note="Qazandığın nişanlar və balın"
+                label={t("profile.badgesLinkTitle")}
+                note={t("profile.badgesLinkNote")}
                 href="/profile/badges"
               />
             </div>

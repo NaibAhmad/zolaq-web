@@ -9,14 +9,9 @@ import {
   AD_STATUS_LABEL_AZ,
 } from "@/lib/ads/labels";
 import { getDealerSession } from "@/lib/auth/dealer-session";
+import { formatDateAz } from "@/lib/format/date";
 import { listInvoices } from "@/lib/invoices/store";
 import { INVOICE_STATUS_LABEL_AZ } from "@/lib/invoices/types";
-
-const DATE_FMT = new Intl.DateTimeFormat("az-AZ", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
 
 export default async function DealerAdRequestDetailPage({
   params,
@@ -55,7 +50,7 @@ export default async function DealerAdRequestDetailPage({
         />
         <Field label="İstənən başlanğıc" value={row.start_date ?? "—"} />
         <Field label="İstənən bitmə" value={row.end_date ?? "—"} />
-        <Field label="Yenilənib" value={DATE_FMT.format(row.updated_at)} />
+        <Field label="Yenilənib" value={formatDateAz(row.updated_at)} />
         {row.campaign_note ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">

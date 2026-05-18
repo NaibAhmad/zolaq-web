@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { getDealer, listBrands, listPrices } from "@/lib/admin";
 import { listSubmissions } from "@/lib/dealer/submissions/store";
 import { DEALER_VERIFICATION_STATUSES } from "@/lib/dealers/types";
+import { formatDateTimeAz } from "@/lib/format/date";
 
 const SERVICE_OPTIONS = ["test_drive", "trade_in", "financing", "delivery", "warranty"] as const;
 
@@ -108,7 +109,7 @@ export default async function AdminDealerEditPage({
           <ul className="flex flex-col gap-2 text-sm">
             {submissions.map((s) => (
               <li key={s.submission_id} className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
-                <span>{s.kind} — {new Date(s.created_at).toLocaleString()}</span>
+                <span>{s.kind} — {formatDateTimeAz(s.created_at)}</span>
                 <StatusBadge status={s.status} />
               </li>
             ))}

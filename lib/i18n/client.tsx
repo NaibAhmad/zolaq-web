@@ -8,6 +8,7 @@
 // Scope this sprint: Header nav labels + homepage Quick Search title/subtitle.
 // Everything else stays AZ-only. See docs/sprint-10/I18N_BETA_SCOPE.md.
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -36,6 +37,16 @@ const DICTIONARIES: Record<Locale, TranslationDictionary> = {
 };
 
 const STORAGE_KEY = "zolaq-locale";
+export const LOCALE_COOKIE = "zolaq-locale";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // one year
+
+function writeLocaleCookie(locale: Locale) {
+  try {
+    document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  } catch {
+    // document unavailable (SSR / private mode); best-effort only.
+  }
+}
 
 type LocaleContextValue = {
   locale: Locale;
@@ -61,11 +72,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   // storage subscription so the effect body only reacts to external changes.
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
   const [ready, setReady] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     function syncFromStorage() {
       const stored = readStoredLocale();
-      setLocaleState(stored ?? DEFAULT_LOCALE);
+      const next = stored ?? DEFAULT_LOCALE;
+      setLocaleState(next);
+      writeLocaleCookie(next);
       setReady(true);
     }
     syncFromStorage();
@@ -73,14 +87,20 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", syncFromStorage);
   }, []);
 
-  const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // Best-effort persist; selection still applies for this tab.
-    }
-  }, []);
+  const setLocale = useCallback(
+    (next: Locale) => {
+      setLocaleState(next);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // Best-effort persist; selection still applies for this tab.
+      }
+      writeLocaleCookie(next);
+      // Re-render server components with the new locale cookie.
+      router.refresh();
+    },
+    [router],
+  );
 
   const value = useMemo<LocaleContextValue>(
     () => ({ locale, setLocale, ready }),
@@ -104,6 +124,20 @@ export function useLocale(): LocaleContextValue {
   return ctx;
 }
 
+// Sprint 10I: useT() falls back to AZ when LocaleProvider is not mounted, so
+// every component can call useT() safely whether or not FEATURE_I18N_BETA is on.
+function useLocaleOrDefault(): Locale {
+  const ctx = useContext(LocaleContext);
+  return ctx?.locale ?? DEFAULT_LOCALE;
+}
+
+// Public hook: read the current locale without throwing when LocaleProvider
+// is absent (Sprint 10I-C: needed by client components that render
+// LocalizedText / dynamic seed content).
+export function useCurrentLocale(): Locale {
+  return useLocaleOrDefault();
+}
+
 // Mirror the server t() lookup + AZ fallback semantics in ./t.ts so the two
 // helpers behave identically for the same key.
 function lookup(
@@ -125,7 +159,7 @@ function interpolate(template: string, params: TranslationParams): string {
 }
 
 export function useT(): (key: TranslationKey, params?: TranslationParams) => string {
-  const { locale } = useLocale();
+  const locale = useLocaleOrDefault();
   return useCallback(
     (key: TranslationKey, params?: TranslationParams) => {
       const [section, leaf] = key.split(".") as [

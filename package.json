@@ -15,7 +15,8 @@
     "env:check": "node scripts/check-env-safety.mjs",
     "env:verify-staging": "node scripts/verify-staging-env.mjs",
     "beta:validate-seed": "node scripts/validate-beta-seed.mjs",
-    "beta:smoke": "node scripts/closed-beta-smoke.mjs"
+    "beta:smoke": "node scripts/closed-beta-smoke.mjs",
+    "i18n:audit": "node scripts/audit-i18n-hardcoded.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
