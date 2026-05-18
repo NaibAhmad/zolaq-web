@@ -2,11 +2,31 @@ import { NextBestActionCard } from "@/components/decisions/NextBestActionCard";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { computeReadinessForUser } from "@/lib/decisions/readiness";
 import { SEED_DEMO_USER_ID } from "@/lib/decisions/seed";
 import { ROUTES } from "@/lib/routes";
+import type { ReadinessFactorKey } from "@/lib/decisions/types";
 
-export function HomeDecisionHelper() {
+const FACTOR_KEYS: Record<ReadinessFactorKey, TranslationKey> = {
+  profile_completeness: "readinessFactors.profileCompleteness",
+  research_activity: "readinessFactors.researchActivity",
+  compare_activity: "readinessFactors.compareActivity",
+  official_offers: "readinessFactors.officialOffers",
+  test_drive_stage: "readinessFactors.testDriveStage",
+  budget_match: "readinessFactors.budgetMatch",
+};
+
+function scoreKey(score: number): TranslationKey {
+  if (score >= 80) return "homeDecisionHelper.scoreReady";
+  if (score >= 50) return "homeDecisionHelper.scoreContinue";
+  if (score >= 20) return "homeDecisionHelper.scoreEarly";
+  return "homeDecisionHelper.scoreStart";
+}
+
+export async function HomeDecisionHelper() {
+  const t = await getServerT();
   const summary = computeReadinessForUser(SEED_DEMO_USER_ID);
   const score = Math.max(0, Math.min(100, summary.readiness_score));
   const topBreakdown = summary.score_breakdown.slice(0, 3);
@@ -19,22 +39,20 @@ export function HomeDecisionHelper() {
       <div className="grid items-stretch gap-6 md:grid-cols-[1.2fr_1fr]">
         <div className="flex flex-col gap-4">
           <Badge tone="orange" size="md" className="w-fit">
-            Qərar Mərkəzi
+            {t("homeDecisionHelper.eyebrow")}
           </Badge>
           <h2 className="text-2xl font-semibold text-foreground md:text-3xl">
-            Hansı maşın sənə uyğundur?
+            {t("homeDecisionHelper.title")}
           </h2>
           <p className="max-w-lg text-sm text-foreground-muted md:text-base">
-            Büdcəni, enerji növünü və istifadə tərzini qeyd et — Zolaq sənə uyğun
-            2–3 modeli müqayisə üçün hazırlasın. Hazırlıq qiymətin real vaxtda
-            yenilənir.
+            {t("homeDecisionHelper.description")}
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             <ButtonLink href={ROUTES.profileDecisions} variant="primary">
-              Yeni qərar başlat
+              {t("homeDecisionHelper.ctaStart")}
             </ButtonLink>
             <ButtonLink href={ROUTES.profile} variant="secondary">
-              Qərar mərkəzinə keç
+              {t("homeDecisionHelper.ctaCenter")}
             </ButtonLink>
           </div>
         </div>
@@ -45,7 +63,7 @@ export function HomeDecisionHelper() {
             className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-orange/25 blur-3xl"
           />
           <p className="text-xs font-semibold uppercase tracking-wide text-on-dark-muted">
-            Hazırlıq qiyməti
+            {t("homeDecisionHelper.progressLabel")}
           </p>
           <div className="mt-3 flex items-center gap-4">
             <div
@@ -55,7 +73,7 @@ export function HomeDecisionHelper() {
               aria-valuenow={score}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label="Qərar hazırlığı"
+              aria-label={t("homeDecisionHelper.ringAria")}
             >
               <div className="absolute inset-1.5 flex flex-col items-center justify-center rounded-full bg-surface-dark">
                 <span className="text-2xl font-semibold text-on-dark leading-none">
@@ -68,10 +86,10 @@ export function HomeDecisionHelper() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-on-dark">
-                {scoreLabel(score)}
+                {t(scoreKey(score))}
               </p>
               <p className="mt-1 text-xs text-on-dark-muted">
-                Real mock məlumatına əsaslanır
+                {t("homeDecisionHelper.scoreNote")}
               </p>
             </div>
           </div>
@@ -83,7 +101,7 @@ export function HomeDecisionHelper() {
                 <li key={entry.key} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-medium text-on-dark">
-                      {entry.label_az}
+                      {t(FACTOR_KEYS[entry.key])}
                     </span>
                     <span className="text-on-dark-muted">
                       {entry.contribution} / {entry.weight_pct}
@@ -107,11 +125,4 @@ export function HomeDecisionHelper() {
       </div>
     </Card>
   );
-}
-
-function scoreLabel(score: number): string {
-  if (score >= 80) return "Demək olar hazırsan";
-  if (score >= 50) return "Davam et";
-  if (score >= 20) return "Başlanğıc mərhələdə";
-  return "Yenicə başlayır";
 }

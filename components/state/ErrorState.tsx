@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
   title?: string;
@@ -10,11 +11,13 @@ type Props = {
 };
 
 export function ErrorState({
-  title = "Xəta baş verdi",
+  title,
   message,
   code,
   onRetry,
 }: Props) {
+  const t = useT();
+  const heading = title ?? t("status.error");
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div
@@ -28,7 +31,7 @@ export function ErrorState({
           !
         </span>
         <div className="flex-1">
-          <p className="font-semibold text-danger">{title}</p>
+          <p className="font-semibold text-danger">{heading}</p>
           {message ? (
             <p className="mt-1 text-sm text-foreground">{message}</p>
           ) : null}
@@ -40,7 +43,7 @@ export function ErrorState({
           {onRetry ? (
             <div className="mt-4">
               <Button variant="secondary" size="sm" onClick={onRetry}>
-                Yenidən cəhd et
+                {t("errors.retry")}
               </Button>
             </div>
           ) : null}

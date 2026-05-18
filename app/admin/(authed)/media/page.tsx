@@ -5,6 +5,7 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { formatDateTimeAz } from "@/lib/format/date";
 import { listMediaAssets, type MediaStatus } from "@/lib/media/repository";
+import { getServerT } from "@/lib/i18n/server";
 
 const STATUS_TONE: Record<MediaStatus, "muted" | "brand" | "blue" | "danger" | "neutral"> = {
   uploaded: "blue",
@@ -26,17 +27,15 @@ export default async function AdminMediaPage({
     ...(params.status && { status: params.status as MediaStatus }),
   };
   const assets = await listMediaAssets(filter);
+  const t = await getServerT();
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Media</h1>
-      <p className="text-sm text-foreground-muted">
-        Diler yüklədiyi şəkillər “uploaded” statusunda gəlir; aktivləşmək üçün
-        təsdiq tələb edir. Admin yükləməsi avtomatik “active”dir.
-      </p>
+      <h1 className="text-xl font-semibold">{t("adminMedia.title")}</h1>
+      <p className="text-sm text-foreground-muted">{t("adminMedia.description")}</p>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Şəkil yüklə</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("adminMedia.uploadTitle")}</h2>
         <form
           action="/api/admin/media/upload"
           method="post"
@@ -45,18 +44,18 @@ export default async function AdminMediaPage({
         >
           <Input
             name="owner_type"
-            label="Owner tipi"
-            placeholder="trim / dealer / news / general"
+            label={t("adminMedia.ownerType")}
+            placeholder={t("adminMedia.ownerTypePlaceholder")}
             defaultValue={params.owner_type ?? "general"}
           />
           <Input
             name="owner_id"
-            label="Owner ID (opsional)"
+            label={t("adminMedia.ownerId")}
             defaultValue={params.owner_id ?? ""}
           />
-          <Input name="alt_text" label="Alt mətn" />
+          <Input name="alt_text" label={t("adminMedia.altText")} />
           <div className="flex items-end">
-            <Button type="submit">Yüklə</Button>
+            <Button type="submit">{t("adminMedia.upload")}</Button>
           </div>
           <div className="md:col-span-3">
             <input
@@ -71,26 +70,26 @@ export default async function AdminMediaPage({
       </Card>
 
       <form className="flex flex-wrap items-end gap-3 rounded-[var(--radius-lg)] border border-border bg-surface p-3">
-        <Input name="owner_type" label="Owner tipi filtri" defaultValue={params.owner_type ?? ""} />
-        <Input name="owner_id" label="Owner ID filtri" defaultValue={params.owner_id ?? ""} />
+        <Input name="owner_type" label={t("adminMedia.filterOwnerType")} defaultValue={params.owner_type ?? ""} />
+        <Input name="owner_id" label={t("adminMedia.filterOwnerId")} defaultValue={params.owner_id ?? ""} />
         <Select
           name="status"
-          label="Status filtri"
+          label={t("adminMedia.filterStatus")}
           defaultValue={params.status ?? ""}
-          placeholderOption="Hamısı"
+          placeholderOption={t("adminMedia.filterStatusAll")}
           options={[
-            { value: "uploaded", label: "Yüklənib" },
-            { value: "active", label: "Aktiv" },
-            { value: "rejected", label: "Rədd edilib" },
-            { value: "archived", label: "Arxivdə" },
+            { value: "uploaded", label: t("adminMedia.filterStatusUploaded") },
+            { value: "active", label: t("adminMedia.filterStatusActive") },
+            { value: "rejected", label: t("adminMedia.filterStatusRejected") },
+            { value: "archived", label: t("adminMedia.filterStatusArchived") },
           ]}
         />
-        <Button type="submit" variant="secondary">Filtrlə</Button>
+        <Button type="submit" variant="secondary">{t("adminMedia.filter")}</Button>
       </form>
 
       <Card padding="md">
         {assets.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Heç bir media tapılmadı.</p>
+          <p className="text-sm text-foreground-muted">{t("adminMedia.empty")}</p>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {assets.map((m) => (
@@ -121,21 +120,21 @@ export default async function AdminMediaPage({
                     <input type="hidden" name="_method" value="patch" />
                     <input type="hidden" name="status" value="active" />
                     <Button type="submit" size="sm" disabled={m.status === "active"}>
-                      Təsdiq
+                      {t("adminMedia.approve")}
                     </Button>
                   </form>
                   <form action={`/api/internal/media/${m.id}`} method="post">
                     <input type="hidden" name="_method" value="patch" />
                     <input type="hidden" name="status" value="rejected" />
                     <Button type="submit" size="sm" variant="danger" disabled={m.status === "rejected"}>
-                      Rədd et
+                      {t("adminMedia.reject")}
                     </Button>
                   </form>
                   <form action={`/api/internal/media/${m.id}`} method="post">
                     <input type="hidden" name="_method" value="patch" />
                     <input type="hidden" name="status" value="archived" />
                     <Button type="submit" size="sm" variant="ghost" disabled={m.status === "archived"}>
-                      Arxivlə
+                      {t("adminMedia.archive")}
                     </Button>
                   </form>
                 </div>

@@ -1,6 +1,12 @@
 // Content domain types. Sprint 6. News / Encyclopedia / Q&A share a small set
 // of fields. Each entry references existing trim_ids via `related_trim_ids` —
 // this drives the content → related model → lead flow on detail pages.
+// Sprint 10I-D: title/summary/body/excerpt/question/answer accept LocalizedText
+// so demo seed content can carry AZ/EN/RU strings. Plain strings stay valid
+// for admin-authored content that hasn't been translated yet (the renderer
+// falls back to the AZ source via getLocalizedText).
+
+import type { LocalizedText } from "@/lib/i18n/localized";
 
 export const CONTENT_TYPES = ["news", "encyclopedia", "qa"] as const;
 
@@ -26,9 +32,9 @@ export function isContentStatus(value: unknown): value is ContentStatus {
 }
 
 type ContentBase = {
-  title: string;
-  summary: string;
-  body: string;
+  title: LocalizedText;
+  summary: LocalizedText;
+  body: LocalizedText;
   related_trim_ids: readonly string[];
   published_at: number;
   status?: ContentStatus;
@@ -54,7 +60,7 @@ export function isEncyclopediaCategory(
   );
 }
 
-export type EncyclopediaStat = { label: string; value: string };
+export type EncyclopediaStat = { label: LocalizedText; value: LocalizedText };
 
 export type EncyclopediaSource = {
   name: string;
@@ -70,8 +76,8 @@ export type NewsArticle = ContentBase & {
   category?: string;
   image_url?: string;
   image_alt?: string;
-  excerpt?: string;
-  related_model_reason?: string;
+  excerpt?: LocalizedText;
+  related_model_reason?: LocalizedText;
 };
 
 export type EncyclopediaEntry = ContentBase & {
@@ -84,16 +90,16 @@ export type EncyclopediaEntry = ContentBase & {
   source?: EncyclopediaSource;
   image_url?: string;
   image_alt?: string;
-  excerpt?: string;
-  related_model_reason?: string;
+  excerpt?: LocalizedText;
+  related_model_reason?: LocalizedText;
 };
 
 export type QAEntry = {
   content_id: string;
   type: "qa";
   id: string;
-  question: string;
-  answer: string;
+  question: LocalizedText;
+  answer: LocalizedText;
   related_trim_ids: readonly string[];
   published_at: number;
 };

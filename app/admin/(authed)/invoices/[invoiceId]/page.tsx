@@ -8,9 +8,26 @@ import { listDealers } from "@/lib/admin";
 import { getAdRequest } from "@/lib/ads/store";
 import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoice } from "@/lib/invoices/store";
-import { INVOICE_STATUS_LABEL_AZ } from "@/lib/invoices/types";
+import type { InvoiceStatus } from "@/lib/invoices/types";
 import { listPaymentProofs } from "@/lib/payments/store";
-import { PAYMENT_PROOF_STATUS_LABEL_AZ } from "@/lib/payments/types";
+import type { PaymentProofStatus } from "@/lib/payments/types";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+const INVOICE_STATUS_KEY: Record<InvoiceStatus, TranslationKey> = {
+  pending: "adminCommercial.invoiceStatus_pending",
+  invoice_sent: "adminCommercial.invoiceStatus_invoice_sent",
+  payment_uploaded: "adminCommercial.invoiceStatus_payment_uploaded",
+  paid: "adminCommercial.invoiceStatus_paid",
+  overdue: "adminCommercial.invoiceStatus_overdue",
+  cancelled: "adminCommercial.invoiceStatus_cancelled",
+};
+
+const PAYMENT_STATUS_KEY: Record<PaymentProofStatus, TranslationKey> = {
+  pending_review: "adminCommercial.paymentStatus_pending_review",
+  approved: "adminCommercial.paymentStatus_approved",
+  rejected: "adminCommercial.paymentStatus_rejected",
+};
 
 export default async function AdminInvoiceDetailPage({
   params,
@@ -25,13 +42,14 @@ export default async function AdminInvoiceDetailPage({
     ? listDealers().find((d) => d.dealer_id === inv.dealer_id)
     : null;
   const proofs = listPaymentProofs({ invoice_id: invoiceId });
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">{inv.invoice_number}</h1>
           <p className="mt-0.5 text-xs text-foreground-muted">
-            {dealer?.display_name ?? "Daxili"} ·{" "}
+            {dealer?.display_name ?? t("adminCommercial.internalDealer")} ·{" "}
             <Link
               className="hover:underline"
               href={`/admin/ads/${inv.ad_request_id}`}
@@ -40,21 +58,21 @@ export default async function AdminInvoiceDetailPage({
             </Link>
           </p>
         </div>
-        <Badge tone="brand">{INVOICE_STATUS_LABEL_AZ[inv.status]}</Badge>
+        <Badge tone="brand">{t(INVOICE_STATUS_KEY[inv.status])}</Badge>
       </header>
 
       <Card padding="md" tone="raised" className="grid gap-3 sm:grid-cols-2">
         <Field
-          label="Məbləğ"
+          label={t("adminCommercial.amountLabel")}
           value={`${inv.amount.toLocaleString("az-AZ")} ${inv.currency}`}
         />
-        <Field label="Son tarix" value={inv.due_at} />
-        <Field label="Yaradılıb" value={formatDateTimeAz(inv.created_at)} />
-        <Field label="Yenilənib" value={formatDateTimeAz(inv.updated_at)} />
+        <Field label={t("adminCommercial.dueDate")} value={inv.due_at} />
+        <Field label={t("adminOffers.detailCreatedAt")} value={formatDateTimeAz(inv.created_at)} />
+        <Field label={t("adminCommercial.updatedCol")} value={formatDateTimeAz(inv.updated_at)} />
         {inv.notes ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Qeyd
+              {t("adminCommercial.notesLabel")}
             </p>
             <p className="mt-1 text-sm text-foreground">{inv.notes}</p>
           </div>
@@ -62,18 +80,16 @@ export default async function AdminInvoiceDetailPage({
         {ad?.label ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Reklam etiketi
+              {t("adminCommercial.adsLabel")}
             </p>
-            <Badge tone="orange" size="sm">
-              {ad.label}
-            </Badge>
+            <Badge tone="orange" size="sm">{ad.label}</Badge>
           </div>
         ) : null}
       </Card>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground-muted">
-          Status əməliyyatları
+          {t("adminCommercial.statusActionsTitle")}
         </h2>
         <div className="flex flex-wrap gap-3">
           <form
@@ -81,7 +97,7 @@ export default async function AdminInvoiceDetailPage({
             method="post"
           >
             <Button type="submit" variant="secondary">
-              Müddəti keçmiş kimi qeyd et
+              {t("adminCommercial.markOverdue")}
             </Button>
           </form>
           <form
@@ -89,25 +105,21 @@ export default async function AdminInvoiceDetailPage({
             method="post"
             className="flex items-end gap-2"
           >
-            <Input name="note" label="Ləğv səbəbi" required />
+            <Input name="note" label={t("adminCommercial.cancelReason")} required />
             <Button type="submit" variant="danger">
-              Ləğv et
+              {t("adminCommercial.cancelAction")}
             </Button>
           </form>
         </div>
-        <p className="text-xs text-foreground-muted">
-          Ödəniş təsdiqlənməsi `/admin/payments` axınından keçir.
-        </p>
+        <p className="text-xs text-foreground-muted">{t("adminCommercial.paymentPath")}</p>
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground-muted">
-          Ödəniş təsdiqləri
+          {t("adminCommercial.paymentProofsTitle")}
         </h2>
         {proofs.length === 0 ? (
-          <p className="text-sm text-foreground-muted">
-            Hələ ödəniş təsdiqi göndərilməyib.
-          </p>
+          <p className="text-sm text-foreground-muted">{t("adminCommercial.emptyPaymentProofs")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {proofs.map((p) => (
@@ -116,14 +128,12 @@ export default async function AdminInvoiceDetailPage({
                   href={`/admin/payments/${p.payment_proof_id}`}
                   className="flex items-center justify-between gap-3 rounded-[var(--radius)] border border-border bg-surface px-3 py-2 text-sm hover:bg-surface-muted"
                 >
-                  <span className="font-medium text-foreground">
-                    {p.reference}
-                  </span>
+                  <span className="font-medium text-foreground">{p.reference}</span>
                   <span className="text-foreground-muted">
                     {formatDateTimeAz(p.uploaded_at)}
                   </span>
                   <Badge tone="blue" size="sm">
-                    {PAYMENT_PROOF_STATUS_LABEL_AZ[p.status]}
+                    {t(PAYMENT_STATUS_KEY[p.status])}
                   </Badge>
                 </Link>
               </li>

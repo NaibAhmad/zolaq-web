@@ -6,7 +6,8 @@ import { ContentViewTracker } from "@/components/content/ContentViewTracker";
 import { RelatedModelDarkCard } from "@/components/content/RelatedModelDarkCard";
 import { RelatedModelLink } from "@/components/content/RelatedModelLink";
 import { formatDateAz } from "@/lib/format/date";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { getLocalizedText } from "@/lib/i18n/localized";
 import { ROUTES } from "@/lib/routes";
 import type { NewsArticle as NewsArticleType } from "@/lib/content/types";
 import type { LeadTrimSummary } from "@/lib/leads/types";
@@ -18,16 +19,23 @@ type Props = {
 
 export async function NewsArticle({ article, relatedTrims }: Props) {
   const t = await getServerT();
+  const locale = await getServerLocale();
+  const title = getLocalizedText(article.title, locale);
+  const summary = getLocalizedText(article.summary, locale);
+  const bodyText = getLocalizedText(article.body, locale);
   const categoryLabel =
     article.category ?? article.source_name ?? t("content.categoryFallback");
-  const coverAlt = article.image_alt ?? `${article.title} — Zolaq xəbər`;
-  const paragraphs = article.body
+  const coverAlt = article.image_alt ?? `${title} — Zolaq`;
+  const paragraphs = bodyText
     .split(/\n\n+/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
   const primaryTrim = relatedTrims[0];
   const extraTrims = relatedTrims.slice(1);
   const hasSidebar = Boolean(primaryTrim);
+  const reasonText = article.related_model_reason
+    ? getLocalizedText(article.related_model_reason, locale)
+    : null;
 
   return (
     <>
@@ -55,10 +63,10 @@ export async function NewsArticle({ article, relatedTrims }: Props) {
             <span>{t("content.publishedOn")} {formatDateAz(article.published_at)}</span>
           </nav>
           <h1 className="mt-4 text-3xl font-semibold leading-tight text-foreground md:text-4xl">
-            {article.title}
+            {title}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-foreground-soft md:text-lg">
-            {article.summary}
+            {summary}
           </p>
           <ContentCoverImage
             src={article.image_url}
@@ -119,8 +127,7 @@ export async function NewsArticle({ article, relatedTrims }: Props) {
                   contentId={article.content_id}
                   trim={primaryTrim}
                   reason={
-                    article.related_model_reason ??
-                    `${primaryTrim.display_name} — bu xəbərdəki əsas model.`
+                    reasonText ?? `${primaryTrim.display_name}`
                   }
                   surface="content"
                 />

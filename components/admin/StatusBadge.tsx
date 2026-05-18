@@ -1,7 +1,11 @@
+"use client";
+
 // Maps any of the internal status enums to a Badge tone so admin tables show a
 // consistent pill across offers, submissions, and content.
 
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import type { OfferStatus } from "@/lib/cars/types";
 import type { ContentStatus } from "@/lib/content/types";
 import type { SubmissionStatus } from "@/lib/dealer/submissions/types";
@@ -38,26 +42,34 @@ const TONE: Record<string, BadgeTone> = {
   inactive: "muted",
 };
 
-const LABEL: Record<string, string> = {
-  draft: "Qaralama",
-  submitted: "Göndərildi",
-  under_review: "Yoxlamada",
-  needs_revision: "Düzəliş tələbi",
-  approved: "Təsdiqləndi",
-  published: "Dərc edildi",
-  rejected: "Rədd edildi",
-  expired: "Müddəti bitdi",
-  cancelled: "Ləğv edildi",
-  unpublished: "Yayımdan çıxarıldı",
-  official_dealer: "Rəsmi diler",
-  premium_partner: "Premium tərəfdaş",
-  verified_partner: "Təsdiq olunmuş tərəfdaş",
-  pending: "Gözləmədə",
-  active: "Aktiv",
-  inactive: "Deaktiv",
-};
+function statusKey(status: string): TranslationKey | null {
+  const allowed = new Set([
+    "draft",
+    "submitted",
+    "under_review",
+    "needs_revision",
+    "approved",
+    "published",
+    "rejected",
+    "expired",
+    "cancelled",
+    "unpublished",
+    "official_dealer",
+    "premium_partner",
+    "verified_partner",
+    "pending",
+    "active",
+    "inactive",
+  ]);
+  if (!allowed.has(status)) return null;
+  return `adminStatus.${status}` as TranslationKey;
+}
 
 export function StatusBadge({ status }: { status: AnyStatus }) {
+  const t = useT();
   const key = String(status);
-  return <Badge tone={TONE[key] ?? "neutral"}>{LABEL[key] ?? key}</Badge>;
+  const trKey = statusKey(key);
+  return (
+    <Badge tone={TONE[key] ?? "neutral"}>{trKey ? t(trKey) : key}</Badge>
+  );
 }

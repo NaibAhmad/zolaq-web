@@ -8,9 +8,13 @@ import {
   QA_ENTRIES,
 } from "@/lib/content/seed";
 import { formatDateAz } from "@/lib/format/date";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { getLocalizedText } from "@/lib/i18n/localized";
 import { ROUTES } from "@/lib/routes";
 
-export function HomeContentTeaser() {
+export async function HomeContentTeaser() {
+  const t = await getServerT();
+  const locale = await getServerLocale();
   const news = NEWS_ARTICLES[0];
   const enc = ENCYCLOPEDIA_ENTRIES[0];
   const qa = QA_ENTRIES[0];
@@ -18,10 +22,13 @@ export function HomeContentTeaser() {
   return (
     <div className="flex flex-col gap-6">
       <SectionHeading
-        eyebrow="Məzmun"
-        title="Ensiklopediya, xəbərlər və sorğular"
-        subtitle="Maşın seçimini dəstəkləyən praktik məqalələr."
-        action={{ label: "Bütün ensiklopediya", href: ROUTES.encyclopedia }}
+        eyebrow={t("homeContentTeaser.eyebrow")}
+        title={t("homeContentTeaser.title")}
+        subtitle={t("homeContentTeaser.subtitle")}
+        action={{
+          label: t("homeContentTeaser.viewAll"),
+          href: ROUTES.encyclopedia,
+        }}
       />
       <ul className="grid gap-4 md:grid-cols-3">
         <li>
@@ -33,12 +40,14 @@ export function HomeContentTeaser() {
               className="flex h-full min-h-[200px] flex-col gap-3"
             >
               <Badge tone="blue" size="sm">
-                Xəbər
+                {t("homeContentTeaser.newsBadge")}
               </Badge>
               <h3 className="text-base font-semibold text-foreground">
-                {news.title}
+                {getLocalizedText(news.title, locale)}
               </h3>
-              <p className="text-sm text-foreground-muted">{news.summary}</p>
+              <p className="text-sm text-foreground-muted">
+                {getLocalizedText(news.summary, locale)}
+              </p>
               <p className="mt-auto text-xs text-foreground-muted">
                 {formatDateAz(news.published_at)}
               </p>
@@ -57,12 +66,14 @@ export function HomeContentTeaser() {
               className="flex h-full min-h-[200px] flex-col gap-3"
             >
               <Badge tone="orange" size="sm">
-                Ensiklopediya
+                {t("homeContentTeaser.encyclopediaBadge")}
               </Badge>
               <h3 className="text-base font-semibold text-foreground">
-                {enc.title}
+                {getLocalizedText(enc.title, locale)}
               </h3>
-              <p className="text-sm text-foreground-muted">{enc.summary}</p>
+              <p className="text-sm text-foreground-muted">
+                {getLocalizedText(enc.summary, locale)}
+              </p>
               <p className="mt-auto text-xs text-foreground-muted">
                 {formatDateAz(enc.published_at)}
               </p>
@@ -78,13 +89,13 @@ export function HomeContentTeaser() {
               className="flex h-full min-h-[200px] flex-col gap-3"
             >
               <Badge tone="success" size="sm">
-                Sorğu
+                {t("homeContentTeaser.qaBadge")}
               </Badge>
               <h3 className="text-base font-semibold text-foreground">
-                {qa.question}
+                {getLocalizedText(qa.question, locale)}
               </h3>
               <p className="text-sm text-foreground-muted">
-                {qa.answer.slice(0, 140)}…
+                {getLocalizedText(qa.answer, locale).slice(0, 140)}…
               </p>
               <p className="mt-auto text-xs text-foreground-muted">
                 {formatDateAz(qa.published_at)}

@@ -178,3 +178,18 @@ export const POINT_ACTION_LABEL_AZ: Record<PointAction, string> = {
   encyclopedia_read: "Ensiklopediya oxudun",
   news_read: "Xəbər oxudun",
 };
+
+// Sprint 10I-D: translation key for each point action. The client uses these
+// to render the activity label in the user's locale. Keys live under
+// `pointActions.*` in lib/i18n/translations/common.*.json.
+import type { TranslationKey } from "@/lib/i18n/types";
+
+export const POINT_ACTION_KEY_BY_ACTION: Record<PointAction, TranslationKey> = {
+  bazar_vote: "pointActions.bazarVote",
+  qa_question: "pointActions.qaQuestion",
+  qa_answer_approved: "pointActions.qaAnswerApproved",
+  comparison: "pointActions.comparison",
+  verified_lead_submit: "pointActions.verifiedLeadSubmit",
+  encyclopedia_read: "pointActions.encyclopediaRead",
+  news_read: "pointActions.newsRead",
+};

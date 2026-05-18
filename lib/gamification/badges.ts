@@ -10,6 +10,7 @@
 
 import { randomUUID } from "node:crypto";
 import { writeAudit } from "@/lib/admin/audit";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 export const P0_BADGE_IDS = [
   "first_comparison",
@@ -26,6 +27,11 @@ export type BadgeDefinition = {
   description: string;
   trigger_hint: string;
   tier: "P0";
+  // Sprint 10I-D: translation keys for client-side locale rendering.
+  // The plain `name`/`description`/`trigger_hint` fields stay as AZ defaults.
+  name_key: TranslationKey;
+  description_key: TranslationKey;
+  hint_key: TranslationKey;
 };
 
 export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
@@ -35,6 +41,9 @@ export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
     description: "İki və daha çox maşının ilk müqayisəsinə görə.",
     trigger_hint: "Müqayisə alətində 2+ maşın seç.",
     tier: "P0",
+    name_key: "badgesCatalog.firstComparisonName",
+    description_key: "badgesCatalog.firstComparisonDescription",
+    hint_key: "badgesCatalog.firstComparisonHint",
   },
   market_observer: {
     badge_id: "market_observer",
@@ -42,6 +51,9 @@ export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
     description: "Bazar Nəbzində səs verdiyiniz üçün.",
     trigger_hint: "Aktiv Bazar Nəbzi sualında bir variant seç.",
     tier: "P0",
+    name_key: "badgesCatalog.marketObserverName",
+    description_key: "badgesCatalog.marketObserverDescription",
+    hint_key: "badgesCatalog.marketObserverHint",
   },
   encyclopedia_reader: {
     badge_id: "encyclopedia_reader",
@@ -49,6 +61,9 @@ export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
     description: "Ensiklopediyada üç və daha çox məqalə oxuduğunuz üçün.",
     trigger_hint: "Ensiklopediya məqalələrini açın və oxuyun.",
     tier: "P0",
+    name_key: "badgesCatalog.encyclopediaReaderName",
+    description_key: "badgesCatalog.encyclopediaReaderDescription",
+    hint_key: "badgesCatalog.encyclopediaReaderHint",
   },
   qa_participant: {
     badge_id: "qa_participant",
@@ -56,6 +71,9 @@ export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
     description: "Sual-cavabda iştirak etdiyiniz üçün.",
     trigger_hint: "Sual ver və ya təsdiq olunmuş cavab paylaş.",
     tier: "P0",
+    name_key: "badgesCatalog.qaParticipantName",
+    description_key: "badgesCatalog.qaParticipantDescription",
+    hint_key: "badgesCatalog.qaParticipantHint",
   },
   official_offer_received: {
     badge_id: "official_offer_received",
@@ -63,6 +81,9 @@ export const BADGE_CATALOGUE: Record<BadgeId, BadgeDefinition> = {
     description: "Diler tərəfindən rəsmi təklif aldığınız üçün.",
     trigger_hint: "Sorğu göndər və dilerdən rəsmi qiymət təklifi al.",
     tier: "P0",
+    name_key: "badgesCatalog.officialOfferReceivedName",
+    description_key: "badgesCatalog.officialOfferReceivedDescription",
+    hint_key: "badgesCatalog.officialOfferReceivedHint",
   },
 };
 

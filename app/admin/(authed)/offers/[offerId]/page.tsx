@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { getDealer, getOfferById, getTrim } from "@/lib/admin";
 import { listAuditLog } from "@/lib/audit/repository";
 import { formatDateTimeAz } from "@/lib/format/date";
+import { getServerT } from "@/lib/i18n/server";
 
 export default async function AdminOfferDetailPage({
   params,
@@ -17,34 +18,37 @@ export default async function AdminOfferDetailPage({
   const trim = offer.trim_id ? getTrim(offer.trim_id) : null;
   const dealer = offer.dealer_id ? getDealer(offer.dealer_id) : null;
   const audit = await listAuditLog({ entity_type: "offer", entity_id: offerId, limit: 20 });
+  const t = await getServerT();
 
   return (
     <div className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Təklif {offer.offer_id}</h1>
+        <h1 className="text-xl font-semibold">
+          {t("adminOffers.offerDetailTitle", { offerId: offer.offer_id ?? "" })}
+        </h1>
         {offer.offer_status ? <StatusBadge status={offer.offer_status} /> : null}
       </header>
 
       <Card padding="md">
         <dl className="grid gap-3 sm:grid-cols-2 text-sm">
-          <Detail label="Komplektasiya" value={trim?.display_name ?? offer.trim_id} />
-          <Detail label="Diler" value={dealer?.display_name ?? offer.dealer_id ?? "—"} />
+          <Detail label={t("adminOffers.detailTrim")} value={trim?.display_name ?? offer.trim_id} />
+          <Detail label={t("adminOffers.detailDealer")} value={dealer?.display_name ?? offer.dealer_id ?? "—"} />
           <Detail
-            label="Məbləğ"
+            label={t("adminOffers.detailAmount")}
             value={`${offer.amount.toLocaleString("az-AZ")} ${offer.currency}`}
           />
-          <Detail label="Stok" value={offer.stock_status ?? "—"} />
-          <Detail label="Etibarlıdır" value={offer.valid_until ?? "—"} />
-          <Detail label="Mənbə" value={`${offer.source_name} (${offer.source_type})`} />
-          <Detail label="Təsdiq" value={offer.verification_status} />
-          <Detail label="Son redaktə" value={offer.last_updated} />
-          {offer.notes ? <Detail label="Qeyd" value={offer.notes} /> : null}
-          {offer.review_note ? <Detail label="Reviewer qeydi" value={offer.review_note} /> : null}
+          <Detail label={t("adminOffers.detailStock")} value={offer.stock_status ?? "—"} />
+          <Detail label={t("adminOffers.detailValidUntil")} value={offer.valid_until ?? "—"} />
+          <Detail label={t("adminOffers.detailSource")} value={`${offer.source_name} (${offer.source_type})`} />
+          <Detail label={t("adminOffers.detailVerification")} value={offer.verification_status} />
+          <Detail label={t("adminOffers.detailLastUpdated")} value={offer.last_updated} />
+          {offer.notes ? <Detail label={t("adminOffers.detailNote")} value={offer.notes} /> : null}
+          {offer.review_note ? <Detail label={t("adminOffers.detailReviewerNote")} value={offer.review_note} /> : null}
         </dl>
       </Card>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Təsdiq əməliyyatları</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("adminOffers.approvalSectionTitle")}</h2>
         <ApprovalActions
           approveAction={`/api/internal/offers/${offerId}/approve`}
           rejectAction={`/api/internal/offers/${offerId}/reject`}
@@ -54,9 +58,9 @@ export default async function AdminOfferDetailPage({
       </Card>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Audit jurnalı</h2>
+        <h2 className="mb-3 text-sm font-semibold">{t("adminOffers.auditLogTitle")}</h2>
         {audit.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Hadisə yoxdur.</p>
+          <p className="text-sm text-foreground-muted">{t("adminOffers.noEvents")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {audit.map((e) => (

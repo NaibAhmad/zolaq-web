@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { ContentDetail } from "@/components/content/ContentDetail";
 import { trimSummaryFor } from "@/lib/cars/summary";
 import { getQAById } from "@/lib/content/lookup";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { getLocalizedText } from "@/lib/i18n/localized";
 import { ROUTES } from "@/lib/routes";
 
 export default async function QaDetailPage({
@@ -13,6 +15,9 @@ export default async function QaDetailPage({
   const qa = getQAById(id);
   if (!qa) notFound();
 
+  const t = await getServerT();
+  const locale = await getServerLocale();
+
   const relatedTrims = qa.related_trim_ids.map((trimId) =>
     trimSummaryFor(trimId)
   );
@@ -22,11 +27,11 @@ export default async function QaDetailPage({
       contentId={qa.content_id}
       contentType="qa"
       slugOrId={qa.id}
-      title={qa.question}
-      body={qa.answer}
+      title={getLocalizedText(qa.question, locale)}
+      body={getLocalizedText(qa.answer, locale)}
       publishedAt={qa.published_at}
       backHref={ROUTES.qa}
-      backLabel="Sorğuya qayıt"
+      backLabel={t("qaDetail.backLabel")}
       relatedTrims={relatedTrims}
     />
   );

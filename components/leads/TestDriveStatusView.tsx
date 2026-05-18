@@ -15,6 +15,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
 import type { Trim } from "@/lib/cars/types";
+import { useT } from "@/lib/i18n/client";
 import type {
   Lead,
   LeadTimelineEvent,
@@ -47,6 +48,7 @@ function deriveTrimSuffix(
 }
 
 export function TestDriveStatusView({ leadId }: Props) {
+  const t = useT();
   const router = useRouter();
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
@@ -93,11 +95,11 @@ export function TestDriveStatusView({ leadId }: Props) {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       }
     },
-    [leadId, router],
+    [leadId, router, t],
   );
 
   useEffect(() => {
@@ -110,18 +112,18 @@ export function TestDriveStatusView({ leadId }: Props) {
     };
   }, [load]);
 
-  if (state.status === "loading") return <LoadingState label="Status yüklənir…" />;
+  if (state.status === "loading") return <LoadingState label={t("leads.statusLoading")} />;
   if (state.status === "not_found")
     return (
       <NotFoundState
-        title="Sorğu tapılmadı"
-        note="Bu sorğu mövcud deyil və ya silinib."
+        title={t("leads.notFoundTitle")}
+        note={t("leads.notFoundNote")}
       />
     );
   if (state.status === "error")
     return (
       <ErrorState
-        title="Status yüklənmədi"
+        title={t("leads.statusLoadFailed")}
         message={state.message}
         code={state.code}
       />
@@ -141,7 +143,7 @@ export function TestDriveStatusView({ leadId }: Props) {
       <LeadStatusHero
         lead={lead}
         backHref={ROUTES.profileLead(lead.lead_id)}
-        backLabel="Sorğuya qayıt"
+        backLabel={t("leads.backToLead")}
         brandName={brandName}
         modelName={modelName}
         trimTitle={trim ? trimSuffix || trim.display_name : lead.trim_id}
@@ -157,8 +159,8 @@ export function TestDriveStatusView({ leadId }: Props) {
       <Section tone="muted" padding="md">
         <Container size="narrow" className="space-y-6">
           <SectionHeading
-            eyebrow="Tarixçə"
-            title="Sorğu mərhələləri"
+            eyebrow={t("leadsTimeline.timelineTitle")}
+            title={t("leadsTimeline.stagesAria")}
           />
           <LeadTimeline state={lead.state} events={timeline} />
         </Container>
@@ -168,32 +170,31 @@ export function TestDriveStatusView({ leadId }: Props) {
 }
 
 function TestDriveBody({ lead }: { lead: Lead }) {
+  const t = useT();
   if (lead.state === "test_drive_requested") {
     return (
       <Card padding="lg" tone="raised" className="border-l-4 border-l-accent-blue">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent-blue">
-          Test-sürüş sorğusu
+          {t("leads.testDriveRequestEyebrow")}
         </p>
         <h2 className="mt-2 text-xl font-semibold text-foreground">
-          Diler təsdiqini gözləyirik
+          {t("leads.ctaTestDriveRequestedLabel")}
         </h2>
         <p className="mt-2 text-sm text-foreground-soft">
-          Test-sürüş istəyin dilerə göndərildi. Diler 1 iş günü ərzində səninlə
-          əlaqə saxlayacaq və vaxt təklif edəcək. Test-sürüş yalnız diler
-          təsdiqindən sonra rəsmiləşir.
+          {t("leads.testDriveAwaitingBody")}
         </p>
         <ul className="mt-4 space-y-2 text-sm text-foreground-soft">
           <li className="flex items-start gap-2">
             <span aria-hidden className="text-accent-blue">•</span>
-            <span>Diler vaxtı və yeri WhatsApp və ya zəng ilə təklif edir.</span>
+            <span>{t("leads.testDriveBullet1")}</span>
           </li>
           <li className="flex items-start gap-2">
             <span aria-hidden className="text-accent-blue">•</span>
-            <span>Vaxtla razıyam dedikdən sonra status “Təsdiq olundu” olur.</span>
+            <span>{t("leads.testDriveBullet2")}</span>
           </li>
           <li className="flex items-start gap-2">
             <span aria-hidden className="text-accent-blue">•</span>
-            <span>Bu addım pulsuzdur və heç bir öhdəlik yaratmır.</span>
+            <span>{t("leads.testDriveBullet3")}</span>
           </li>
         </ul>
         <div className="mt-5">
@@ -202,7 +203,7 @@ function TestDriveBody({ lead }: { lead: Lead }) {
             variant="secondary"
             size="sm"
           >
-            Sorğu detalı →
+            {t("leads.viewRequestDetailsArrow")}
           </ButtonLink>
         </div>
       </Card>
@@ -213,14 +214,13 @@ function TestDriveBody({ lead }: { lead: Lead }) {
     return (
       <Card padding="lg" tone="raised" className="border-l-4 border-l-success">
         <p className="text-xs font-semibold uppercase tracking-wide text-success">
-          Test-sürüş
+          {t("leads.testDriveLabel")}
         </p>
         <h2 className="mt-2 text-xl font-semibold text-foreground">
-          Təsdiqləndi
+          {t("leads.testDriveConfirmedTitle")}
         </h2>
         <p className="mt-2 text-sm text-foreground-soft">
-          Diler test-sürüş üçün vaxt və yer təsdiq etdi. Növbəti addım: razılaşdırılmış
-          vaxtda diler ilə görüş.
+          {t("leads.testDriveConfirmedBody")}
         </p>
         <div className="mt-5">
           <ButtonLink
@@ -228,7 +228,7 @@ function TestDriveBody({ lead }: { lead: Lead }) {
             variant="secondary"
             size="sm"
           >
-            Sorğu detalı →
+            {t("leads.viewRequestDetailsArrow")}
           </ButtonLink>
         </div>
       </Card>
@@ -238,14 +238,13 @@ function TestDriveBody({ lead }: { lead: Lead }) {
   return (
     <Card padding="lg" tone="muted">
       <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Test-sürüş
+        {t("leads.testDriveLabel")}
       </p>
       <h2 className="mt-2 text-xl font-semibold text-foreground">
-        Bu sorğu test-sürüş mərhələsində deyil
+        {t("leads.testDriveNotInPhase")}
       </h2>
       <p className="mt-2 text-sm text-foreground-soft">
-        Test-sürüş yalnız rəsmi təklif gəldikdən sonra mümkündür. Sorğunun cari
-        vəziyyətini görmək üçün sorğu detalına qayıt.
+        {t("leads.testDriveNotInPhaseBody")}
       </p>
       <div className="mt-5">
         <ButtonLink
@@ -253,7 +252,7 @@ function TestDriveBody({ lead }: { lead: Lead }) {
           variant="primary"
           size="sm"
         >
-          Sorğu detalı →
+          {t("leads.viewRequestDetailsArrow")}
         </ButtonLink>
       </div>
     </Card>

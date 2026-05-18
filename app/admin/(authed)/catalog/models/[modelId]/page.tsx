@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { getModel, listBrands } from "@/lib/admin";
+import { getServerT } from "@/lib/i18n/server";
 
 export default async function AdminModelEditPage({
   params,
@@ -13,9 +14,12 @@ export default async function AdminModelEditPage({
   const model = getModel(modelId);
   if (!model) notFound();
   const brands = listBrands();
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Model: {model.name}</h1>
+      <h1 className="text-xl font-semibold">
+        {t("adminCatalog.modelEditTitle", { name: model.name })}
+      </h1>
       <form
         action={`/api/internal/models/${model.model_id}`}
         method="post"
@@ -24,23 +28,27 @@ export default async function AdminModelEditPage({
         <input type="hidden" name="_method" value="patch" />
         <Select
           name="brand_id"
-          label="Marka"
+          label={t("adminCatalog.brand")}
           defaultValue={model.brand_id}
           options={brands.map((b) => ({ value: b.brand_id, label: b.name }))}
         />
-        <Input name="name" label="Ad" defaultValue={model.name} />
-        <Input name="body_type" label="Kuzov" defaultValue={model.body_type ?? ""} />
+        <Input name="name" label={t("adminCatalog.name")} defaultValue={model.name} />
+        <Input
+          name="body_type"
+          label={t("adminCatalog.bodyTypeShort")}
+          defaultValue={model.body_type ?? ""}
+        />
         <Select
           name="status"
-          label="Status"
+          label={t("adminCatalog.status")}
           defaultValue={model.status}
           options={[
-            { value: "active", label: "Aktiv" },
-            { value: "inactive", label: "Deaktiv" },
+            { value: "active", label: t("adminCatalog.statusActive") },
+            { value: "inactive", label: t("adminCatalog.statusInactive") },
           ]}
         />
         <div className="flex items-end md:col-span-2">
-          <Button type="submit">Yadda saxla</Button>
+          <Button type="submit">{t("buttons.save")}</Button>
         </div>
       </form>
     </div>

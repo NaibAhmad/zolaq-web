@@ -1,5 +1,9 @@
+"use client";
+
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import type { CompareEntry } from "./CompareTable";
 
 type Props = {
@@ -8,8 +12,9 @@ type Props = {
 
 type Highlight = {
   trim_id: string;
-  label: string;
-  reason: string;
+  labelKey: TranslationKey;
+  reasonKey: TranslationKey;
+  reasonParams?: Record<string, string | number>;
 };
 
 function pickHighlights(entries: CompareEntry[]): Highlight[] {
@@ -24,8 +29,9 @@ function pickHighlights(entries: CompareEntry[]): Highlight[] {
   if ((topPower.trim.power_hp ?? 0) > 0) {
     out.push({
       trim_id: topPower.trim.trim_id,
-      label: "Daha güclü",
-      reason: `${topPower.trim.power_hp} a.g. — qrupun ən güclü mühərriki.`,
+      labelKey: "compare.recMorePower",
+      reasonKey: "compare.recMorePowerReason",
+      reasonParams: { hp: topPower.trim.power_hp ?? 0 },
     });
   }
 
@@ -33,20 +39,12 @@ function pickHighlights(entries: CompareEntry[]): Highlight[] {
   for (const e of entries) {
     if ((e.trim.range_km ?? 0) > (topRange.trim.range_km ?? 0)) topRange = e;
   }
-  if (
-    (topRange.trim.range_km ?? 0) > 0 &&
-    topRange.trim.trim_id !== topPower.trim.trim_id
-  ) {
+  if ((topRange.trim.range_km ?? 0) > 0) {
     out.push({
       trim_id: topRange.trim.trim_id,
-      label: "Daha uzun yürüş",
-      reason: `${topRange.trim.range_km} km — gündəlik istifadədə daha sərbəst.`,
-    });
-  } else if ((topRange.trim.range_km ?? 0) > 0) {
-    out.push({
-      trim_id: topRange.trim.trim_id,
-      label: "Daha uzun yürüş",
-      reason: `${topRange.trim.range_km} km — gündəlik istifadədə daha sərbəst.`,
+      labelKey: "compare.recLongerRange",
+      reasonKey: "compare.recLongerRangeReason",
+      reasonParams: { km: topRange.trim.range_km ?? 0 },
     });
   }
 
@@ -56,8 +54,8 @@ function pickHighlights(entries: CompareEntry[]): Highlight[] {
   if (cheapest && !out.some((h) => h.trim_id === cheapest.trim.trim_id)) {
     out.push({
       trim_id: cheapest.trim.trim_id,
-      label: "Daha sərfəli",
-      reason: "Qrupda ən aşağı yoxlanmış qiymət təklifi.",
+      labelKey: "compare.recCheapest",
+      reasonKey: "compare.recCheapestReason",
     });
   }
 
@@ -65,6 +63,7 @@ function pickHighlights(entries: CompareEntry[]): Highlight[] {
 }
 
 export function CompareRecommendation({ entries }: Props) {
+  const t = useT();
   const highlights = pickHighlights(entries);
   if (highlights.length === 0) return null;
 
@@ -75,10 +74,10 @@ export function CompareRecommendation({ entries }: Props) {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Badge tone="orange" size="md">
-            Zolaq tövsiyyəsi
+            {t("compare.recBadge")}
           </Badge>
           <span className="text-sm text-foreground-muted">
-            Texniki göstəricilərdən çıxarış (avtomatik)
+            {t("compare.recSubtitle")}
           </span>
         </div>
         <ul className="grid gap-3 md:grid-cols-3">
@@ -87,16 +86,18 @@ export function CompareRecommendation({ entries }: Props) {
             if (!entry) return null;
             return (
               <li
-                key={`${h.trim_id}-${h.label}`}
+                key={`${h.trim_id}-${h.labelKey}`}
                 className="rounded-[var(--radius)] border border-border bg-surface-muted p-4"
               >
                 <p className="text-xs font-semibold uppercase tracking-wide text-accent-orange">
-                  {h.label}
+                  {t(h.labelKey)}
                 </p>
                 <p className="mt-2 text-base font-semibold text-foreground">
                   {entry.brandName} {entry.trim.model_name}
                 </p>
-                <p className="mt-1 text-sm text-foreground-muted">{h.reason}</p>
+                <p className="mt-1 text-sm text-foreground-muted">
+                  {t(h.reasonKey, h.reasonParams)}
+                </p>
               </li>
             );
           })}

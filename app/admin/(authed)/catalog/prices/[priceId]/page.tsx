@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { getPrice, listDealers, listTrims } from "@/lib/admin";
+import { getServerT } from "@/lib/i18n/server";
 
 export default async function AdminPriceEditPage({
   params,
@@ -14,9 +15,12 @@ export default async function AdminPriceEditPage({
   if (!price) notFound();
   const trims = listTrims();
   const dealers = listDealers();
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Qiymət: {price.price_id}</h1>
+      <h1 className="text-xl font-semibold">
+        {t("adminCatalog.priceEditTitle", { priceId: price.price_id })}
+      </h1>
       <form
         action={`/api/internal/prices/${price.price_id}`}
         method="post"
@@ -25,14 +29,20 @@ export default async function AdminPriceEditPage({
         <input type="hidden" name="_method" value="patch" />
         <Select
           name="trim_id"
-          label="Komplektasiya"
+          label={t("adminCatalog.trimsTitle")}
           defaultValue={price.trim_id}
-          options={trims.map((t) => ({ value: t.trim_id, label: t.display_name }))}
+          options={trims.map((tr) => ({ value: tr.trim_id, label: tr.display_name }))}
         />
-        <Input name="amount" label="Məbləğ" type="number" step="0.01" defaultValue={price.amount} />
+        <Input
+          name="amount"
+          label={t("adminCatalog.amount")}
+          type="number"
+          step="0.01"
+          defaultValue={price.amount}
+        />
         <Select
           name="currency"
-          label="Valyuta"
+          label={t("adminCatalog.currency")}
           defaultValue={price.currency}
           options={[
             { value: "AZN", label: "AZN" },
@@ -40,30 +50,43 @@ export default async function AdminPriceEditPage({
             { value: "CNY", label: "CNY" },
           ]}
         />
-        <Input name="source_name" label="Mənbə adı" defaultValue={price.source_name} />
+        <Input
+          name="source_name"
+          label={t("adminCatalog.sourceName")}
+          defaultValue={price.source_name}
+        />
         <Select
           name="verification_status"
-          label="Təsdiq"
+          label={t("adminCatalog.verification")}
           defaultValue={price.verification_status}
           options={[
-            { value: "verified", label: "Təsdiqlənmiş" },
-            { value: "unverified", label: "Təsdiqlənməyib" },
-            { value: "pending", label: "Gözləmədə" },
-            { value: "conflict", label: "Ziddiyyət" },
-            { value: "outdated", label: "Köhnəlmiş" },
+            { value: "verified", label: t("adminCatalog.verified") },
+            { value: "unverified", label: t("adminCatalog.unverified") },
+            { value: "pending", label: t("adminCatalog.pending") },
+            { value: "conflict", label: t("adminCatalog.conflict") },
+            { value: "outdated", label: t("adminCatalog.outdated") },
           ]}
         />
         <Select
           name="dealer_id"
-          label="Diler"
+          label={t("adminCatalog.dealer")}
           defaultValue={price.dealer_id ?? ""}
-          placeholderOption="Yoxdur"
+          placeholderOption={t("adminCatalog.dealerNone")}
           options={dealers.map((d) => ({ value: d.dealer_id, label: d.display_name }))}
         />
-        <Input name="valid_until" label="Etibarlıdır" type="date" defaultValue={price.valid_until ?? ""} />
-        <Input name="notes" label="Qeyd" defaultValue={price.notes ?? ""} />
+        <Input
+          name="valid_until"
+          label={t("adminCatalog.validUntil")}
+          type="date"
+          defaultValue={price.valid_until ?? ""}
+        />
+        <Input
+          name="notes"
+          label={t("adminCatalog.notes")}
+          defaultValue={price.notes ?? ""}
+        />
         <div className="flex items-end md:col-span-2">
-          <Button type="submit">Yadda saxla</Button>
+          <Button type="submit">{t("buttons.save")}</Button>
         </div>
       </form>
     </div>

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 
-const TABS: ReadonlyArray<{ href: string; label: string; icon: string }> = [
-  { href: ROUTES.home, label: "Ana", icon: "◉" },
-  { href: ROUTES.cars, label: "Maşın", icon: "▣" },
-  { href: ROUTES.compare, label: "Müqayisə", icon: "⇄" },
-  { href: ROUTES.encyclopedia, label: "Bələdçi", icon: "◈" },
-  { href: ROUTES.profile, label: "Mən", icon: "◐" },
+const TABS: ReadonlyArray<{ href: string; labelKey: TranslationKey; icon: string }> = [
+  { href: ROUTES.home, labelKey: "nav.mobileHome", icon: "◉" },
+  { href: ROUTES.cars, labelKey: "nav.mobileCar", icon: "▣" },
+  { href: ROUTES.compare, labelKey: "nav.compare", icon: "⇄" },
+  { href: ROUTES.encyclopedia, labelKey: "nav.mobileGuide", icon: "◈" },
+  { href: ROUTES.profile, labelKey: "nav.profileShort", icon: "◐" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -19,11 +21,12 @@ function isActive(pathname: string, href: string): boolean {
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const t = useT();
 
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-surface/95 backdrop-blur md:hidden"
-      aria-label="Mobil naviqasiya"
+      aria-label={t("nav.mobileNavAria")}
     >
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href);
@@ -41,7 +44,7 @@ export function MobileBottomNav() {
             <span aria-hidden className="text-base leading-none">
               {tab.icon}
             </span>
-            <span>{tab.label}</span>
+            <span>{t(tab.labelKey)}</span>
             {active ? (
               <span
                 aria-hidden

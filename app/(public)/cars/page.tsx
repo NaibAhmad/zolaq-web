@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 import type { PriceRecord, Trim } from "@/lib/cars/types";
 
@@ -58,6 +59,7 @@ function buildQuery(searchParams: URLSearchParams): string {
 function CatalogInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -78,7 +80,7 @@ function CatalogInner() {
         // Prefer the new `results` shape; fall back to trims-only if absent.
         const results: SearchResult[] = data.results
           ? data.results
-          : (data.trims ?? []).map((t) => ({ trim: t, best_price: null }));
+          : (data.trims ?? []).map((trim) => ({ trim, best_price: null }));
         setState({ status: "ready", results });
       })
       .catch((err: unknown) => {
@@ -86,14 +88,15 @@ function CatalogInner() {
         if (err instanceof ApiError) {
           setState({ status: "error", message: err.message, code: err.code });
         } else {
-          const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+          const message =
+            err instanceof Error ? err.message : t("carsList.networkError");
           setState({ status: "error", message, code: "NETWORK" });
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [query, reloadKey]);
+  }, [query, reloadKey, t]);
 
   function retry() {
     setReloadKey((k) => k + 1);
@@ -111,18 +114,18 @@ function CatalogInner() {
       <Section tone="muted" padding="md">
         <Container>
           <SectionHeading
-            eyebrow="Kataloq"
-            title="Bütün maşınlar"
-            subtitle="Marka, model, komplektasiya və qiymətə görə filtrlə. Hər kart rəsmi diler məlumatı və yoxlanmış qiymət göstərir."
+            eyebrow={t("carsList.eyebrow")}
+            title={t("carsList.title")}
+            subtitle={t("carsList.subtitle")}
           />
           <div className="mt-5 flex flex-wrap items-center gap-2">
             {resultCount !== null ? (
               <Badge tone="blue" size="md">
-                {resultCount} nəticə
+                {t("carsList.resultCount", { count: resultCount })}
               </Badge>
             ) : null}
             <Badge tone="muted" size="md">
-              Hər gün yenilənir
+              {t("carsList.updatedDaily")}
             </Badge>
           </div>
         </Container>
@@ -138,12 +141,12 @@ function CatalogInner() {
             <CompareSelectionBar />
 
             {state.status === "loading" && (
-              <LoadingState label="Maşınlar yüklənir…" />
+              <LoadingState label={t("carsList.loading")} />
             )}
 
             {state.status === "error" && (
               <ErrorState
-                title="Xəta baş verdi"
+                title={t("carsList.errorTitle")}
                 message={state.message}
                 code={state.code}
                 onRetry={retry}
@@ -152,11 +155,11 @@ function CatalogInner() {
 
             {state.status === "ready" && state.results.length === 0 && (
               <EmptyState
-                title="Uyğun nəticə tapılmadı"
-                note="Filtrləri dəyişib yenidən cəhd edin."
+                title={t("carsList.emptyTitle")}
+                note={t("carsList.emptyNote")}
                 action={
                   <Button variant="secondary" size="sm" onClick={clearFilters}>
-                    Filtri sıfırla
+                    {t("carsList.clearFilter")}
                   </Button>
                 }
               />
@@ -184,8 +187,13 @@ function CatalogInner() {
 
 export default function CarsPage() {
   return (
-    <Suspense fallback={<LoadingState label="Maşınlar yüklənir…" />}>
+    <Suspense fallback={<CarsFallback />}>
       <CatalogInner />
     </Suspense>
   );
+}
+
+function CarsFallback() {
+  const t = useT();
+  return <LoadingState label={t("carsList.loading")} />;
 }

@@ -6,10 +6,11 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { RichContentCard } from "@/components/content/RichContentCard";
 import {
-  ENCYCLOPEDIA_ALL_LABEL,
-  ENCYCLOPEDIA_CATEGORY_LABELS,
   ENCYCLOPEDIA_CATEGORY_ORDER,
+  categoryLabel,
+  encyclopediaAllLabel,
 } from "@/lib/content/encyclopedia-categories";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
 import type { EncyclopediaCategory } from "@/lib/content/types";
 
 export type EncyclopediaListItem = {
@@ -31,6 +32,8 @@ type Props = {
 };
 
 export function EncyclopediaListClient({ items }: Props) {
+  const t = useT();
+  const locale = useCurrentLocale();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
@@ -49,15 +52,15 @@ export function EncyclopediaListClient({ items }: Props) {
       <Section tone="muted" padding="sm">
         <Container>
           <div className="inline-flex items-center rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium text-foreground-muted">
-            Ensiklopediya
+            {t("encyclopediaHero.eyebrow")}
           </div>
           <h1 className="mt-6 text-3xl font-semibold leading-tight text-foreground md:text-4xl">
-            Avtomobil dünyasını başa düşmək üçün baza biliklər
+            {t("encyclopediaHero.title")}
           </h1>
 
           <form
             role="search"
-            aria-label="Ensiklopediya axtarışı"
+            aria-label={t("encyclopediaHero.searchAria")}
             onSubmit={(e) => e.preventDefault()}
             className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-stretch"
           >
@@ -69,7 +72,7 @@ export function EncyclopediaListClient({ items }: Props) {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder='Marka, model, "80 000 AZN-ə qədər EV", "ailə üçün hibrid SUV"…'
+                placeholder={t("encyclopediaHero.searchPlaceholder")}
                 className="h-12 w-full rounded-[var(--radius-lg)] border border-border bg-surface pl-10 pr-4 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent-blue focus:outline-none focus:ring-2 focus:ring-accent-blue/20"
               />
             </label>
@@ -77,7 +80,7 @@ export function EncyclopediaListClient({ items }: Props) {
               type="submit"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-lg)] bg-brand px-6 text-sm font-semibold text-brand-fg transition-all hover:brightness-110 active:brightness-95"
             >
-              Axtar
+              {t("encyclopediaHero.searchSubmit")}
               <span aria-hidden>→</span>
             </button>
           </form>
@@ -88,14 +91,14 @@ export function EncyclopediaListClient({ items }: Props) {
         <Container>
           <div
             role="tablist"
-            aria-label="Kateqoriyalar"
+            aria-label={t("encyclopediaHero.categoriesAria")}
             className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
           >
             <ChipButton
               active={filter === "all"}
               onClick={() => setFilter("all")}
             >
-              {ENCYCLOPEDIA_ALL_LABEL}
+              {encyclopediaAllLabel(locale)}
             </ChipButton>
             {ENCYCLOPEDIA_CATEGORY_ORDER.map((cat) => (
               <ChipButton
@@ -103,7 +106,7 @@ export function EncyclopediaListClient({ items }: Props) {
                 active={filter === cat}
                 onClick={() => setFilter(cat)}
               >
-                {ENCYCLOPEDIA_CATEGORY_LABELS[cat]}
+                {categoryLabel(cat, locale)}
               </ChipButton>
             ))}
           </div>
@@ -111,8 +114,8 @@ export function EncyclopediaListClient({ items }: Props) {
           <div className="mt-8">
             {filtered.length === 0 ? (
               <EmptyState
-                title="Bu kateqoriyada hələ məqalə yoxdur"
-                note="Başqa kateqoriya seçin və ya axtarış sorğusunu dəyişin."
+                title={t("encyclopediaHero.emptyTitle")}
+                note={t("encyclopediaHero.emptyNote")}
               />
             ) : (
               <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -127,10 +130,9 @@ export function EncyclopediaListClient({ items }: Props) {
                       cover={{
                         src: item.cover.src,
                         alt: item.cover.alt,
-                        moduleLabel: "Ensiklopediya",
+                        moduleLabel: t("encyclopediaHero.moduleLabel"),
                       }}
                       hasRelatedModel={item.hasRelatedModel}
-                      dateLabel="Yenilənib"
                     />
                   </li>
                 ))}

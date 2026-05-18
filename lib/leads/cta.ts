@@ -5,6 +5,7 @@
 // API dispatcher (POST /api/profile/leads/{id}/{action}). "open-whatsapp" is
 // a client-only action that does not call the API — it just opens wa.me.
 
+import type { TranslationKey } from "@/lib/i18n/types";
 import type { LeadState } from "./types";
 
 export type LeadCtaActionKey =
@@ -17,8 +18,8 @@ export type LeadCtaActionKey =
 export type LeadCtaVariant = "primary" | "whatsapp" | "info";
 
 export type LeadPrimaryCta = {
-  label: string;
-  description: string;
+  labelKey: TranslationKey;
+  descriptionKey: TranslationKey;
   action: LeadCtaActionKey | null;
   variant: LeadCtaVariant;
   disabled: boolean;
@@ -36,17 +37,16 @@ export function getLeadPrimaryCta(
     case "submitted":
       if (ctx.preferredContact === "whatsapp") {
         return {
-          label: "WhatsApp ilə davam et",
-          description: "Daha sürətli cavab üçün dilerlə WhatsApp-da əlaqə saxla.",
+          labelKey: "leads.ctaSubmittedWhatsappLabel",
+          descriptionKey: "leads.ctaSubmittedWhatsappDesc",
           action: "whatsapp-handoff",
           variant: "whatsapp",
           disabled: false,
         };
       }
       return {
-        label: "Cavab gələndə bildirik",
-        description:
-          "Diler adətən 1–2 saata cavab verir. Status dəyişən kimi sənə bildiriləcək.",
+        labelKey: "leads.ctaSubmittedWaitLabel",
+        descriptionKey: "leads.ctaSubmittedWaitDesc",
         action: null,
         variant: "info",
         disabled: true,
@@ -54,9 +54,8 @@ export function getLeadPrimaryCta(
 
     case "dealer_opened":
       return {
-        label: "Diler qiyməti hazırlayır",
-        description:
-          "Diler sorğunu açıb. Rəsmi qiymət hazır olan kimi burada görünəcək.",
+        labelKey: "leads.ctaDealerOpenedLabel",
+        descriptionKey: "leads.ctaDealerOpenedDesc",
         action: null,
         variant: "info",
         disabled: true,
@@ -64,9 +63,8 @@ export function getLeadPrimaryCta(
 
     case "official_offer":
       return {
-        label: "Test-sürüş sorğusu göndər",
-        description:
-          "Rəsmi təklifi nəzərdən keçir, sonra dilerdən test-sürüş istə.",
+        labelKey: "leads.ctaOfficialOfferLabel",
+        descriptionKey: "leads.ctaOfficialOfferDesc",
         action: "request-test-drive",
         variant: "primary",
         disabled: false,
@@ -74,9 +72,8 @@ export function getLeadPrimaryCta(
 
     case "test_drive_requested":
       return {
-        label: "Diler təsdiqini gözləyirik",
-        description:
-          "Test-sürüş istəyin dilerə göndərildi. Diler 1 iş günü ərzində səninlə əlaqə saxlayacaq.",
+        labelKey: "leads.ctaTestDriveRequestedLabel",
+        descriptionKey: "leads.ctaTestDriveRequestedDesc",
         action: null,
         variant: "info",
         disabled: true,
@@ -84,9 +81,8 @@ export function getLeadPrimaryCta(
 
     case "test_drive_confirmed":
       return {
-        label: "Növbəti addım: diler ilə əlaqə",
-        description:
-          "Test-sürüş təsdiqləndi. Vaxt və yeri diler ilə razılaşdırılıb.",
+        labelKey: "leads.ctaTestDriveConfirmedLabel",
+        descriptionKey: "leads.ctaTestDriveConfirmedDesc",
         action: null,
         variant: "info",
         disabled: true,
@@ -94,8 +90,8 @@ export function getLeadPrimaryCta(
 
     case "whatsapp_handoff":
       return {
-        label: "WhatsApp-ı yenidən aç",
-        description: "Söhbət WhatsApp-da davam edir.",
+        labelKey: "leads.ctaWhatsappLabel",
+        descriptionKey: "leads.ctaWhatsappDesc",
         action: "open-whatsapp",
         variant: "whatsapp",
         disabled: false,
@@ -103,9 +99,8 @@ export function getLeadPrimaryCta(
 
     case "expired":
       return {
-        label: "Yenilənmə istə",
-        description:
-          "Bu təklifin müddəti bitib. Dilerdən yeni təklif iste.",
+        labelKey: "leads.ctaExpiredLabel",
+        descriptionKey: "leads.ctaExpiredDesc",
         action: "request-second-offer",
         variant: "primary",
         disabled: false,
@@ -113,9 +108,8 @@ export function getLeadPrimaryCta(
 
     case "no_response":
       return {
-        label: "Başqa təkliflə yoxla",
-        description:
-          "Diler vaxtında cavab vermədi. Yenidən başqa təklif istə.",
+        labelKey: "leads.ctaNoResponseLabel",
+        descriptionKey: "leads.ctaNoResponseDesc",
         action: "request-second-offer",
         variant: "primary",
         disabled: false,
@@ -123,9 +117,8 @@ export function getLeadPrimaryCta(
 
     case "second_offer":
       return {
-        label: "Yeni təklif gözlənilir",
-        description:
-          "Yeni təklif üçün dilerlərə sorğu göndərildi. Cavab gələndə görəcəksən.",
+        labelKey: "leads.ctaSecondOfferLabel",
+        descriptionKey: "leads.ctaSecondOfferDesc",
         action: null,
         variant: "info",
         disabled: true,
@@ -141,12 +134,12 @@ export function getLeadPrimaryCta(
 // State-machine action keys that should still be reachable as secondary
 // (ghost) buttons next to the primary CTA. We filter via canTransition() in
 // the consumer; this list defines which keys are eligible at all.
-export const SECONDARY_ACTION_LABELS: Record<LeadCtaActionKey, string> = {
-  "request-test-drive": "Test-sürüş istə",
-  "request-second-offer": "İkinci təklif istə",
-  "whatsapp-handoff": "WhatsApp-da davam et",
-  "open-whatsapp": "WhatsApp-ı aç",
-  close: "Sorğunu bağla",
+export const SECONDARY_ACTION_KEYS: Record<LeadCtaActionKey, TranslationKey> = {
+  "request-test-drive": "leads.actionRequestTestDrive",
+  "request-second-offer": "leads.actionRequestSecondOffer",
+  "whatsapp-handoff": "leads.actionWhatsappHandoff",
+  "open-whatsapp": "leads.actionOpenWhatsapp",
+  close: "leads.actionClose",
 };
 
 // The state target that each CTA action transitions the lead into. Used so

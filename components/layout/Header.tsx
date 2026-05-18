@@ -13,21 +13,16 @@ import { ROUTES } from "@/lib/routes";
 
 type NavItem = {
   href: string;
-  label: string;
   translationKey: TranslationKey;
 };
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { href: ROUTES.cars, label: "Maşınlar", translationKey: "nav.cars" },
-  { href: ROUTES.compare, label: "Müqayisə", translationKey: "nav.compare" },
-  { href: ROUTES.dealers, label: "Dilerlər", translationKey: "nav.dealers" },
-  { href: ROUTES.news, label: "Xəbərlər", translationKey: "nav.news" },
-  {
-    href: ROUTES.encyclopedia,
-    label: "Ensiklopediya",
-    translationKey: "nav.encyclopedia",
-  },
-  { href: ROUTES.qa, label: "Sorğu", translationKey: "nav.qa" },
+  { href: ROUTES.cars, translationKey: "nav.cars" },
+  { href: ROUTES.compare, translationKey: "nav.compare" },
+  { href: ROUTES.dealers, translationKey: "nav.dealers" },
+  { href: ROUTES.news, translationKey: "nav.news" },
+  { href: ROUTES.encyclopedia, translationKey: "nav.encyclopedia" },
+  { href: ROUTES.qa, translationKey: "nav.qa" },
 ];
 
 function isActive(pathname: string, href: string): boolean {

@@ -25,6 +25,8 @@ import { BRANDS } from "@/lib/cars/seed";
 import { formatPrice } from "@/lib/cars/format";
 import { getGenerationById } from "@/lib/cars/generations";
 import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 import {
   isLeadSourceSurface,
@@ -50,12 +52,12 @@ type FetchState =
   | { status: "error"; message: string; code: string }
   | { status: "ready"; trim: Trim; prices: PriceRecord[] };
 
-const ENERGY_LABEL: Record<EnergyType, string> = {
-  EV: "Tam elektrik",
-  PHEV: "Plug-in hibrid",
-  EREV: "Diapazon genişləndirici elektrik",
-  HEV: "Hibrid",
-  ICE: "Daxili yanma mühərriki",
+const ENERGY_KEY: Record<EnergyType, TranslationKey> = {
+  EV: "carDetail.energyEv",
+  PHEV: "carDetail.energyPhev",
+  EREV: "carDetail.energyErev",
+  HEV: "carDetail.energyHev",
+  ICE: "carDetail.energyIce",
 };
 
 const PRICE_STATUS_RANK: Record<PriceStatus, number> = {
@@ -69,15 +71,15 @@ const PRICE_STATUS_RANK: Record<PriceStatus, number> = {
   not_available: 7,
 };
 
-const STATUS_LABEL: Record<PriceStatus, string> = {
-  estimated: "Təxmini qiymət",
-  catalog_price: "Kataloq qiyməti",
-  dealer_quote_pending: "Təklif gözlənilir",
-  dealer_official_offer: "Rəsmi diler təklifi",
-  expired_offer: "Təklif müddəti bitib",
-  conflict: "Qiymət mənbələrində fərq var",
-  price_unknown: "Qiymət soruş",
-  not_available: "Hazırda mövcud deyil",
+const STATUS_KEY: Record<PriceStatus, TranslationKey> = {
+  estimated: "catalogCard.statusEstimated",
+  catalog_price: "catalogCard.statusCatalog",
+  dealer_quote_pending: "catalogCard.statusPending",
+  dealer_official_offer: "catalogCard.statusOfficial",
+  expired_offer: "catalogCard.statusExpired",
+  conflict: "catalogCard.statusConflict",
+  price_unknown: "catalogCard.statusAsk",
+  not_available: "catalogCard.statusUnavailable",
 };
 
 const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
@@ -91,21 +93,21 @@ const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
   not_available: "muted",
 };
 
-const SOURCE_LABEL: Record<SourceType, string> = {
-  official_dealer: "Rəsmi diler",
-  catalog: "Kataloq",
-  partner: "Tərəfdaş",
-  estimate: "Təxmin",
-  zolaq_manual: "Zolaq",
-  imported: "İdxal",
+const SOURCE_KEY: Record<SourceType, TranslationKey> = {
+  official_dealer: "catalogCard.sourceDealer",
+  catalog: "catalogCard.sourceCatalog",
+  partner: "catalogCard.sourcePartner",
+  estimate: "catalogCard.sourceEstimate",
+  zolaq_manual: "catalogCard.sourceZolaq",
+  imported: "catalogCard.sourceImport",
 };
 
-const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
-  unverified: "Yoxlanılmayıb",
-  verified: "Təsdiqlənib",
-  pending: "Yoxlanılır",
-  conflict: "Ziddiyyət",
-  outdated: "Köhnəlib",
+const VERIFICATION_KEY: Record<VerificationStatus, TranslationKey> = {
+  unverified: "catalogCard.verifyUnverified",
+  verified: "catalogCard.verifyVerified",
+  pending: "catalogCard.verifyPending",
+  conflict: "catalogCard.verifyConflict",
+  outdated: "catalogCard.verifyOutdated",
 };
 
 const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
@@ -144,14 +146,16 @@ function deriveTrimSuffix(displayName: string, brandName: string, modelName: str
 }
 
 export function CarDetail({ carId }: Props) {
+  const t = useT();
   return (
-    <Suspense fallback={<LoadingState label="Maşın yüklənir…" />}>
+    <Suspense fallback={<LoadingState label={t("carDetail.loading")} />}>
       <CarDetailInner carId={carId} />
     </Suspense>
   );
 }
 
 function CarDetailInner({ carId }: Props) {
+  const t = useT();
   const searchParams = useSearchParams();
   const sourceParam = searchParams.get("source");
   const sourceSurface: LeadSourceSurface = isLeadSourceSurface(sourceParam)
@@ -197,13 +201,13 @@ function CarDetailInner({ carId }: Props) {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [carId, reloadKey, sourceSurface]);
+  }, [carId, reloadKey, sourceSurface, t]);
 
   function retry() {
     setState({ status: "loading" });
@@ -211,14 +215,14 @@ function CarDetailInner({ carId }: Props) {
   }
 
   if (state.status === "loading") {
-    return <LoadingState label="Maşın yüklənir…" />;
+    return <LoadingState label={t("carDetail.loading")} />;
   }
 
   if (state.status === "not_found") {
     return (
       <NotFoundState
-        title="Maşın tapılmadı"
-        note="Bu trim mövcud deyil və ya silinib."
+        title={t("carDetail.notFoundTitle")}
+        note={t("carDetail.notFoundNote")}
       />
     );
   }
@@ -226,7 +230,7 @@ function CarDetailInner({ carId }: Props) {
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Xəta baş verdi"
+        title={t("carDetail.errorTitle")}
         message={state.message}
         code={state.code}
         onRetry={retry}
@@ -252,7 +256,7 @@ function CarDetailInner({ carId }: Props) {
               href={ROUTES.cars}
               className="text-on-dark-muted underline-offset-2 hover:text-on-dark hover:underline"
             >
-              ← Kataloqa qayıt
+              {t("carDetail.backToCatalog")}
             </Link>
           </nav>
 
@@ -260,7 +264,7 @@ function CarDetailInner({ carId }: Props) {
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="on-dark" size="md">
-                  {trim.energy_type} · {ENERGY_LABEL[trim.energy_type]}
+                  {trim.energy_type} · {t(ENERGY_KEY[trim.energy_type])}
                 </Badge>
                 <Badge tone="on-dark" size="md">
                   {trim.year}
@@ -270,15 +274,13 @@ function CarDetailInner({ carId }: Props) {
                 {brandName} · {trim.model_name}
               </p>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent-orange">
-                Komplektasiya
+                {t("catalogCard.trim")}
               </p>
               <h1 className="text-3xl font-semibold leading-tight text-on-dark md:text-4xl">
                 {trimSuffix || trim.display_name}
               </h1>
               <p className="max-w-xl text-sm text-on-dark-muted md:text-base">
-                Zolaq yalnız rəsmi diler məlumatına və yoxlanmış qiymət
-                təkliflərinə istinad edir. Aşağıdakı düyməni basaraq rəsmi
-                qiymət təklifi alın.
+                {t("carDetail.heroDescription")}
               </p>
 
               <div
@@ -308,27 +310,27 @@ function CarDetailInner({ carId }: Props) {
             <div className="mt-10 grid grid-cols-2 gap-4 border-t border-border-on-dark pt-6 sm:grid-cols-3 lg:grid-cols-4">
               <Stat
                 tone="dark"
-                label="Enerji"
+                label={t("carDetail.energyShortLabel")}
                 value={trim.energy_type}
-                hint={ENERGY_LABEL[trim.energy_type]}
+                hint={t(ENERGY_KEY[trim.energy_type])}
               />
               {trim.power_hp ? (
                 <Stat
                   tone="dark"
-                  label="Güc"
+                  label={t("carDetail.powerLabel")}
                   value={`${trim.power_hp}`}
-                  hint="at gücü"
+                  hint={t("carDetail.powerUnit")}
                 />
               ) : null}
               {trim.range_km ? (
                 <Stat
                   tone="dark"
-                  label="Yürüş"
+                  label={t("carDetail.rangeLabel")}
                   value={`${trim.range_km}`}
-                  hint="km diapazon"
+                  hint={t("carDetail.rangeHint")}
                 />
               ) : null}
-              <Stat tone="dark" label="İl" value={String(trim.year)} />
+              <Stat tone="dark" label={t("carDetail.yearLabel")} value={String(trim.year)} />
             </div>
           )}
         </Container>
@@ -340,10 +342,10 @@ function CarDetailInner({ carId }: Props) {
             <Card padding="md" tone="raised" className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
-                  Tez əməliyyatlar
+                  {t("carDetail.quickActionsEyebrow")}
                 </span>
                 <p className="text-sm text-foreground-muted">
-                  Bu maşını saxla, müqayisə et və ya test sürüşü istə.
+                  {t("carDetail.quickActionsSubtitle")}
                 </p>
               </div>
               <div className="flex flex-wrap items-stretch gap-2 sm:flex-nowrap">
@@ -361,34 +363,34 @@ function CarDetailInner({ carId }: Props) {
 
             <div className="flex flex-col gap-4">
               <SectionHeading
-                eyebrow="Texniki məlumat"
-                title="Texniki göstəricilər"
-                subtitle="Trimə aid əsas xüsusiyyətlər."
+                eyebrow={t("carDetail.technicalInfo")}
+                title={t("carDetail.technicalTitle")}
+                subtitle={t("carDetail.technicalSubtitle")}
               />
               <Card padding="lg" tone="raised">
                 <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  <SpecStat label="Marka" value={brandName} />
-                  <SpecStat label="Model" value={trim.model_name} />
+                  <SpecStat label={t("carDetail.brandLabel")} value={brandName} />
+                  <SpecStat label={t("carDetail.modelLabel")} value={trim.model_name} />
                   <SpecStat
-                    label="Nəsil"
+                    label={t("carDetail.generationLabel")}
                     value={generation?.display_name ?? "—"}
                     hint={generation?.name}
                   />
-                  <SpecStat label="Komplektasiya" value={trimSuffix || "—"} />
-                  <SpecStat label="İl" value={String(trim.year)} />
+                  <SpecStat label={t("catalogCard.trim")} value={trimSuffix || "—"} />
+                  <SpecStat label={t("carDetail.yearLabel")} value={String(trim.year)} />
                   <SpecStat
-                    label="Enerji növü"
+                    label={t("carDetail.energyTypeLabel")}
                     value={trim.energy_type}
-                    hint={ENERGY_LABEL[trim.energy_type]}
+                    hint={t(ENERGY_KEY[trim.energy_type])}
                   />
                   <SpecStat
-                    label="Güc"
+                    label={t("carDetail.powerLabel")}
                     value={trim.power_hp ? `${trim.power_hp}` : "—"}
-                    hint={trim.power_hp ? "at gücü" : undefined}
+                    hint={trim.power_hp ? t("carDetail.powerUnit") : undefined}
                   />
                   {trim.range_km != null ? (
                     <SpecStat
-                      label="Yürüş məsafəsi"
+                      label={t("carDetail.rangeFullLabel")}
                       value={`${trim.range_km}`}
                       hint="km"
                     />
@@ -404,9 +406,9 @@ function CarDetailInner({ carId }: Props) {
         <Container>
           <div className="flex flex-col gap-6" id="sorgu">
             <SectionHeading
-              eyebrow="Qiymət"
-              title="Ən yaxşı təklif"
-              subtitle="Hər təklif üçün mənbə və yoxlama statusu göstərilir."
+              eyebrow={t("carDetail.priceEyebrow")}
+              title={t("carDetail.bestOffer")}
+              subtitle={t("carDetail.priceSubtitle")}
             />
 
             {bestPrice ? (
@@ -417,8 +419,8 @@ function CarDetailInner({ carId }: Props) {
               />
             ) : (
               <EmptyState
-                title="Qiymət məlumatı yoxdur"
-                note="Bu trim üçün hələ ki, qiymət qeydi mövcud deyil."
+                title={t("carDetail.noPriceTitle")}
+                note={t("carDetail.noPriceNote")}
               />
             )}
 
@@ -427,8 +429,8 @@ function CarDetailInner({ carId }: Props) {
             {otherPrices.length > 0 ? (
               <div className="flex flex-col gap-4">
                 <SectionHeading
-                  eyebrow="Digər mənbələr"
-                  title="Bütün qiymət qeydləri"
+                  eyebrow={t("carDetail.otherSourcesEyebrow")}
+                  title={t("carDetail.otherSourcesTitle")}
                 />
                 <ul className="grid gap-4 md:grid-cols-2">
                   {otherPrices.map((p, i) => (
@@ -479,6 +481,7 @@ function BestPriceHero({
   trimId: string;
   sourceSurface: LeadSourceSurface;
 }) {
+  const t = useT();
   const showAmount = hasRenderableAmount(price.status) && price.amount > 0;
   const showValidUntil =
     hasDealerValidity(price.status) && price.valid_until != null;
@@ -491,10 +494,10 @@ function BestPriceHero({
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={STATUS_TONE[price.status]} size="md">
-              {STATUS_LABEL[price.status]}
+              {t(STATUS_KEY[price.status])}
             </Badge>
             <Badge tone={VERIFICATION_TONE[price.verification_status]} size="md">
-              {VERIFICATION_LABEL[price.verification_status]}
+              {t(VERIFICATION_KEY[price.verification_status])}
             </Badge>
           </div>
           {showAmount ? (
@@ -503,7 +506,7 @@ function BestPriceHero({
             </p>
           ) : (
             <p className="text-2xl font-semibold text-foreground-muted">
-              {price.status === "not_available" ? "—" : "Qiymət soruş"}
+              {price.status === "not_available" ? "—" : t("catalogCard.askPrice")}
             </p>
           )}
           <p className="text-sm text-foreground-muted">
@@ -520,7 +523,7 @@ function BestPriceHero({
               </span>
             )}
             <span className="ml-1 text-foreground-muted">
-              ({SOURCE_LABEL[price.source_type]})
+              ({t(SOURCE_KEY[price.source_type])})
             </span>
           </p>
         </div>
@@ -542,7 +545,7 @@ function BestPriceHero({
               fullWidth
             >
               <span aria-hidden>↧</span>
-              PDF təklif
+              {t("carDetail.pdfOffer")}
             </ButtonLink>
           ) : null}
         </div>
@@ -551,15 +554,15 @@ function BestPriceHero({
       <dl className="grid grid-cols-2 gap-4 border-t border-border pt-5 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
           <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-            Mənbə
+            {t("carDetail.source")}
           </dt>
           <dd className="text-sm font-medium text-foreground">
-            {SOURCE_LABEL[price.source_type]}
+            {t(SOURCE_KEY[price.source_type])}
           </dd>
         </div>
         <div className="flex flex-col gap-1">
           <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-            Yenilənib
+            {t("carDetail.updatedOn")}
           </dt>
           <dd className="text-sm font-medium text-foreground">
             {formatDateAz(price.last_updated)}
@@ -568,7 +571,7 @@ function BestPriceHero({
         {showValidUntil && price.valid_until ? (
           <div className="flex flex-col gap-1">
             <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-              Etibarlıdır
+              {t("carDetail.validUntil")}
             </dt>
             <dd className="text-sm font-medium text-foreground">
               {formatDateAz(price.valid_until)}

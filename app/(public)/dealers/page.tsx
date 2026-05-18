@@ -11,6 +11,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Stat } from "@/components/ui/Stat";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
+import { useT } from "@/lib/i18n/client";
 import type { Dealer } from "@/lib/dealers/types";
 
 const VERIFIED_STATUSES = new Set([
@@ -25,6 +26,7 @@ type FetchState =
   | { status: "ready"; dealers: Dealer[] };
 
 function DealersInner() {
+  const t = useT();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -47,14 +49,15 @@ function DealersInner() {
         if (err instanceof ApiError) {
           setState({ status: "error", message: err.message, code: err.code });
         } else {
-          const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+          const message =
+            err instanceof Error ? err.message : t("dealersHero.errorTitle");
           setState({ status: "error", message, code: "NETWORK" });
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, [reloadKey, t]);
 
   function retry() {
     setReloadKey((k) => k + 1);
@@ -81,23 +84,25 @@ function DealersInner() {
         <Container>
           <SectionHeading
             tone="dark"
-            eyebrow="Dilerlər"
-            title="Təsdiqlənmiş tərəfdaşlar"
-            subtitle="Rəsmi diler, premium və yoxlanmış tərəfdaşların siyahısı."
+            eyebrow={t("dealersHero.eyebrow")}
+            title={t("dealersHero.title")}
+            subtitle={t("dealersHero.subtitle")}
           />
           {stats ? (
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Stat tone="dark" label="Diler" value={stats.total} />
+              <Stat tone="dark" label={t("dealersHero.statTotal")} value={stats.total} />
               <Stat
                 tone="dark"
-                label="Yoxlanmış"
+                label={t("dealersHero.statVerified")}
                 value={stats.verified}
-                hint="rəsmi / verified / premium"
+                hint={t("dealersHero.statVerifiedHint")}
               />
               <Stat
                 tone="dark"
-                label="Orta cavab"
-                value={`~${stats.avgSla} saat`}
+                label={t("dealersHero.statAvgResponse")}
+                value={t("dealersHero.statAvgResponseValue", {
+                  hours: stats.avgSla,
+                })}
               />
             </div>
           ) : null}
@@ -107,12 +112,12 @@ function DealersInner() {
       <Section tone="light" padding="md">
         <Container>
           {state.status === "loading" && (
-            <LoadingState label="Dilerlər yüklənir…" />
+            <LoadingState label={t("dealersHero.loading")} />
           )}
 
           {state.status === "error" && (
             <ErrorState
-              title="Xəta baş verdi"
+              title={t("dealersHero.errorTitle")}
               message={state.message}
               code={state.code}
               onRetry={retry}
@@ -121,8 +126,8 @@ function DealersInner() {
 
           {state.status === "ready" && state.dealers.length === 0 && (
             <EmptyState
-              title="Diler tapılmadı"
-              note="Hələ ki aktiv diler qeydiyyatı yoxdur."
+              title={t("dealersHero.emptyTitle")}
+              note={t("dealersHero.emptyNote")}
             />
           )}
 
@@ -143,8 +148,13 @@ function DealersInner() {
 
 export default function DealersPage() {
   return (
-    <Suspense fallback={<LoadingState label="Dilerlər yüklənir…" />}>
+    <Suspense fallback={<DealersFallback />}>
       <DealersInner />
     </Suspense>
   );
+}
+
+function DealersFallback() {
+  const t = useT();
+  return <LoadingState label={t("dealersHero.loading")} />;
 }

@@ -1,4 +1,7 @@
 // Sprint 10I-C: localized text helper for dynamic / seed-driven content.
+// Sprint 10I-D: extended with hasLocalizedText / getContentLanguage so the
+// translation-notice surface can detect missing locales and report which
+// language is actually being shown.
 //
 // Many surfaces render content that comes from data (seed files, JSON tables)
 // rather than translation dictionaries. The classic example is Bazar Nəbzi
@@ -31,4 +34,34 @@ export function getLocalizedOptionLabel<T extends { label: LocalizedText }>(
   locale: Locale,
 ): string {
   return getLocalizedText(option.label, locale);
+}
+
+// Sprint 10I-D: returns true when the value already carries text for the
+// requested locale (either as a plain string — which we treat as locale-
+// neutral/already-rendered, or as an object whose locale slot is non-empty).
+// Used by TranslationNotice / LocalizedContentBlock to decide whether to
+// surface the "translation in preparation" UI.
+export function hasLocalizedText(
+  value: LocalizedText | undefined | null,
+  locale: Locale,
+): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.length > 0;
+  const direct = value[locale];
+  return typeof direct === "string" && direct.length > 0;
+}
+
+// Sprint 10I-D: returns the locale actually used when getLocalizedText() is
+// called with the same value/locale pair. Plain strings are reported as the
+// default locale because that is the demo convention — author-written prose
+// without a locale wrapper is treated as AZ.
+export function getContentLanguage(
+  value: LocalizedText | undefined | null,
+  locale: Locale,
+): Locale {
+  if (value === undefined || value === null) return DEFAULT_LOCALE;
+  if (typeof value === "string") return DEFAULT_LOCALE;
+  const direct = value[locale];
+  if (typeof direct === "string" && direct.length > 0) return locale;
+  return DEFAULT_LOCALE;
 }

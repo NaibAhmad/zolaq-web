@@ -9,7 +9,8 @@ import { RelatedModelDarkCard } from "@/components/content/RelatedModelDarkCard"
 import { RelatedModelLink } from "@/components/content/RelatedModelLink";
 import { categoryLabel } from "@/lib/content/encyclopedia-categories";
 import { formatDateAz } from "@/lib/format/date";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
+import { getLocalizedText } from "@/lib/i18n/localized";
 import { ROUTES } from "@/lib/routes";
 import type { EncyclopediaEntry } from "@/lib/content/types";
 import type { LeadTrimSummary } from "@/lib/leads/types";
@@ -21,16 +22,22 @@ type Props = {
 
 export async function EncyclopediaArticle({ entry, relatedTrims }: Props) {
   const t = await getServerT();
-  const catLabel = categoryLabel(entry.category);
-  const coverAlt =
-    entry.image_alt ?? `${entry.title} — Zolaq ensiklopediya`;
-  const paragraphs = entry.body
+  const locale = await getServerLocale();
+  const title = getLocalizedText(entry.title, locale);
+  const summary = getLocalizedText(entry.summary, locale);
+  const bodyText = getLocalizedText(entry.body, locale);
+  const catLabel = categoryLabel(entry.category, locale);
+  const coverAlt = entry.image_alt ?? `${title} — Zolaq`;
+  const paragraphs = bodyText
     .split(/\n\n+/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
   const primaryTrim = relatedTrims[0];
   const extraTrims = relatedTrims.slice(1);
   const hasSidebar = Boolean(primaryTrim || entry.source);
+  const reasonText = entry.related_model_reason
+    ? getLocalizedText(entry.related_model_reason, locale)
+    : null;
 
   return (
     <>
@@ -58,10 +65,10 @@ export async function EncyclopediaArticle({ entry, relatedTrims }: Props) {
             <span>{t("dates.updated")} {formatDateAz(entry.published_at)}</span>
           </nav>
           <h1 className="mt-4 text-3xl font-semibold leading-tight text-foreground md:text-4xl">
-            {entry.title}
+            {title}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-foreground-soft md:text-lg">
-            {entry.summary}
+            {summary}
           </p>
           <ContentCoverImage
             src={entry.image_url}
@@ -91,10 +98,10 @@ export async function EncyclopediaArticle({ entry, relatedTrims }: Props) {
                     <li key={i}>
                       <Card tone="light" padding="md" className="h-full">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground-muted">
-                          {stat.label}
+                          {getLocalizedText(stat.label, locale)}
                         </p>
                         <p className="mt-2 text-xl font-semibold text-foreground">
-                          {stat.value}
+                          {getLocalizedText(stat.value, locale)}
                         </p>
                       </Card>
                     </li>
@@ -144,8 +151,7 @@ export async function EncyclopediaArticle({ entry, relatedTrims }: Props) {
                     contentId={entry.content_id}
                     trim={primaryTrim}
                     reason={
-                      entry.related_model_reason ??
-                      `${primaryTrim.display_name} — bu yazıdakı əsas nümunə.`
+                      reasonText ?? `${primaryTrim.display_name}`
                     }
                     surface="encyclopedia"
                   />

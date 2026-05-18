@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ApiError, apiPost } from "@/lib/api";
+import { useT } from "@/lib/i18n/client";
 import type {
   Decision,
   SavedCarWithTrim,
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function NewDecisionForm({ saved, onCreated }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [primaryTrimId, setPrimaryTrimId] = useState(
@@ -37,7 +39,7 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!primaryTrimId) {
-      setError("Saxlanılan maşın siyahısı boşdur. Əvvəlcə maşın saxla.");
+      setError(t("profileDecisions.formNoSaved"));
       return;
     }
     setSubmitting(true);
@@ -58,7 +60,7 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Qərar yaradılmadı. Yenidən cəhd et.");
+        setError(t("profileDecisions.formCreateFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -68,7 +70,7 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
   if (!open) {
     return (
       <Button variant="primary" onClick={() => setOpen(true)}>
-        Yeni qərar yarat
+        {t("profileDecisions.newDecision")}
       </Button>
     );
   }
@@ -78,21 +80,21 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input
           id="decision-title"
-          label="Başlıq (istəyə görə)"
+          label={t("profileDecisions.formTitleLabel")}
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={80}
-          placeholder="məs. Ailə üçün EV"
+          placeholder={t("profileDecisions.formTitlePlaceholder")}
         />
 
         <Select
           id="decision-trim"
-          label="Əsas maşın"
+          label={t("profileDecisions.formPrimaryLabel")}
           value={primaryTrimId}
           onChange={(e) => setPrimaryTrimId(e.target.value)}
           required
-          placeholderOption={saved.length === 0 ? "Saxlanılan maşın yoxdur" : undefined}
+          placeholderOption={saved.length === 0 ? t("profileDecisions.formNoSavedShort") : undefined}
           options={trimOptions}
         />
 
@@ -111,7 +113,7 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
             variant="primary"
             disabled={submitting || saved.length === 0}
           >
-            {submitting ? "Yaradılır…" : "Yarat"}
+            {submitting ? t("profileDecisions.formCreating") : t("profileDecisions.formCreate")}
           </Button>
           <Button
             type="button"
@@ -121,7 +123,7 @@ export function NewDecisionForm({ saved, onCreated }: Props) {
               setError(null);
             }}
           >
-            Ləğv et
+            {t("profileDecisions.formCancel")}
           </Button>
         </div>
       </form>

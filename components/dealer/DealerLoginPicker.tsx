@@ -2,15 +2,17 @@
 
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { getServerT } from "@/lib/i18n/server";
 import type { Dealer } from "@/lib/dealers/types";
 
-export function DealerLoginPicker({
+export async function DealerLoginPicker({
   dealers,
   redirectTo,
 }: {
   dealers: Dealer[];
   redirectTo?: string;
 }) {
+  const t = await getServerT();
   return (
     <form
       action="/api/dealer/auth/login"
@@ -22,7 +24,7 @@ export function DealerLoginPicker({
       ) : null}
       <Select
         name="dealer_id"
-        label="Diler"
+        label={t("auth.dealerLabel")}
         options={dealers.map((d) => ({
           value: d.dealer_id,
           label: `${d.display_name} — ${d.city}`,
@@ -32,22 +34,22 @@ export function DealerLoginPicker({
       />
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="text-xs font-medium uppercase tracking-wide text-foreground-muted">
-          Əlaqədar şəxs
+          {t("auth.dealerContact")}
         </span>
         <input
           name="contact_name"
           type="text"
           required
-          placeholder="Sizin adınız"
+          placeholder={t("auth.yourName")}
           className="h-11 rounded-[var(--radius)] border border-border bg-surface px-3 text-sm"
-          defaultValue="Diler nümayəndəsi"
+          defaultValue={t("auth.dealerRep")}
         />
       </label>
       <Button type="submit" fullWidth>
-        Daxil ol
+        {t("auth.signIn")}
       </Button>
       <p className="text-xs text-foreground-muted">
-        Sprint 8A: parol yoxdur — Sprint 8E real auth gətirəcək.
+        {t("auth.devModeNotice")}
       </p>
     </form>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
   open: boolean;
@@ -31,6 +32,7 @@ export function Modal({
   dismissible = true,
   size = "md",
 }: Props) {
+  const t = useT();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,7 +86,7 @@ export function Modal({
               type="button"
               onClick={onClose}
               className={closeBtnClass}
-              aria-label="Bağla"
+              aria-label={t("common.close")}
             >
               ×
             </button>

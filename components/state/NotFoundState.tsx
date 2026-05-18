@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/lib/i18n/client";
 import { EmptyState } from "./EmptyState";
 
 type Props = {
@@ -5,9 +8,12 @@ type Props = {
   note?: string;
 };
 
-export function NotFoundState({
-  title = "Tapılmadı",
-  note = "Axtardığınız məzmun mövcud deyil və ya silinib.",
-}: Props) {
-  return <EmptyState title={title} note={note} />;
+export function NotFoundState({ title, note }: Props) {
+  const t = useT();
+  return (
+    <EmptyState
+      title={title ?? t("errors.notFound")}
+      note={note ?? t("common.notFoundFallbackNote")}
+    />
+  );
 }

@@ -1,9 +1,13 @@
+"use client";
+
 import { CarImage } from "@/components/catalog/CarImage";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/cars/format";
 import { getGenerationById } from "@/lib/cars/generations";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 import type {
   EnergyType,
@@ -22,23 +26,23 @@ type Props = {
   entries: CompareEntry[];
 };
 
-const ENERGY_LABEL: Record<EnergyType, string> = {
-  EV: "Tam elektrik",
-  PHEV: "Plug-in hibrid",
-  EREV: "Diapazon genişləndirici",
-  HEV: "Hibrid",
-  ICE: "Daxili yanma",
+const ENERGY_KEY: Record<EnergyType, TranslationKey> = {
+  EV: "carDetail.energyEv",
+  PHEV: "carDetail.energyPhev",
+  EREV: "carDetail.energyErev",
+  HEV: "carDetail.energyHev",
+  ICE: "carDetail.energyIce",
 };
 
-const STATUS_LABEL: Record<PriceStatus, string> = {
-  estimated: "Təxmini",
-  catalog_price: "Kataloq",
-  dealer_quote_pending: "Gözləmədə",
-  dealer_official_offer: "Rəsmi təklif",
-  expired_offer: "Müddəti bitib",
-  conflict: "Ziddiyyət",
-  price_unknown: "Soruş",
-  not_available: "Mövcud deyil",
+const STATUS_KEY: Record<PriceStatus, TranslationKey> = {
+  estimated: "catalogCard.statusEstimated",
+  catalog_price: "catalogCard.statusCatalog",
+  dealer_quote_pending: "catalogCard.statusPending",
+  dealer_official_offer: "catalogCard.statusOfficial",
+  expired_offer: "catalogCard.statusExpired",
+  conflict: "catalogCard.statusConflict",
+  price_unknown: "catalogCard.statusAsk",
+  not_available: "catalogCard.statusUnavailable",
 };
 
 const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
@@ -52,24 +56,6 @@ const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
   not_available: "muted",
 };
 
-function priceCell(p: PriceRecord | null): { value: string; tone: BadgeTone; label: string } {
-  if (!p) {
-    return { value: "—", tone: "muted", label: "Yoxdur" };
-  }
-  if (p.amount > 0) {
-    return {
-      value: formatPrice(p.amount, p.currency),
-      tone: STATUS_TONE[p.status],
-      label: STATUS_LABEL[p.status],
-    };
-  }
-  return {
-    value: "Qiymət soruş",
-    tone: STATUS_TONE[p.status],
-    label: STATUS_LABEL[p.status],
-  };
-}
-
 function deriveTrimSuffix(displayName: string, brandName: string, modelName: string): string {
   const head = `${brandName} ${modelName}`;
   if (displayName.startsWith(head)) return displayName.slice(head.length).trim();
@@ -78,10 +64,30 @@ function deriveTrimSuffix(displayName: string, brandName: string, modelName: str
 }
 
 export function CompareTable({ entries }: Props) {
+  const t = useT();
   const gridClass =
     entries.length === 3
       ? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       : "grid gap-4 grid-cols-1 sm:grid-cols-2";
+
+  function priceCell(p: PriceRecord | null): { value: string; tone: BadgeTone; label: string } {
+    if (!p) {
+      return { value: "—", tone: "muted", label: t("compare.noValue") };
+    }
+    if (p.amount > 0) {
+      return {
+        value: formatPrice(p.amount, p.currency),
+        tone: STATUS_TONE[p.status],
+        label: t(STATUS_KEY[p.status]),
+      };
+    }
+    return {
+      value: t("catalogCard.askPrice"),
+      tone: STATUS_TONE[p.status],
+      label: t(STATUS_KEY[p.status]),
+    };
+  }
+
   return (
     <div className={gridClass}>
       {entries.map((e) => {
@@ -120,40 +126,40 @@ export function CompareTable({ entries }: Props) {
                   </p>
                 ) : null}
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-accent-orange">
-                  Komplektasiya
+                  {t("catalogCard.trim")}
                 </p>
                 <h3 className="text-base font-semibold text-foreground">
                   {suffix || e.trim.display_name}
                 </h3>
                 <p className="text-xs text-foreground-muted">
-                  {e.trim.year} · {ENERGY_LABEL[e.trim.energy_type]}
+                  {e.trim.year} · {t(ENERGY_KEY[e.trim.energy_type])}
                 </p>
               </header>
 
               <div className="grid grid-cols-2 gap-3 rounded-[var(--radius)] border border-border bg-surface p-3">
                 <SpecCell
-                  label="Nəsil"
+                  label={t("carDetail.generationLabel")}
                   value={generation?.display_name ?? "—"}
                 />
                 <SpecCell
-                  label="Komplektasiya"
+                  label={t("catalogCard.trim")}
                   value={suffix || "—"}
                 />
-                <SpecCell label="İl" value={String(e.trim.year)} />
-                <SpecCell label="Enerji" value={e.trim.energy_type} />
+                <SpecCell label={t("carDetail.yearLabel")} value={String(e.trim.year)} />
+                <SpecCell label={t("carDetail.energyShortLabel")} value={e.trim.energy_type} />
                 <SpecCell
-                  label="Güc"
+                  label={t("carDetail.powerLabel")}
                   value={e.trim.power_hp ? `${e.trim.power_hp} a.g.` : "—"}
                 />
                 <SpecCell
-                  label="Yürüş"
+                  label={t("carDetail.rangeLabel")}
                   value={e.trim.range_km != null ? `${e.trim.range_km} km` : "—"}
                 />
               </div>
 
               <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-border bg-surface-muted p-3">
                 <p className="text-xs uppercase tracking-wide text-foreground-muted">
-                  Qiymət
+                  {t("compare.priceLabel")}
                 </p>
                 <p className="text-lg font-semibold text-foreground">
                   {cell.value}
@@ -165,11 +171,11 @@ export function CompareTable({ entries }: Props) {
 
               <div className="mt-auto flex flex-col gap-2">
                 <ButtonLink href={href} variant="primary" fullWidth>
-                  Rəsmi təklif istə
+                  {t("compare.requestOffer")}
                 </ButtonLink>
                 {e.bestPrice?.source_name ? (
                   <p className="text-[11px] text-foreground-muted">
-                    Mənbə: {e.bestPrice.source_name}
+                    {t("compare.sourcePrefix", { source: e.bestPrice.source_name })}
                   </p>
                 ) : null}
               </div>

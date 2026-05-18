@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useT } from "@/lib/i18n/client";
 
 type Theme = "light" | "dark";
 
@@ -18,6 +19,7 @@ function subscribe(onChange: () => void): () => void {
 }
 
 export function ThemeToggle() {
+  const t = useT();
   const theme = useSyncExternalStore<Theme>(
     subscribe,
     readTheme,
@@ -36,7 +38,7 @@ export function ThemeToggle() {
     window.dispatchEvent(new Event(CHANGE_EVENT));
   }
 
-  const label = theme === "dark" ? "İşıqlı tema" : "Tünd tema";
+  const label = theme === "dark" ? t("common.themeLight") : t("common.themeDark");
 
   return (
     <button

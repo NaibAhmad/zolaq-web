@@ -3,23 +3,26 @@
 
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
 import type { AdminUser } from "@/lib/admin/types";
 
-const ROLE_LABEL: Record<AdminUser["role"], string> = {
-  super_admin: "Master Admin",
-  internal_ops_admin: "Daxili əməliyyatlar",
-  content_manager: "Məzmun meneceri",
-  sales_lead_manager: "Sorğu meneceri",
-  moderator: "Moderator",
+const ROLE_KEY: Record<AdminUser["role"], TranslationKey> = {
+  super_admin: "adminNav.roleSuperAdmin",
+  internal_ops_admin: "adminNav.roleInternalOps",
+  content_manager: "adminNav.roleContentManager",
+  sales_lead_manager: "adminNav.roleSalesLead",
+  moderator: "adminNav.roleModerator",
 };
 
-export function RoleSwitcher({
+export async function RoleSwitcher({
   admins,
   redirectTo,
 }: {
   admins: AdminUser[];
   redirectTo?: string;
 }) {
+  const t = await getServerT();
   return (
     <form
       action="/api/admin/auth/login"
@@ -31,17 +34,17 @@ export function RoleSwitcher({
       ) : null}
       <Select
         name="admin_id"
-        label="Admin hesabı"
+        label={t("adminLoginPlaceholder.adminAccount")}
         options={admins.map((a) => ({
           value: a.admin_id,
-          label: `${a.name} — ${ROLE_LABEL[a.role]}`,
+          label: `${a.name} — ${t(ROLE_KEY[a.role])}`,
         }))}
         defaultValue={admins[0]?.admin_id ?? ""}
         required
-        helpText="Sprint 8A: parol yoxdur — Sprint 8E real auth gətirəcək."
+        helpText={t("auth.devModeNotice")}
       />
       <Button type="submit" fullWidth>
-        Daxil ol
+        {t("auth.signIn")}
       </Button>
     </form>
   );

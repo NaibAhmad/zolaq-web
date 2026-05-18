@@ -15,9 +15,10 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Stat } from "@/components/ui/Stat";
-import { DEALER_VERIFICATION_LABEL_AZ } from "@/lib/dealers/labels";
+import { dealerVerificationLabel } from "@/lib/dealers/labels";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS, TRIMS } from "@/lib/cars/seed";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 import type { PriceRecord } from "@/lib/cars/types";
 import type { Dealer } from "@/lib/dealers/types";
@@ -33,14 +34,17 @@ type FetchState =
   | { status: "ready"; dealer: Dealer; offers: PriceRecord[] };
 
 export function DealerProfile({ dealerId }: Props) {
+  const t = useT();
   return (
-    <Suspense fallback={<LoadingState label="Diler yüklənir…" />}>
+    <Suspense fallback={<LoadingState label={t("dealerCard.loading")} />}>
       <DealerProfileInner dealerId={dealerId} />
     </Suspense>
   );
 }
 
 function DealerProfileInner({ dealerId }: Props) {
+  const t = useT();
+  const locale = useCurrentLocale();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -82,13 +86,13 @@ function DealerProfileInner({ dealerId }: Props) {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       });
     return () => {
       cancelled = true;
     };
-  }, [dealerId, reloadKey]);
+  }, [dealerId, reloadKey, t]);
 
   function retry() {
     setState({ status: "loading" });
@@ -96,14 +100,14 @@ function DealerProfileInner({ dealerId }: Props) {
   }
 
   if (state.status === "loading") {
-    return <LoadingState label="Diler yüklənir…" />;
+    return <LoadingState label={t("dealerCard.loading")} />;
   }
 
   if (state.status === "not_found") {
     return (
       <NotFoundState
-        title="Diler tapılmadı"
-        note="Bu diler mövcud deyil və ya silinib."
+        title={t("dealerCard.notFoundTitle")}
+        note={t("dealerCard.notFoundNote")}
       />
     );
   }
@@ -111,7 +115,7 @@ function DealerProfileInner({ dealerId }: Props) {
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Xəta baş verdi"
+        title={t("status.error")}
         message={state.message}
         code={state.code}
         onRetry={retry}
@@ -130,7 +134,7 @@ function DealerProfileInner({ dealerId }: Props) {
               href={ROUTES.dealers}
               className="text-on-dark-muted underline-offset-2 hover:text-on-dark hover:underline"
             >
-              ← Dilerlərə qayıt
+              {t("dealerCard.backLink")}
             </Link>
           </nav>
 
@@ -155,17 +159,17 @@ function DealerProfileInner({ dealerId }: Props) {
             <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Stat
                 tone="dark"
-                label="Status"
-                value={DEALER_VERIFICATION_LABEL_AZ[dealer.verification_status]}
+                label={t("dealerCard.statusLabel")}
+                value={dealerVerificationLabel(dealer.verification_status, locale)}
               />
               <Stat
                 tone="dark"
-                label="Cavab müddəti"
-                value={`~${dealer.response_sla_hours} saat`}
+                label={t("dealerCard.responseTimeLabel")}
+                value={t("dealerCard.responseValue", { hours: dealer.response_sla_hours })}
               />
               <Stat
                 tone="dark"
-                label="Xidmət"
+                label={t("dealerCard.servicesLabel")}
                 value={dealer.services.length}
                 hint={dealer.services.length === 0 ? "—" : undefined}
               />
@@ -183,18 +187,18 @@ function DealerProfileInner({ dealerId }: Props) {
       <Section tone="muted" padding="md">
         <Container>
           <SectionHeading
-            eyebrow="Təkliflər"
-            title="Diler təklifləri"
-            subtitle="Bu dilerin aktiv qiymət təklifləri."
+            eyebrow={t("dealerCard.offersEyebrow")}
+            title={t("dealerCard.offersTitle")}
+            subtitle={t("dealerCard.offersSubtitle")}
           />
           <div className="mt-6">
             {offers.length === 0 ? (
               <EmptyState
-                title="Təklif yoxdur"
-                note="Bu diler üçün hələ ki aktiv təklif mövcud deyil."
+                title={t("dealerCard.offersEmptyTitle")}
+                note={t("dealerCard.offersEmptyNote")}
                 action={
                   <ButtonLink href={ROUTES.cars} variant="primary">
-                    Bütün maşınlara bax
+                    {t("dealerCard.offersEmptyCta")}
                   </ButtonLink>
                 }
               />

@@ -1,4 +1,5 @@
-import { BazarTabBar, isQaTab, type QaTabKey } from "@/components/market-pulse/BazarTabBar";
+import { BazarTabBar } from "@/components/market-pulse/BazarTabBar";
+import { isQaTab, type QaTabKey } from "@/lib/market-pulse/qa-tabs";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { getSession } from "@/lib/auth/session";
@@ -12,6 +13,8 @@ import {
   type BazarTopicStatus,
 } from "@/lib/market-pulse/types";
 import { listQA } from "@/lib/content/lookup";
+import { getServerLocale } from "@/lib/i18n/server";
+import { getLocalizedText } from "@/lib/i18n/localized";
 import { ROUTES } from "@/lib/routes";
 import { QaPageChrome } from "./_components/QaPageChrome";
 
@@ -31,13 +34,14 @@ export default async function QaPage({
   const sp = await searchParams;
   const activeTab: QaTabKey = isQaTab(sp.tab) ? sp.tab : "suallar";
   const session = await getSession();
+  const locale = await getServerLocale();
 
   if (activeTab === "suallar") {
     const items = listQA().map((entry) => ({
       key: entry.content_id,
       href: ROUTES.qaItem(entry.id),
-      title: entry.question,
-      summary: entry.answer,
+      title: getLocalizedText(entry.question, locale),
+      summary: getLocalizedText(entry.answer, locale),
       publishedAt: entry.published_at,
     }));
     return (

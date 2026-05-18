@@ -6,18 +6,19 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { listBrands } from "@/lib/admin";
 import { listGenerations } from "@/lib/generations/repository";
+import { getServerT } from "@/lib/i18n/server";
 
-export default function AdminGenerationsPage() {
+export default async function AdminGenerationsPage() {
   const brands = listBrands();
   const generations = listGenerations();
   const brandName = (id: string) => brands.find((b) => b.brand_id === id)?.name ?? id;
+  const t = await getServerT();
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Nəsillər</h1>
+      <h1 className="text-xl font-semibold">{t("adminCatalog.generationsTitle")}</h1>
       <p className="text-sm text-foreground-muted">
-        Nəsil (generation) Marka → Model → Komplektasiya zəncirində ortadakı dimensiyadır.
-        Nümunə: BMW X5 → G05 (nəsil) → xDrive40i M Sport (komplektasiya).
+        {t("adminCatalog.generationsLongDescription")}
       </p>
 
       <form
@@ -27,57 +28,61 @@ export default function AdminGenerationsPage() {
       >
         <Select
           name="brand_id"
-          label="Marka"
+          label={t("adminCatalog.brand")}
           required
-          placeholderOption="Seçin"
+          placeholderOption={t("adminCatalog.selectGeneric")}
           options={brands.map((b) => ({ value: b.brand_id, label: b.name }))}
         />
-        <Input name="model_name" label="Model adı" required placeholder="Camry" />
-        <Input name="name" label="Nəsil adı" required placeholder="XV80" />
+        <Input name="model_name" label={t("adminCatalog.modelName")} required placeholder="Camry" />
+        <Input name="name" label={t("adminCatalog.generationName")} required placeholder="XV80" />
         <Input
           name="display_name"
-          label="Görünən ad"
+          label={t("adminCatalog.displayName")}
           required
           placeholder="XV80 · 2023–"
         />
         <div className="flex items-end">
-          <Button type="submit">Əlavə et</Button>
+          <Button type="submit">{t("adminCatalog.addGeneration")}</Button>
         </div>
         <Input
           name="production_year_from"
-          label="İstehsal ili, başlanğıc"
+          label={t("adminCatalog.yearStart")}
           type="number"
           required
           min={1900}
         />
         <Input
           name="production_year_to"
-          label="İstehsal ili, bitiş (opsional)"
+          label={t("adminCatalog.yearEndOptional")}
           type="number"
           min={1900}
         />
         <Select
           name="status"
-          label="Status"
+          label={t("adminCatalog.status")}
           defaultValue="active"
           options={[
-            { value: "active", label: "Aktiv" },
-            { value: "inactive", label: "Deaktiv" },
+            { value: "active", label: t("adminCatalog.statusActive") },
+            { value: "inactive", label: t("adminCatalog.statusInactive") },
           ]}
         />
-        <Input name="source" label="Mənbə" placeholder="opsional" />
+        <Input
+          name="source"
+          label={t("adminCatalog.source")}
+          placeholder={t("forms.optionalField")}
+        />
       </form>
 
       <AdminTable
         rows={generations}
         rowKey={(g) => g.generation_id}
-        empty="Hələ nəsil yoxdur."
+        empty={t("adminCatalog.emptyGenerations")}
         columns={[
-          { key: "brand", header: "Marka", cell: (g) => brandName(g.brand_id) },
-          { key: "model", header: "Model", cell: (g) => g.model_name },
+          { key: "brand", header: t("adminCatalog.brand"), cell: (g) => brandName(g.brand_id) },
+          { key: "model", header: t("adminCatalog.model"), cell: (g) => g.model_name },
           {
             key: "name",
-            header: "Nəsil",
+            header: t("adminCatalog.generationLabel"),
             cell: (g) => (
               <Link
                 href={`/admin/catalog/generations/${g.generation_id}`}
@@ -89,7 +94,7 @@ export default function AdminGenerationsPage() {
           },
           {
             key: "years",
-            header: "İllər",
+            header: t("adminCatalog.years"),
             cell: (g) =>
               g.production_year_to
                 ? `${g.production_year_from}–${g.production_year_to}`
@@ -97,12 +102,12 @@ export default function AdminGenerationsPage() {
           },
           {
             key: "status",
-            header: "Status",
+            header: t("adminCatalog.status"),
             cell: (g) => <StatusBadge status={g.status} />,
           },
           {
             key: "id",
-            header: "ID",
+            header: t("adminCatalog.idColumn"),
             cell: (g) => (
               <code className="text-xs text-foreground-muted">{g.generation_id}</code>
             ),

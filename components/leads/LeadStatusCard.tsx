@@ -1,9 +1,9 @@
+"use client";
+
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import {
-  LEAD_STATE_LABELS_AZ,
-  leadStateDescriptionAz,
-} from "@/lib/leads/labels";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
+import { leadStateDescription, leadStateLabel } from "@/lib/leads/labels";
 import type { Lead, LeadState } from "@/lib/leads/types";
 
 type Props = {
@@ -45,15 +45,17 @@ export function leadStateTone(state: LeadState): BadgeTone {
 }
 
 export function LeadStatusCard({ lead }: Props) {
-  const title = LEAD_STATE_LABELS_AZ[lead.state];
-  const description = leadStateDescriptionAz(lead.state);
+  const t = useT();
+  const locale = useCurrentLocale();
+  const title = leadStateLabel(lead.state, locale);
+  const description = leadStateDescription(lead.state, locale);
   const tone = LEAD_STATE_TONE[lead.state];
   const accent = STATE_BORDER[lead.state];
 
   return (
     <Card padding="lg" tone="raised" className={`border-l-4 ${accent}`}>
       <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Sorğu vəziyyəti
+        {t("leads.statusEyebrow")}
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-semibold text-foreground">{title}</h2>

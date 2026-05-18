@@ -81,7 +81,7 @@ export default function ProfileDecisionsPage() {
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Qərarlar yüklənmədi"
+        title={t("profileDecisions.errorLoadFailed")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -94,13 +94,13 @@ export default function ProfileDecisionsPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Qərar Mərkəzi"
-            title="Qərarlar"
-            subtitle="Hər qərar bir alış prosesini birləşdirir: namizəd maşınlar, sorğular, təkliflər."
+            eyebrow={t("profileDecisions.eyebrowCenter")}
+            title={t("profileDecisions.pageTitle")}
+            subtitle={t("profileDecisions.pageSubtitle")}
           />
           <div className="mt-4">
             <Badge tone="blue" size="md">
-              {state.decisions.length} qərar
+              {t("profileDecisions.decisionsCount", { count: state.decisions.length })}
             </Badge>
           </div>
         </Container>
@@ -115,8 +115,8 @@ export default function ProfileDecisionsPage() {
 
           {state.decisions.length === 0 ? (
             <EmptyState
-              title="Hələ qərar yoxdur"
-              note="Yuxarıdakı formadan ilk qərarını yarat."
+              title={t("profileDecisions.emptyTitle")}
+              note={t("profileDecisions.emptyFormNote")}
             />
           ) : (
             <ul className="space-y-3">
@@ -138,10 +138,14 @@ export default function ProfileDecisionsPage() {
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <Badge tone="muted" size="sm">
-                            {decision.candidate_trim_ids.length} namizəd
+                            {t("profileDecisions.candidateCount", {
+                              count: decision.candidate_trim_ids.length,
+                            })}
                           </Badge>
                           <Badge tone="muted" size="sm">
-                            {decision.lead_ids.length} sorğu
+                            {t("profileDecisions.leadCount", {
+                              count: decision.lead_ids.length,
+                            })}
                           </Badge>
                         </div>
                       </div>

@@ -91,20 +91,20 @@ export default function ProfileSavedPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Profil"
-            title="Saxlanılan maşınlar"
-            subtitle="Müqayisə üçün topladığın maşınlar."
+            eyebrow={t("nav.profile")}
+            title={t("profileSaved.title")}
+            subtitle={t("profileSaved.subtitle")}
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Badge tone="blue" size="md">
-              {state.saved.length} maşın
+              {t("profileSavedExtra.carsBadge", { count: state.saved.length })}
             </Badge>
             <ButtonLink
               href={compareHref}
               variant={canCompare ? "primary" : "secondary"}
               size="sm"
             >
-              Müqayisə et
+              {t("profileSavedExtra.compareCta")}
             </ButtonLink>
           </div>
         </Container>

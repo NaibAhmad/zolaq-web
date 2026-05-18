@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
+import { useT } from "@/lib/i18n/client";
 import type { LeadPrimaryCta } from "@/lib/leads/cta";
 
 type Props = {
@@ -8,6 +11,7 @@ type Props = {
 };
 
 export function LeadNextActionCard({ cta, pending = false, onAction }: Props) {
+  const t = useT();
   const isInfo = cta.variant === "info";
   const isWhatsapp = cta.variant === "whatsapp";
 
@@ -30,7 +34,9 @@ export function LeadNextActionCard({ cta, pending = false, onAction }: Props) {
       : "text-xs font-semibold uppercase tracking-wide text-accent-orange";
 
   const icon = isWhatsapp ? "▶" : isInfo ? "•" : "→";
-  const eyebrow = isInfo ? "Status" : "Növbəti addım";
+  const eyebrow = isInfo ? t("leads.statusEyebrow") : t("leads.nextStep");
+  const label = t(cta.labelKey);
+  const description = t(cta.descriptionKey);
 
   return (
     <div className={wrapClass}>
@@ -42,11 +48,9 @@ export function LeadNextActionCard({ cta, pending = false, onAction }: Props) {
           <div className="min-w-0 flex-1">
             <p className={eyebrowClass}>{eyebrow}</p>
             <h3 className="mt-1 text-lg font-semibold text-foreground">
-              {cta.label}
+              {label}
             </h3>
-            <p className="mt-1 text-sm text-foreground-soft">
-              {cta.description}
-            </p>
+            <p className="mt-1 text-sm text-foreground-soft">{description}</p>
           </div>
         </div>
         {!cta.disabled && cta.action ? (
@@ -58,7 +62,7 @@ export function LeadNextActionCard({ cta, pending = false, onAction }: Props) {
               disabled={pending}
               onClick={onAction}
             >
-              {pending ? "Göndərilir…" : cta.label}
+              {pending ? t("leads.sending") : label}
             </Button>
           </div>
         ) : null}

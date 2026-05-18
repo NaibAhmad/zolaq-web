@@ -2,6 +2,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
+import { getServerT } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 
 type Props = {
@@ -9,25 +10,25 @@ type Props = {
   providedCount?: number;
 };
 
-export function CompareEmpty({ reason, providedCount = 0 }: Props) {
+export async function CompareEmpty({ reason, providedCount = 0 }: Props) {
+  const t = await getServerT();
   const heading =
     reason === "not_enough" && providedCount === 1
-      ? "Yalnız 1 maşın seçilib — ən azı 2 lazımdır"
-      : "Müqayisə üçün maşın seçilməyib";
+      ? t("compareHero.emptyOneTitle")
+      : t("compareHero.emptyTitle");
   return (
     <>
       <Section tone="dark" padding="md">
         <Container>
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-blue">
-              Müqayisə
+              {t("compareHero.eyebrow")}
             </span>
             <h1 className="text-3xl font-semibold md:text-4xl">
-              Yan-yana 2–3 maşın müqayisə et
+              {t("compareHero.title")}
             </h1>
             <p className="max-w-2xl text-on-dark-muted">
-              Texniki göstəriciləri, qiymət statusunu və rəsmi diler təklifini
-              birbaşa yan-yana yoxla. Müqayisə üçün maşın seç və qərarına yaxınlaş.
+              {t("compareHero.subtitle")}
             </p>
           </div>
         </Container>
@@ -41,19 +42,17 @@ export function CompareEmpty({ reason, providedCount = 0 }: Props) {
                 {heading}
               </h2>
               <p className="max-w-2xl text-sm text-foreground-muted">
-                Kataloqdan maşın seçərək &quot;Müqayisəyə əlavə et&quot; düyməsindən
-                istifadə et, və ya saxlanan maşınlar siyahısından bir-birinə qarşı
-                qoy.
+                {t("compareHero.helper")}
               </p>
               <div className="flex flex-wrap gap-3">
                 <ButtonLink href={ROUTES.cars} variant="primary">
-                  Maşın kataloquna keç
+                  {t("compareHero.ctaCatalog")}
                 </ButtonLink>
                 <ButtonLink href={ROUTES.profileSaved} variant="secondary">
-                  Saxlanılan maşınlar
+                  {t("compareHero.ctaSaved")}
                 </ButtonLink>
                 <ButtonLink href={ROUTES.profileHistory} variant="ghost">
-                  Son baxılan maşınlar
+                  {t("compareHero.ctaRecent")}
                 </ButtonLink>
               </div>
             </div>

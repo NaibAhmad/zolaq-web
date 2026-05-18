@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { OTP } from "@/lib/auth/constants";
+import { useT } from "@/lib/i18n/client";
 
 type LockReason = "max_attempts" | "expired" | "rate_limited" | "session_lost";
 
@@ -47,6 +48,7 @@ export function LeadOtpStep({
   onChangePhone,
   onBusyChange,
 }: Props) {
+  const t = useT();
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<OtpStatus>("idle");
   const [resendCountdown, setResendCountdown] = useState(initialResendCountdown);
@@ -95,11 +97,11 @@ export function LeadOtpStep({
         setStatus("locked");
         setLockReason("rate_limited");
         setRetryAfterSeconds(retry);
-        setMessage(data.error?.message ?? "Saatlıq OTP limiti aşılıb.");
+        setMessage(data.error?.message ?? t("auth.hourlyLimitExceeded"));
         return;
       }
       setStatus("idle");
-      setMessage(data.error?.message ?? "Kod göndərmək alınmadı.");
+      setMessage(data.error?.message ?? t("auth.requestFailed"));
       return;
     }
 
@@ -113,7 +115,7 @@ export function LeadOtpStep({
     setResendCountdown(data.resend_after_seconds ?? OTP.RESEND_COOLDOWN_SECONDS);
     setStatus("idle");
     setMessage(null);
-  }, [phone, status, onSessionReplaced]);
+  }, [phone, status, onSessionReplaced, t]);
 
   const verify = useCallback(async () => {
     if (code.length !== OTP.CODE_LENGTH) return;
@@ -137,7 +139,7 @@ export function LeadOtpStep({
       const remaining = data.attempts_remaining ?? 0;
       setStatus("error");
       setCode("");
-      setMessage(`Kod yanlışdır — qalan cəhd: ${remaining}`);
+      setMessage(t("auth.codeInvalidRemaining", { remaining }));
       return;
     }
 
@@ -151,13 +153,13 @@ export function LeadOtpStep({
             : "session_lost";
       setStatus("locked");
       setLockReason(reason);
-      setMessage(data.error?.message ?? "Sessiya bağlandı.");
+      setMessage(data.error?.message ?? t("auth.sessionClosed"));
       return;
     }
 
     setStatus("error");
-    setMessage(data.error?.message ?? "Yoxlama uğursuz oldu.");
-  }, [code, otpSessionId, onVerified]);
+    setMessage(data.error?.message ?? t("auth.verificationFailed"));
+  }, [code, otpSessionId, onVerified, t]);
 
   const isLocked = status === "locked";
   const resendDisabled =
@@ -170,25 +172,23 @@ export function LeadOtpStep({
     return (
       <div className="space-y-4">
         <p className="text-sm text-foreground-muted">
-          Kod göndərildi: <span className="font-medium text-foreground">{phone}</span>
+          {t("auth.codeSentTo")} <span className="font-medium text-foreground">{phone}</span>
         </p>
         <div
           role="alert"
           className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger"
         >
-          {lockReason === "expired" && "Kodun müddəti bitdi."}
-          {lockReason === "max_attempts" && "Maksimum cəhd sayına çatdınız."}
+          {lockReason === "expired" && t("auth.lockedExpired")}
+          {lockReason === "max_attempts" && t("auth.lockedMaxAttempts")}
           {lockReason === "rate_limited" &&
-            `Saatlıq limit aşılıb${
-              retryAfterSeconds
-                ? ` — ${retryAfterSeconds} saniyə sonra yenidən cəhd edin.`
-                : "."
-            }`}
-          {lockReason === "session_lost" && "Sessiya tapılmadı."}
+            (retryAfterSeconds
+              ? t("auth.lockedRateLimitedRetry", { seconds: retryAfterSeconds })
+              : t("auth.lockedRateLimitedHourly"))}
+          {lockReason === "session_lost" && t("auth.lockedSessionLost")}
         </div>
         <div className="flex items-center justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onChangePhone}>
-            Telefonu dəyiş
+            {t("auth.changePhone")}
           </Button>
         </div>
       </div>
@@ -204,13 +204,13 @@ export function LeadOtpStep({
       }}
     >
       <p className="text-sm text-foreground-muted">
-        Kod göndərildi:{" "}
+        {t("auth.codeSentTo")}{" "}
         <span className="font-medium text-foreground">{phone}</span>
       </p>
       <Input
         id="lead-otp-code"
         ref={codeInputRef}
-        label="6 rəqəmli kod"
+        label={t("auth.codeLengthLabel")}
         type="text"
         inputMode="numeric"
         autoComplete="one-time-code"
@@ -251,8 +251,8 @@ export function LeadOtpStep({
           className="text-accent-blue underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-foreground-muted disabled:no-underline"
         >
           {resendCountdown > 0
-            ? `Yenidən göndər (${resendCountdown}s)`
-            : "Kodu yenidən göndər"}
+            ? t("auth.resendCountdown", { seconds: resendCountdown })
+            : t("auth.resendCode")}
         </button>
         <button
           type="button"
@@ -260,7 +260,7 @@ export function LeadOtpStep({
           disabled={status === "verifying" || status === "requesting"}
           className="text-foreground-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Telefonu dəyiş
+          {t("auth.changePhone")}
         </button>
       </div>
 
@@ -270,7 +270,7 @@ export function LeadOtpStep({
           variant="primary"
           disabled={code.length !== OTP.CODE_LENGTH || status === "verifying"}
         >
-          {status === "verifying" ? "Yoxlanılır…" : "Təsdiqlə"}
+          {status === "verifying" ? t("auth.verifying") : t("auth.verify")}
         </Button>
       </div>
     </form>

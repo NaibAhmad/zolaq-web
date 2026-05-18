@@ -1,6 +1,7 @@
 // Top bar for /dealer/*. Shows dealer name + open-submission summary.
 
 import { Badge } from "@/components/ui/Badge";
+import { getServerT } from "@/lib/i18n/server";
 import type { Dealer } from "@/lib/dealers/types";
 import type { DealerSession } from "@/lib/auth/dealer-session";
 
@@ -10,7 +11,8 @@ type Props = {
   openSubmissions: number;
 };
 
-export function DealerTopbar({ session, dealer, openSubmissions }: Props) {
+export async function DealerTopbar({ session, dealer, openSubmissions }: Props) {
+  const t = await getServerT();
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-surface px-6 py-3">
       <div className="flex flex-col gap-0.5">
@@ -26,16 +28,18 @@ export function DealerTopbar({ session, dealer, openSubmissions }: Props) {
       </div>
       <div className="flex items-center gap-3">
         {openSubmissions > 0 ? (
-          <Badge tone="warning">{openSubmissions} açıq müraciət</Badge>
+          <Badge tone="warning">
+            {t("dealerNav.openSubmissionsCount", { count: openSubmissions })}
+          </Badge>
         ) : (
-          <Badge tone="success">Açıq müraciət yoxdur</Badge>
+          <Badge tone="success">{t("dealerNav.noOpenSubmissions")}</Badge>
         )}
         <form action="/api/dealer/auth/logout" method="post">
           <button
             type="submit"
             className="text-xs font-medium uppercase tracking-wide text-foreground-muted hover:text-foreground"
           >
-            Çıxış
+            {t("dealerNav.signOut")}
           </button>
         </form>
       </div>

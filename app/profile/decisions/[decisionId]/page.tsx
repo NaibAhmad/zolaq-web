@@ -16,8 +16,8 @@ import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Stat";
 import { ApiError, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { formatDateAz } from "@/lib/format/date";
-import { useT } from "@/lib/i18n/client";
-import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
+import { leadStateLabel } from "@/lib/leads/labels";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type {
   Decision,
@@ -40,6 +40,7 @@ export default function ProfileDecisionWorkspacePage({
   const { decisionId } = use(params);
   const router = useRouter();
   const t = useT();
+  const locale = useCurrentLocale();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -111,16 +112,16 @@ export default function ProfileDecisionWorkspacePage({
   }, [decisionId]);
 
   if (state.status === "loading") {
-    return <LoadingState label="Qərar İş Sahəsi yüklənir…" />;
+    return <LoadingState label={t("profileDecisions.workspaceLoading")} />;
   }
   if (state.status === "error" && state.notFound) {
     return (
       <EmptyState
-        title="Qərar tapılmadı"
-        note="Bu qərar mövcud deyil və ya sənə aid deyil."
+        title={t("profileDecisions.detailNotFound")}
+        note={t("profileDecisions.notOwnNote")}
         action={
           <ButtonLink href={ROUTES.profileDecisions} variant="secondary">
-            Qərarlara qayıt
+            {t("profileDecisions.backToList")}
           </ButtonLink>
         }
       />
@@ -129,7 +130,7 @@ export default function ProfileDecisionWorkspacePage({
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Qərar yüklənmədi"
+        title={t("profileDecisions.errorWorkspace")}
         message={state.message}
         code={state.code}
         onRetry={() => setReloadKey((k) => k + 1)}
@@ -150,7 +151,7 @@ export default function ProfileDecisionWorkspacePage({
               href={ROUTES.profileDecisions}
               className="text-on-dark-muted underline-offset-2 hover:text-on-dark hover:underline"
             >
-              ← Qərarlar
+              ← {t("profileDecisions.backLinkLabel")}
             </Link>
           </nav>
           <div className="flex flex-wrap items-center gap-3">
@@ -160,23 +161,23 @@ export default function ProfileDecisionWorkspacePage({
             <DecisionStatusBadge status={decision.status} size="md" />
           </div>
           <p className="mt-2 text-sm text-on-dark-muted">
-            Yaradıldı {formatDateAz(decision.created_at)}
+            {t("profileDecisions.createdOn", { date: formatDateAz(decision.created_at) })}
           </p>
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Stat
               tone="dark"
-              label="Namizəd"
+              label={t("profileDecisions.statCandidate")}
               value={decision.candidate_trim_ids.length}
             />
             <Stat
               tone="dark"
-              label="Sorğu"
+              label={t("profileDecisions.statLead")}
               value={decision.lead_ids.length}
             />
             <Stat
               tone="dark"
-              label="Təklif"
+              label={t("profileDecisions.statOffer")}
               value={offers.length}
             />
           </div>
@@ -187,7 +188,7 @@ export default function ProfileDecisionWorkspacePage({
               disabled={busy || isFinal || decision.status === "decided"}
               onClick={() => patchStatus("decided")}
             >
-              Qərar verildi
+              {t("profileDecisions.markDecided")}
             </Button>
             <Button
               variant="secondary"
@@ -195,7 +196,7 @@ export default function ProfileDecisionWorkspacePage({
               disabled={busy || isFinal}
               onClick={() => patchStatus("abandoned")}
             >
-              İmtina et
+              {t("profileDecisions.abandonAction")}
             </Button>
             <Button
               variant="secondary"
@@ -203,7 +204,7 @@ export default function ProfileDecisionWorkspacePage({
               disabled={busy || decision.status === "closed"}
               onClick={closeNow}
             >
-              Bağla
+              {t("profileDecisions.closeNow")}
             </Button>
           </div>
         </Container>
@@ -211,9 +212,9 @@ export default function ProfileDecisionWorkspacePage({
 
       <Section tone="light" padding="md">
         <Container size="narrow" className="space-y-6">
-          <WorkspaceSection title="Sorğular" count={leads.length}>
+          <WorkspaceSection title={t("profileDecisions.sectionLeads")} count={leads.length}>
             {leads.length === 0 ? (
-              <EmptyMini text="Bu qərara bağlı sorğu yoxdur." />
+              <EmptyMini text={t("profileDecisions.noLeadsForDecision")} />
             ) : (
               <Card padding="none" tone="raised" as="ul">
                 {leads.map((lead, i) => (
@@ -234,7 +235,7 @@ export default function ProfileDecisionWorkspacePage({
                         </p>
                       </div>
                       <Badge tone="blue" size="sm">
-                        {LEAD_STATE_LABELS_AZ[lead.state]}
+                        {leadStateLabel(lead.state, locale)}
                       </Badge>
                     </Link>
                   </li>
@@ -243,9 +244,9 @@ export default function ProfileDecisionWorkspacePage({
             )}
           </WorkspaceSection>
 
-          <WorkspaceSection title="Namizəd maşınlar" count={saved.length}>
+          <WorkspaceSection title={t("profileDecisions.sectionCandidates")} count={saved.length}>
             {saved.length === 0 ? (
-              <EmptyMini text="Namizəd maşın seçilməyib." />
+              <EmptyMini text={t("profileDecisions.noCandidates")} />
             ) : (
               <Card padding="none" tone="raised" as="ul">
                 {saved.map((item, i) => (
@@ -272,9 +273,9 @@ export default function ProfileDecisionWorkspacePage({
             )}
           </WorkspaceSection>
 
-          <WorkspaceSection title="Diler təklifləri" count={offers.length}>
+          <WorkspaceSection title={t("profileDecisions.sectionOffers")} count={offers.length}>
             {offers.length === 0 ? (
-              <EmptyMini text="Rəsmi təklif hələ yoxdur." />
+              <EmptyMini text={t("profileDecisions.noOffers")} />
             ) : (
               <Card padding="none" tone="raised" as="ul">
                 {offers.map((offer, i) => (
@@ -303,10 +304,10 @@ export default function ProfileDecisionWorkspacePage({
             )}
           </WorkspaceSection>
 
-          <WorkspaceSection title="Qərar tarixçəsi" count={history.length}>
+          <WorkspaceSection title={t("profileDecisions.sectionHistory")} count={history.length}>
             <RecentActivityList
               events={history}
-              emptyLabel="Bu qərarda hələ fəaliyyət yoxdur."
+              emptyLabel={t("profileDecisions.noHistory")}
             />
           </WorkspaceSection>
         </Container>

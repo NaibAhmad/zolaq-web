@@ -21,13 +21,15 @@ import { formatDateAz, formatDateTimeAz } from "@/lib/format/date";
 import { BRANDS } from "@/lib/cars/seed";
 import type { PriceRecord, Trim } from "@/lib/cars/types";
 import {
-  DEALER_VERIFICATION_LABEL_AZ,
   DEALER_VERIFICATION_TONE,
+  dealerVerificationLabel,
 } from "@/lib/dealers/labels";
 import type { Dealer } from "@/lib/dealers/types";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import {
   LEAD_ACTION_TO_STATE,
-  SECONDARY_ACTION_LABELS,
+  SECONDARY_ACTION_KEYS,
   getLeadPrimaryCta,
   type LeadCtaActionKey,
 } from "@/lib/leads/cta";
@@ -55,9 +57,9 @@ type FetchState =
       dealer: Dealer | null;
     };
 
-const CONTACT_LABEL: Record<"phone" | "whatsapp", string> = {
-  phone: "Zəng",
-  whatsapp: "WhatsApp",
+const CONTACT_LABEL_KEY: Record<"phone" | "whatsapp", TranslationKey> = {
+  phone: "leads.contactPhone",
+  whatsapp: "leads.contactWhatsapp",
 };
 
 const SECONDARY_ELIGIBLE: readonly Exclude<
@@ -99,6 +101,7 @@ function pickBestOffer(prices: PriceRecord[]): PriceRecord | null {
 }
 
 export function LeadDetailView({ leadId }: Props) {
+  const t = useT();
   const router = useRouter();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
@@ -181,11 +184,11 @@ export function LeadDetailView({ leadId }: Props) {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       }
     },
-    [leadId, router],
+    [leadId, router, t],
   );
 
   useEffect(() => {
@@ -234,30 +237,30 @@ export function LeadDetailView({ leadId }: Props) {
             ? err.message
             : err instanceof Error
               ? err.message
-              : "Əməliyyat alınmadı.";
+              : t("leads.actionFailed");
         setActionError(message);
       } finally {
         setActionInFlight(null);
       }
     },
-    [leadId, router],
+    [leadId, router, t],
   );
 
   if (state.status === "loading") {
-    return <LoadingState label="Sorğu yüklənir…" />;
+    return <LoadingState label={t("leads.loading")} />;
   }
   if (state.status === "not_found") {
     return (
       <NotFoundState
-        title="Sorğu tapılmadı"
-        note="Bu sorğu mövcud deyil və ya silinib."
+        title={t("leads.notFoundTitle")}
+        note={t("leads.notFoundNote")}
       />
     );
   }
   if (state.status === "error") {
     return (
       <ErrorState
-        title="Sorğu yüklənmədi"
+        title={t("leads.loadFailed")}
         message={state.message}
         code={state.code}
         onRetry={reload}
@@ -289,15 +292,13 @@ export function LeadDetailView({ leadId }: Props) {
       <LeadStatusHero
         lead={lead}
         backHref={ROUTES.profileLeads}
-        backLabel="Sorğulara qayıt"
+        backLabel={t("leads.backToList")}
         brandName={brandName}
         modelName={modelName}
         trimTitle={trim ? trimSuffix || trim.display_name : lead.trim_id}
         meta={trim ? `${trim.year} · ${trim.energy_type}` : undefined}
         hint={
-          lead.state === "submitted"
-            ? "Diler adətən 1–2 saata cavab verir."
-            : undefined
+          lead.state === "submitted" ? t("leads.submittedHint") : undefined
         }
       />
 
@@ -323,18 +324,20 @@ export function LeadDetailView({ leadId }: Props) {
           {(lead.name || lead.preferred_contact || lead.note) && (
             <Card padding="lg" tone="raised">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-                Sorğu məlumatları
+                {t("leads.requestDetails")}
               </p>
               <dl className="mt-3 grid gap-y-3 text-sm">
                 {lead.name ? (
                   <div className="flex flex-wrap items-center gap-x-3">
-                    <dt className="text-foreground-muted">Ad:</dt>
+                    <dt className="text-foreground-muted">{t("leads.nameLabelColon")}</dt>
                     <dd className="font-medium text-foreground">{lead.name}</dd>
                   </div>
                 ) : null}
                 {lead.preferred_contact ? (
                   <div className="flex flex-wrap items-center gap-x-3">
-                    <dt className="text-foreground-muted">Əlaqə üsulu:</dt>
+                    <dt className="text-foreground-muted">
+                      {t("leads.contactMethodLabelColon")}
+                    </dt>
                     <dd>
                       <Badge
                         tone={
@@ -343,14 +346,14 @@ export function LeadDetailView({ leadId }: Props) {
                             : "blue"
                         }
                       >
-                        {CONTACT_LABEL[lead.preferred_contact]}
+                        {t(CONTACT_LABEL_KEY[lead.preferred_contact])}
                       </Badge>
                     </dd>
                   </div>
                 ) : null}
                 {lead.note ? (
                   <div className="flex flex-wrap gap-x-3">
-                    <dt className="text-foreground-muted">Qeyd:</dt>
+                    <dt className="text-foreground-muted">{t("leads.noteLabelColon")}</dt>
                     <dd className="text-foreground">{lead.note}</dd>
                   </div>
                 ) : null}
@@ -377,8 +380,8 @@ export function LeadDetailView({ leadId }: Props) {
                   onClick={() => void runAction(action)}
                 >
                   {actionInFlight === action
-                    ? "Göndərilir…"
-                    : SECONDARY_ACTION_LABELS[action]}
+                    ? t("leads.sending")
+                    : t(SECONDARY_ACTION_KEYS[action])}
                 </Button>
               ))}
             </div>
@@ -398,14 +401,16 @@ export function LeadDetailView({ leadId }: Props) {
       <Section tone="muted" padding="md">
         <Container size="narrow" className="space-y-6">
           <SectionHeading
-            eyebrow="Tarixçə"
-            title="Sorğu mərhələləri"
-            subtitle="Sorğunun hansı mərhələdə olduğunu və əvvəlki addımları gör."
+            eyebrow={t("leadsTimeline.timelineTitle")}
+            title={t("leadsTimeline.stagesAria")}
+            subtitle={t("leadsTimeline.timelineSubtitle")}
           />
           <LeadTimeline state={lead.state} events={timeline} />
           <p className="text-xs text-foreground-muted">
-            Yaradılıb: {formatDateTimeAz(lead.created_at)} · Son yenilənmə:{" "}
-            {formatDateAz(lead.updated_at)}
+            {t("leads.createdAtUpdatedAt", {
+              created: formatDateTimeAz(lead.created_at),
+              updated: formatDateAz(lead.updated_at),
+            })}
           </p>
         </Container>
       </Section>
@@ -414,10 +419,9 @@ export function LeadDetailView({ leadId }: Props) {
 }
 
 function ClosedNotice({ state }: { state: LeadState }) {
+  const t = useT();
   const message =
-    state === "accepted"
-      ? "Sorğu qəbul edilib. Sənədlər diler tərəfindən hazırlanır."
-      : "Bu sorğu bağlanıb. Yeni təklif üçün maşına qayıd və yenidən sorğu göndər.";
+    state === "accepted" ? t("leads.acceptedSummary") : t("leads.closedSummary");
   return (
     <div className="rounded-[var(--radius-lg)] border border-border bg-surface-muted p-5 text-sm text-foreground-soft">
       {message}
@@ -432,15 +436,17 @@ function DealerSummaryCard({
   dealer: Dealer | null;
   leadState: LeadState;
 }) {
+  const t = useT();
+  const locale = useCurrentLocale();
   if (!dealer) {
     const note =
       leadState === "submitted" || leadState === "draft"
-        ? "Diler hələ təyin olunmayıb."
-        : "Diler məlumatı mövcud deyil.";
+        ? t("leads.noDealerYet")
+        : t("leads.noDealerInfo");
     return (
       <Card padding="md" tone="muted">
         <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-          Diler
+          {t("leads.dealerLabel")}
         </p>
         <p className="mt-2 text-sm text-foreground-soft">{note}</p>
       </Card>
@@ -449,7 +455,7 @@ function DealerSummaryCard({
   return (
     <Card as="article" padding="md" tone="light">
       <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Diler
+        {t("leads.dealerLabel")}
       </p>
       <div className="mt-2 flex flex-col gap-2">
         <Link
@@ -464,12 +470,12 @@ function DealerSummaryCard({
               DEALER_VERIFICATION_TONE[dealer.verification_status]
             }`}
           >
-            {DEALER_VERIFICATION_LABEL_AZ[dealer.verification_status]}
+            {dealerVerificationLabel(dealer.verification_status, locale)}
           </span>
           <span className="text-xs text-foreground-muted">{dealer.city}</span>
         </div>
         <p className="text-xs text-foreground-muted">
-          Cavab müddəti: ≤ {dealer.response_sla_hours} saat
+          {t("leads.responseSla", { hours: dealer.response_sla_hours })}
         </p>
       </div>
     </Card>
@@ -483,17 +489,18 @@ function OfferSummaryCard({
   offer: PriceRecord | null;
   leadState: LeadState;
 }) {
+  const t = useT();
   if (!offer || leadState === "submitted" || leadState === "draft") {
     const note =
       leadState === "expired"
-        ? "Bu təklifin müddəti bitib. Yenilənmə istə."
+        ? t("leads.offerExpiredNote")
         : leadState === "no_response"
-          ? "Diler vaxtında cavab vermədi."
-          : "Rəsmi təklif gözlənilir.";
+          ? t("leads.dealerNoResponseNote")
+          : t("leads.officialOfferPending");
     return (
       <Card padding="md" tone="muted">
         <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-          Təklif
+          {t("leads.offerLabel")}
         </p>
         <p className="mt-2 text-sm text-foreground-soft">{note}</p>
       </Card>
@@ -505,7 +512,7 @@ function OfferSummaryCard({
   return (
     <Card as="article" padding="md" tone="light">
       <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-        Təklif
+        {t("leads.offerLabel")}
       </p>
       <div className="mt-2 flex items-baseline justify-between gap-3">
         <span
@@ -516,23 +523,23 @@ function OfferSummaryCard({
           {formatPrice(offer.amount, offer.currency)}
         </span>
         <Badge tone={expired ? "warning" : "success"} size="sm">
-          {expired ? "Müddət bitib" : "Rəsmi"}
+          {expired ? t("leads.expiredShort") : t("leads.officialShort")}
         </Badge>
       </div>
       <dl className="mt-3 grid gap-y-1.5 text-xs">
         <div className="flex justify-between gap-3">
-          <dt className="text-foreground-muted">Mənbə</dt>
+          <dt className="text-foreground-muted">{t("carDetail.source")}</dt>
           <dd className="font-medium text-foreground">{offer.source_name}</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-foreground-muted">Yenilənib</dt>
+          <dt className="text-foreground-muted">{t("carDetail.updatedOn")}</dt>
           <dd className="text-foreground">
             {formatDateIso(offer.last_updated)}
           </dd>
         </div>
         {offer.valid_until ? (
           <div className="flex justify-between gap-3">
-            <dt className="text-foreground-muted">Etibarlıdır</dt>
+            <dt className="text-foreground-muted">{t("carDetail.validUntil")}</dt>
             <dd className="text-foreground">
               {formatDateIso(offer.valid_until)}
             </dd>
@@ -544,6 +551,7 @@ function OfferSummaryCard({
 }
 
 function SubPageLinks({ lead }: { lead: Lead }) {
+  const t = useT();
   const showTestDrive =
     lead.state === "test_drive_requested" ||
     lead.state === "test_drive_confirmed";
@@ -557,7 +565,7 @@ function SubPageLinks({ lead }: { lead: Lead }) {
           variant="secondary"
           size="sm"
         >
-          Test-sürüş statusu →
+          {t("leads.testDriveStatusLink")}
         </ButtonLink>
       ) : null}
       {showWhatsapp ? (
@@ -566,7 +574,7 @@ function SubPageLinks({ lead }: { lead: Lead }) {
           variant="whatsapp"
           size="sm"
         >
-          WhatsApp keçidi →
+          {t("leads.whatsappHandoffLink")}
         </ButtonLink>
       ) : null}
     </div>

@@ -4,16 +4,16 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { listTrims } from "@/lib/admin";
+import { getServerT } from "@/lib/i18n/server";
 
-export default function DealerNewOfferPage() {
+export default async function DealerNewOfferPage() {
   const trims = listTrims();
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Yeni təklif</h1>
+      <h1 className="text-xl font-semibold">{t("dealerOffers.newOffer")}</h1>
       <Card padding="md">
-        <p className="text-sm text-foreground-muted">
-          Təklifi göndərdikdən sonra admin yoxlayır. Təsdiqlənənədək təklif publik saytda görünmür.
-        </p>
+        <p className="text-sm text-foreground-muted">{t("dealerOffers.newOfferDescription")}</p>
       </Card>
       <form
         action="/api/dealer/offers"
@@ -22,15 +22,15 @@ export default function DealerNewOfferPage() {
       >
         <Select
           name="trim_id"
-          label="Komplektasiya"
+          label={t("dealerOffers.trimCol")}
           required
-          options={trims.map((t) => ({ value: t.trim_id, label: t.display_name }))}
-          placeholderOption="Trim seç"
+          options={trims.map((tr) => ({ value: tr.trim_id, label: tr.display_name }))}
+          placeholderOption={t("dealerOffers.selectTrim")}
         />
-        <Input name="amount" label="Məbləğ" type="number" step="0.01" required />
+        <Input name="amount" label={t("dealerOffers.amountCol")} type="number" step="0.01" required />
         <Select
           name="currency"
-          label="Valyuta"
+          label={t("dealerOffers.currencyLabel")}
           defaultValue="AZN"
           options={[
             { value: "AZN", label: "AZN" },
@@ -40,20 +40,20 @@ export default function DealerNewOfferPage() {
         />
         <Select
           name="stock_status"
-          label="Stok"
+          label={t("dealerOffers.stockLabel")}
           defaultValue="available"
           options={[
-            { value: "available", label: "Mövcud" },
-            { value: "order", label: "Sifariş" },
-            { value: "coming_soon", label: "Tezliklə" },
-            { value: "not_available", label: "Yoxdur" },
+            { value: "available", label: t("dealerOffers.stockAvailable") },
+            { value: "order", label: t("dealerOffers.stockOrder") },
+            { value: "coming_soon", label: t("dealerOffers.stockComingSoon") },
+            { value: "not_available", label: t("dealerOffers.stockNotAvailable") },
           ]}
         />
-        <Input name="valid_until" label="Etibarlıdır" type="date" />
-        <Input name="image_url" label="Şəkil URL (opsional)" />
-        <Textarea name="notes" label="Qeyd" placeholder="Daxili qeyd (opsional)" />
+        <Input name="valid_until" label={t("dealerOffers.validUntil")} type="date" />
+        <Input name="image_url" label={t("dealerOffers.imageUrlOptional")} />
+        <Textarea name="notes" label={t("dealerOffers.notesLabel")} placeholder={t("dealerOffers.notesPlaceholder")} />
         <div className="flex flex-wrap gap-2 md:col-span-2">
-          <Button type="submit">Yoxlamaya göndər</Button>
+          <Button type="submit">{t("dealerOffers.submitForReview")}</Button>
         </div>
       </form>
     </div>

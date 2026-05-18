@@ -1,5 +1,8 @@
+"use client";
+
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { DEALER_VERIFICATION_LABEL_AZ } from "@/lib/dealers/labels";
+import { dealerVerificationLabel } from "@/lib/dealers/labels";
+import { useCurrentLocale } from "@/lib/i18n/client";
 import type { DealerVerificationStatus } from "@/lib/dealers/types";
 
 type Props = {
@@ -22,11 +25,12 @@ export function DealerVerificationBadge({
   size = "sm",
   variant = "on-light",
 }: Props) {
+  const locale = useCurrentLocale();
   const tone: BadgeTone =
     variant === "on-dark" ? "on-dark" : TONE[status];
   return (
     <Badge tone={tone} size={size}>
-      {DEALER_VERIFICATION_LABEL_AZ[status]}
+      {dealerVerificationLabel(status, locale)}
     </Badge>
   );
 }

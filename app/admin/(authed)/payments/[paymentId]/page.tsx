@@ -8,7 +8,15 @@ import { listDealers } from "@/lib/admin";
 import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoice } from "@/lib/invoices/store";
 import { getPaymentProof } from "@/lib/payments/store";
-import { PAYMENT_PROOF_STATUS_LABEL_AZ } from "@/lib/payments/types";
+import type { PaymentProofStatus } from "@/lib/payments/types";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+const STATUS_KEY: Record<PaymentProofStatus, TranslationKey> = {
+  pending_review: "adminCommercial.paymentStatus_pending_review",
+  approved: "adminCommercial.paymentStatus_approved",
+  rejected: "adminCommercial.paymentStatus_rejected",
+};
 
 export default async function AdminPaymentDetailPage({
   params,
@@ -20,31 +28,32 @@ export default async function AdminPaymentDetailPage({
   if (!proof) notFound();
   const inv = getInvoice(proof.invoice_id);
   const dealer = listDealers().find((d) => d.dealer_id === proof.dealer_id);
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Ödəniş təsdiqi</h1>
+          <h1 className="text-xl font-semibold">{t("adminCommercial.paymentDetailTitle")}</h1>
           <p className="mt-0.5 text-xs text-foreground-muted">
             {dealer?.display_name ?? proof.dealer_id}
           </p>
         </div>
-        <Badge tone="brand">{PAYMENT_PROOF_STATUS_LABEL_AZ[proof.status]}</Badge>
+        <Badge tone="brand">{t(STATUS_KEY[proof.status])}</Badge>
       </header>
 
       <Card padding="md" tone="raised" className="grid gap-3 sm:grid-cols-2">
-        <Field label="Referans" value={proof.reference} />
+        <Field label={t("adminCommercial.referenceLabel")} value={proof.reference} />
         <Field
-          label="Yüklənib"
+          label={t("adminCommercial.uploadedLabel")}
           value={`${formatDateTimeAz(proof.uploaded_at)} · ${proof.uploaded_by}`}
         />
         {proof.file_ref ? (
-          <Field label="Fayl referansı" value={proof.file_ref} />
+          <Field label={t("adminCommercial.fileRefLabel")} value={proof.file_ref} />
         ) : null}
         {inv ? (
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Faktura
+              {t("adminCommercial.invoiceLabel")}
             </p>
             <Link
               href={`/admin/invoices/${inv.invoice_id}`}
@@ -58,7 +67,7 @@ export default async function AdminPaymentDetailPage({
         {proof.proof_note ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Diler qeydi
+              {t("adminCommercial.dealerNoteLabel")}
             </p>
             <p className="mt-1 text-sm text-foreground">{proof.proof_note}</p>
           </div>
@@ -66,7 +75,7 @@ export default async function AdminPaymentDetailPage({
         {proof.admin_review_note ? (
           <div className="sm:col-span-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Reviewer qeydi
+              {t("adminCommercial.reviewerNoteLabel")}
             </p>
             <p className="mt-1 text-sm text-foreground">{proof.admin_review_note}</p>
           </div>
@@ -76,7 +85,7 @@ export default async function AdminPaymentDetailPage({
       {proof.status === "pending_review" ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground-muted">
-            Yoxlama qərarı
+            {t("adminCommercial.reviewSection")}
           </h2>
           <div className="flex flex-wrap gap-3">
             <form
@@ -84,9 +93,13 @@ export default async function AdminPaymentDetailPage({
               method="post"
               className="flex items-end gap-2"
             >
-              <Input name="note" label="Təsdiq qeydi" placeholder="opsional" />
+              <Input
+                name="note"
+                label={t("adminCommercial.approveNoteLabel")}
+                placeholder={t("adminCommercial.optionalPlaceholder")}
+              />
               <Button type="submit" variant="primary">
-                Təsdiqlə
+                {t("adminCommercial.approveAction")}
               </Button>
             </form>
             <form
@@ -94,9 +107,9 @@ export default async function AdminPaymentDetailPage({
               method="post"
               className="flex items-end gap-2"
             >
-              <Input name="note" label="Rədd səbəbi" required />
+              <Input name="note" label={t("adminCommercial.rejectionReasonLabel")} required />
               <Button type="submit" variant="danger">
-                Rədd et
+                {t("adminCommercial.rejectAction")}
               </Button>
             </form>
           </div>

@@ -5,11 +5,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { getLocalizedText } from "@/lib/i18n/localized";
 import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { aggregateTopic, listTopics } from "@/lib/market-pulse/store";
-import {
-  BAZAR_CADENCE_LABEL_AZ,
-  BAZAR_STATUS_LABEL_AZ,
-  type BazarTopicStatus,
-} from "@/lib/market-pulse/types";
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { BazarCadence, BazarTopicStatus } from "@/lib/market-pulse/types";
 
 const TONE: Record<BazarTopicStatus, "muted" | "warning" | "success" | "blue" | "danger"> = {
   draft: "muted",
@@ -19,6 +16,22 @@ const TONE: Record<BazarTopicStatus, "muted" | "warning" | "success" | "blue" | 
   resolved: "success",
   archived: "muted",
   rejected: "danger",
+};
+
+const CADENCE_KEY: Record<BazarCadence, TranslationKey> = {
+  daily: "adminContent.cadenceDaily",
+  weekly: "adminContent.cadenceWeekly",
+  monthly: "adminContent.cadenceMonthly",
+};
+
+const STATUS_KEY: Record<BazarTopicStatus, TranslationKey> = {
+  draft: "adminContent.bazarDraft",
+  sponsored_pending_approval: "adminContent.bazarSponsoredPending",
+  active: "adminContent.bazarActive",
+  closed: "adminContent.bazarClosed",
+  resolved: "adminContent.bazarResolved",
+  archived: "adminContent.bazarArchived",
+  rejected: "adminContent.bazarRejected",
 };
 
 export default async function AdminMarketPulsePage() {
@@ -61,7 +74,7 @@ export default async function AdminMarketPulsePage() {
           {
             key: "cadence",
             header: t("adminContent.cadence"),
-            cell: (row) => BAZAR_CADENCE_LABEL_AZ[row.cadence],
+            cell: (row) => t(CADENCE_KEY[row.cadence]),
           },
           {
             key: "window",
@@ -78,7 +91,7 @@ export default async function AdminMarketPulsePage() {
             header: t("adminContent.statusCol"),
             cell: (row) => (
               <Badge tone={TONE[row.status]} size="sm">
-                {BAZAR_STATUS_LABEL_AZ[row.status]}
+                {t(STATUS_KEY[row.status])}
               </Badge>
             ),
           },

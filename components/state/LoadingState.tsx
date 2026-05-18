@@ -1,8 +1,14 @@
+"use client";
+
+import { useT } from "@/lib/i18n/client";
+
 type Props = {
   label?: string;
 };
 
-export function LoadingState({ label = "Yüklənir…" }: Props) {
+export function LoadingState({ label }: Props) {
+  const t = useT();
+  const text = label ?? t("status.loading");
   return (
     <div
       role="status"
@@ -13,7 +19,7 @@ export function LoadingState({ label = "Yüklənir…" }: Props) {
         aria-hidden
         className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-accent-blue/30 border-t-accent-blue"
       />
-      <span>{label}</span>
+      <span>{text}</span>
     </div>
   );
 }

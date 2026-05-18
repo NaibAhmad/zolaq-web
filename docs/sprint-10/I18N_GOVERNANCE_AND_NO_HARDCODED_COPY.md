@@ -1,6 +1,9 @@
 # i18n Governance — No Hardcoded UI Copy
 
 Sprint 10I-C, 2026-05-18. Author: i18n governance.
+Sprint 10I-D update (same day): added `LocalizedText` content layer,
+`TranslationNotice` fallback, and a calibrated stance on admin/dealer
+operator panels.
 
 ## Why this document exists
 
@@ -39,18 +42,36 @@ so adding/renaming a key in AZ updates compile-time checks at every call site.
 5. **Technical units are not translated.** `km`, `kW`, `kWh`, `HP`, `AZN`.
 6. **Phone number placeholders are not translated.** `+994501234567` is
    format guidance, not copy.
-7. **Admin / master panel must also use translation keys.** "AZ-first
-   operationally" is fine as a *default*, but with the language selector
-   active, admin visible UI must not remain half-translated. At minimum:
-   sidebar/nav, page titles, buttons, table headings, form labels, statuses,
-   empty/loading/error states.
+7. **Admin / dealer operator panels remain AZ-first operationally.** The
+   operator workforce is AZ-native; the language selector is a customer
+   feature. Sprint 10I-D explicitly chose to keep admin/dealer/auth/leads
+   panels rendering AZ until a dedicated translation sweep ships. Where the
+   panels share components with public surfaces (status badges, label
+   tables), those shared paths translate. The chrome of the panels — page
+   titles, nav, table headings — already has dictionary keys (`adminNav.*`,
+   `dealerNav.*`, etc.); use them when adding new admin/dealer surfaces.
+   Sprint B1/B2 will close the remaining admin/dealer hardcoded strings.
 8. **Dynamic / seeded content uses a localized helper.** When a value comes
    from data rather than the dictionary (e.g. Bazar Nəbzi questions, option
-   labels, content-teaser categories), store it as `LocalizedText` —
-   `string | {az, en, ru}` — and render through
-   [`getLocalizedText`](../../lib/i18n/localized.ts). Plain strings pass
-   through unchanged (used for proper nouns); objects look up the locale
-   with AZ fallback.
+   labels, content-teaser categories, news/encyclopedia/QA seed entries),
+   store it as `LocalizedText` — `string | {az, en, ru}` — and render
+   through [`getLocalizedText`](../../lib/i18n/localized.ts). Plain strings
+   pass through unchanged (used for proper nouns); objects look up the
+   locale with AZ fallback.
+8a. **Missing translations surface a calm notice, never a fake.** When
+    `hasLocalizedText(value, locale)` is false for the active locale, render
+    [`TranslationNotice`](../../components/i18n/TranslationNotice.tsx) (or
+    its wrapper [`LocalizedContentBlock`](../../components/content/LocalizedContentBlock.tsx)).
+    The notice button switches to a "translation in preparation" message
+    locally — no network call, no auto-translation. Seed authors should
+    add the EN/RU value rather than relying on this notice.
+8b. **Lookup tables grow EN/RU siblings, not call-site refactors.** Existing
+    `*_LABELS_AZ` tables (lead state, decision history event, dealer
+    verification, encyclopedia category, etc.) stay as AZ source of truth.
+    Add `*_LABELS_EN` / `*_LABELS_RU` siblings and a `xLabel(value, locale)`
+    helper next to them. Update consumer call sites to pass the active
+    locale through; the AZ table is the fallback in the helper, not a
+    parallel render path.
 9. **Missing keys fall back to AZ.** Both server `t()` and client `useT()`
    resolve to AZ when the target locale lacks a key. This is a safety net,
    not a feature — visible demo surfaces must not be allowed to fall back.
@@ -131,6 +152,22 @@ Standard groups in use after Sprint 10I-C:
 - Admin panel: `adminNav`, `adminDashboard`, `adminCatalog`, `adminDealers`,
   `adminContent`, `adminCommercial`, `adminAudit`, `adminRoles`, `adminUsers`,
   `adminLeads`.
+
+Sprint 10I-D added groups (mirrored across `az`/`en`/`ru`):
+
+- `translationNotice` — the "translation in preparation" fallback copy.
+- `homeDecisionHelper`, `homeDealerTeaser`, `homeContentTeaser`,
+  `homeCatalogTeaser` — full home block translations.
+- `carsList`, `compareHero`, `dealersHero`, `dealerCard`,
+  `dealerVerification`, `newsHero`, `contentCard`, `encyclopediaHero`,
+  `encyclopediaCategories` — public surfaces previously rendered with raw
+  AZ literals.
+- `profileHistoryExtra`, `profileBadgesExtra`, `profileSavedExtra`,
+  `profileViewedExtra` — extension keys for the profile pages.
+- `decisionEvents`, `decisionStatus`, `readinessFactors`, `nextBestAction`,
+  `leadStates`, `leadStateDescriptions`, `leadSourceSurfaces`, `activity`,
+  `badgesCatalog`, `pointActions`, `qaDetail` — formerly AZ-only lookup
+  tables and gamification copy.
 
 ## Out of scope (intentional)
 

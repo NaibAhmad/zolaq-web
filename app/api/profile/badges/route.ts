@@ -16,12 +16,21 @@ export async function GET() {
   }
   const earned = listUserBadges(session.userId);
   const earnedIds = new Set(earned.map((b) => b.badge_id));
-  const all = P0_BADGE_IDS.map((id) => ({
-    ...BADGE_CATALOGUE[id],
-    earned: earnedIds.has(id),
-    granted_at:
-      earned.find((b) => b.badge_id === id)?.granted_at ?? null,
-  }));
+  const all = P0_BADGE_IDS.map((id) => {
+    const def = BADGE_CATALOGUE[id];
+    return {
+      ...def,
+      // Sprint 10I-D: include translation keys so the client can render the
+      // badge in the user's locale (the legacy AZ strings stay populated for
+      // back-compat with anything that hasn't switched to keyed lookup yet).
+      name_key: def.name_key,
+      description_key: def.description_key,
+      hint_key: def.hint_key,
+      earned: earnedIds.has(id),
+      granted_at:
+        earned.find((b) => b.badge_id === id)?.granted_at ?? null,
+    };
+  });
   return NextResponse.json({
     badges: all,
     points: userPointTotal(session.userId),

@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ContentCoverImage } from "@/components/content/ContentCoverImage";
 import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
 
 type CategoryTone = "blue" | "orange" | "success";
 
@@ -29,8 +32,10 @@ export function RichContentCard({
   category,
   cover,
   hasRelatedModel = false,
-  dateLabel = "Yenilənib",
+  dateLabel,
 }: Props) {
+  const t = useT();
+  const resolvedDateLabel = dateLabel ?? t("contentCard.dateUpdated");
   return (
     <Link href={href} aria-label={title} className="block h-full">
       <Card
@@ -64,14 +69,16 @@ export function RichContentCard({
               dateTime={new Date(publishedAt).toISOString()}
               className="text-xs text-foreground-muted"
             >
-              {dateLabel} {formatDateAz(publishedAt)}
+              {resolvedDateLabel} {formatDateAz(publishedAt)}
             </time>
             <Badge tone={hasRelatedModel ? "orange" : "muted"} size="sm">
-              {hasRelatedModel ? "Modelə bağlı" : "Ümumi"}
+              {hasRelatedModel
+                ? t("contentCard.relatedModel")
+                : t("contentCard.generic")}
             </Badge>
           </div>
           <span className="text-sm font-medium text-accent-blue">
-            Davam et →
+            {t("contentCard.continueCta")}
           </span>
         </div>
       </Card>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useT } from "@/lib/i18n/client";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { formatDateTimeAz } from "@/lib/format/date";
-import { LEAD_STATE_LABELS_AZ } from "@/lib/leads/labels";
+import { leadStateLabel } from "@/lib/leads/labels";
 import type {
   LeadState,
   LeadTimelineEvent,
@@ -97,6 +97,7 @@ export function LeadTimeline({
   showEventLog = true,
 }: Props) {
   const t = useT();
+  const locale = useCurrentLocale();
   const stageStatuses = computeStageStatuses(state, events);
   const sortedEvents = [...events].sort((a, b) => a.created_at - b.created_at);
 
@@ -143,7 +144,7 @@ export function LeadTimeline({
           <ol className="relative space-y-4 border-l-2 border-border pl-6">
             {sortedEvents.map((event) => {
               const label = event.to_state
-                ? LEAD_STATE_LABELS_AZ[event.to_state]
+                ? leadStateLabel(event.to_state, locale)
                 : event.type;
               return (
                 <li key={event.event_id} className="relative">

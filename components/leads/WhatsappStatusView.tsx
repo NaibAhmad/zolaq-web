@@ -15,6 +15,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { BRANDS } from "@/lib/cars/seed";
 import type { Trim } from "@/lib/cars/types";
+import { useT } from "@/lib/i18n/client";
 import type {
   Lead,
   LeadTimelineEvent,
@@ -48,6 +49,7 @@ function deriveTrimSuffix(
 }
 
 export function WhatsappStatusView({ leadId }: Props) {
+  const t = useT();
   const router = useRouter();
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
@@ -94,11 +96,11 @@ export function WhatsappStatusView({ leadId }: Props) {
           setState({ status: "error", message: err.message, code: err.code });
           return;
         }
-        const message = err instanceof Error ? err.message : "Şəbəkə xətası";
+        const message = err instanceof Error ? err.message : t("errors.networkError");
         setState({ status: "error", message, code: "NETWORK" });
       }
     },
-    [leadId, router],
+    [leadId, router, t],
   );
 
   useEffect(() => {
@@ -121,18 +123,18 @@ export function WhatsappStatusView({ leadId }: Props) {
     }
   }
 
-  if (state.status === "loading") return <LoadingState label="Status yüklənir…" />;
+  if (state.status === "loading") return <LoadingState label={t("leads.statusLoading")} />;
   if (state.status === "not_found")
     return (
       <NotFoundState
-        title="Sorğu tapılmadı"
-        note="Bu sorğu mövcud deyil və ya silinib."
+        title={t("leads.notFoundTitle")}
+        note={t("leads.notFoundNote")}
       />
     );
   if (state.status === "error")
     return (
       <ErrorState
-        title="Status yüklənmədi"
+        title={t("leads.statusLoadFailed")}
         message={state.message}
         code={state.code}
       />
@@ -154,16 +156,12 @@ export function WhatsappStatusView({ leadId }: Props) {
       <LeadStatusHero
         lead={lead}
         backHref={ROUTES.profileLead(lead.lead_id)}
-        backLabel="Sorğuya qayıt"
+        backLabel={t("leads.backToLead")}
         brandName={brandName}
         modelName={modelName}
         trimTitle={trim ? trimSuffix || trim.display_name : lead.trim_id}
         meta={trim ? `${trim.year} · ${trim.energy_type}` : undefined}
-        hint={
-          isHandoff
-            ? "Söhbət WhatsApp-da davam edir. Zolaq bu söhbəti idarə etmir."
-            : undefined
-        }
+        hint={isHandoff ? t("leads.whatsappOutsideZolaq") : undefined}
       />
 
       <Section tone="light" padding="md">
@@ -178,26 +176,24 @@ export function WhatsappStatusView({ leadId }: Props) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-success">
-                  WhatsApp xarici keçid
+                  {t("leads.whatsappOutsideTransfer")}
                 </p>
                 <h2 className="mt-1 text-xl font-semibold text-foreground">
-                  Söhbət WhatsApp-da davam edir
+                  {t("leads.whatsappOutsideTitle")}
                 </h2>
                 <p className="mt-2 text-sm text-foreground-soft">
-                  Bu sorğu üçün danışıq WhatsApp tətbiqində aparılır. Zolaq bu söhbətin
-                  məzmununu görmür və saxlamır. Vaxt və qiymət üzrə razılaşdığını
-                  Zolaqda da qeyd etməyi unutma.
+                  {t("leads.whatsappOutsideBody")}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button variant="whatsapp" size="md" onClick={openWhatsapp}>
-                    WhatsApp-ı aç
+                    {t("leads.actionOpenWhatsapp")}
                   </Button>
                   <ButtonLink
                     href={ROUTES.profileLead(lead.lead_id)}
                     variant="secondary"
                     size="md"
                   >
-                    Sorğu detalı
+                    {t("leads.viewRequestDetails")}
                   </ButtonLink>
                 </div>
               </div>
@@ -207,8 +203,7 @@ export function WhatsappStatusView({ leadId }: Props) {
           {!isHandoff ? (
             <Card padding="md" tone="muted">
               <p className="text-sm text-foreground-soft">
-                Bu sorğunun cari vəziyyəti WhatsApp keçidi deyil. Sorğunun cari
-                statusunu görmək üçün sorğu detalına qayıt.
+                {t("leads.notHandoffNote")}
               </p>
             </Card>
           ) : null}
@@ -217,7 +212,10 @@ export function WhatsappStatusView({ leadId }: Props) {
 
       <Section tone="muted" padding="md">
         <Container size="narrow" className="space-y-6">
-          <SectionHeading eyebrow="Tarixçə" title="Sorğu mərhələləri" />
+          <SectionHeading
+            eyebrow={t("leadsTimeline.timelineTitle")}
+            title={t("leadsTimeline.stagesAria")}
+          />
           <LeadTimeline state={lead.state} events={timeline} showEventLog />
         </Container>
       </Section>

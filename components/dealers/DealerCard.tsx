@@ -1,7 +1,10 @@
+"use client";
+
 import { DealerVerificationBadge } from "@/components/dealers/DealerVerificationBadge";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 import type { Dealer } from "@/lib/dealers/types";
 
@@ -13,6 +16,7 @@ type Props = {
 const MAX_BRAND_PILLS = 3;
 
 export function DealerCard({ dealer, brandLookup }: Props) {
+  const t = useT();
   const detailHref = ROUTES.dealer(dealer.dealer_id);
   const brandNames = dealer.represented_brands.map(
     (b) => brandLookup.get(b) ?? b,
@@ -49,7 +53,7 @@ export function DealerCard({ dealer, brandLookup }: Props) {
           ))}
           {overflowBrands > 0 ? (
             <Badge tone="muted" size="sm">
-              +{overflowBrands}
+              {t("dealerCard.moreBadge", { count: overflowBrands })}
             </Badge>
           ) : null}
         </div>
@@ -57,15 +61,15 @@ export function DealerCard({ dealer, brandLookup }: Props) {
 
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
         <span className="uppercase tracking-wide text-foreground-muted">
-          Cavab
+          {t("dealerCard.responseLabel")}
         </span>
         <span className="font-medium text-foreground">
-          ~{dealer.response_sla_hours} saat
+          {t("dealerCard.responseValue", { hours: dealer.response_sla_hours })}
         </span>
       </div>
 
       <ButtonLink href={detailHref} variant="dark" fullWidth>
-        Profilə bax
+        {t("dealerCard.viewProfile")}
       </ButtonLink>
     </Card>
   );

@@ -1,11 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
-import {
-  LEAD_SOURCE_SURFACE_LABELS_AZ,
-  LEAD_STATE_LABELS_AZ,
-} from "@/lib/leads/labels";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
+import { leadSourceSurfaceLabel, leadStateLabel } from "@/lib/leads/labels";
 import { LEAD_STATE_TONE } from "./LeadStatusCard";
 import type { Lead } from "@/lib/leads/types";
 
@@ -30,9 +30,11 @@ export function LeadStatusHero({
   meta,
   hint,
 }: Props) {
-  const stateLabel = LEAD_STATE_LABELS_AZ[lead.state];
+  const t = useT();
+  const locale = useCurrentLocale();
+  const stateLabel = leadStateLabel(lead.state, locale);
   const stateTone = LEAD_STATE_TONE[lead.state];
-  const sourceLabel = LEAD_SOURCE_SURFACE_LABELS_AZ[lead.source_surface];
+  const sourceLabel = leadSourceSurfaceLabel(lead.source_surface, locale);
 
   return (
     <Section tone="dark" padding="md">
@@ -65,7 +67,7 @@ export function LeadStatusHero({
           </span>
           {sourceLabel ? (
             <Badge tone="on-dark" size="sm">
-              Mənbə: {sourceLabel}
+              {t("compare.sourcePrefix", { source: sourceLabel })}
             </Badge>
           ) : null}
         </div>

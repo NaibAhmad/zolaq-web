@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 // Sprint 9F: shared real-password form for /admin/login and /dealer/login.
 // Posts JSON to the chosen endpoint and follows up with a hard redirect on
@@ -14,9 +16,9 @@ type Props = {
   redirectTo?: string;
 };
 
-const PANEL_TITLE: Record<Props["panel"], string> = {
-  admin: "Zolaq Admin paneli",
-  dealer: "Zolaq Diler paneli",
+const PANEL_TITLE_KEY: Record<Props["panel"], TranslationKey> = {
+  admin: "auth.adminPanelTitle",
+  dealer: "auth.dealerPanelTitle",
 };
 
 const DEFAULT_REDIRECT: Record<Props["panel"], string> = {
@@ -25,6 +27,7 @@ const DEFAULT_REDIRECT: Record<Props["panel"], string> = {
 };
 
 export function PasswordSignInForm({ panel, endpoint, redirectTo }: Props) {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,14 +52,14 @@ export function PasswordSignInForm({ panel, endpoint, redirectTo }: Props) {
         return;
       }
       if (res.status === 503) {
-        setError("Giriş xidməti hazırda əlçatan deyil.");
+        setError(t("auth.serviceUnavailable"));
       } else if (res.status === 423) {
-        setError("Çox sayda uğursuz cəhd. Bir az sonra yenidən cəhd edin.");
+        setError(t("auth.tooManyFailures"));
       } else {
-        setError("Etibarsız giriş məlumatları.");
+        setError(t("auth.invalidCredentials"));
       }
     } catch {
-      setError("Şəbəkə xətası. Yenidən cəhd edin.");
+      setError(t("auth.networkErrorRetry"));
     } finally {
       setSubmitting(false);
     }
@@ -68,12 +71,12 @@ export function PasswordSignInForm({ panel, endpoint, redirectTo }: Props) {
       className="flex flex-col gap-4 rounded-[var(--radius-lg)] border border-border bg-surface p-6"
       noValidate
     >
-      <h2 className="text-base font-semibold">{PANEL_TITLE[panel]}</h2>
+      <h2 className="text-base font-semibold">{t(PANEL_TITLE_KEY[panel])}</h2>
       <Input
         type="email"
         name="email"
         autoComplete="email"
-        label="Email"
+        label={t("auth.emailLabel")}
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -83,7 +86,7 @@ export function PasswordSignInForm({ panel, endpoint, redirectTo }: Props) {
         type="password"
         name="password"
         autoComplete="current-password"
-        label="Şifrə"
+        label={t("auth.passwordLabel")}
         required
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -91,7 +94,7 @@ export function PasswordSignInForm({ panel, endpoint, redirectTo }: Props) {
         error={error ?? undefined}
       />
       <Button type="submit" fullWidth disabled={submitting}>
-        {submitting ? "Giriş..." : "Daxil ol"}
+        {submitting ? t("auth.signingIn") : t("auth.signIn")}
       </Button>
     </form>
   );

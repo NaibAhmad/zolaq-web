@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-05-18T19:41:49.711Z",
+  "totalCandidates": 2,
+  "byDir": {
+    "app/layout.tsx": 1,
+    "components/brand": 1
+  },
+  "byArea": {
+    "app-other": 1,
+    "components-other": 1
+  },
+  "byBucket": {
+    "OTHER": 2
+  },
+  "fileTop": {
+    "app/layout.tsx": 1,
+    "components/brand/Logo.tsx": 1
+  },
+  "parityOk": true,
+  "parityMissing": []
+}

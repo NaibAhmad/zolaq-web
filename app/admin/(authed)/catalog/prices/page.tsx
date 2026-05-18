@@ -5,42 +5,45 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { listDealers, listPrices, listTrims } from "@/lib/admin";
+import { getServerT } from "@/lib/i18n/server";
 
-const PRICE_STATUS_OPTIONS = [
-  { value: "catalog_price", label: "Kataloq qiyməti" },
-  { value: "estimated", label: "Təxmin" },
-  { value: "dealer_quote_pending", label: "Diler — gözləmədə" },
-  { value: "dealer_official_offer", label: "Diler — rəsmi" },
-  { value: "expired_offer", label: "Müddəti bitmiş" },
-  { value: "conflict", label: "Ziddiyyət" },
-  { value: "price_unknown", label: "Naməlum" },
-  { value: "not_available", label: "Mövcud deyil" },
-];
-
-const SOURCE_TYPE_OPTIONS = [
-  { value: "catalog", label: "Kataloq" },
-  { value: "estimate", label: "Təxmin" },
-  { value: "official_dealer", label: "Rəsmi diler" },
-  { value: "partner", label: "Tərəfdaş" },
-  { value: "zolaq_manual", label: "Zolaq əl ilə" },
-  { value: "imported", label: "İdxal" },
-];
-
-const VERIFICATION_STATUS_OPTIONS = [
-  { value: "verified", label: "Təsdiqlənmiş" },
-  { value: "unverified", label: "Təsdiqlənməyib" },
-  { value: "pending", label: "Gözləmədə" },
-  { value: "conflict", label: "Ziddiyyət" },
-  { value: "outdated", label: "Köhnəlmiş" },
-];
-
-export default function AdminPricesPage() {
+export default async function AdminPricesPage() {
   const prices = listPrices();
   const trims = listTrims();
   const dealers = listDealers();
+  const t = await getServerT();
+
+  const PRICE_STATUS_OPTIONS = [
+    { value: "catalog_price", label: t("adminCatalog.catalogPrice") },
+    { value: "estimated", label: t("adminCatalog.estimate") },
+    { value: "dealer_quote_pending", label: t("adminCatalog.dealerPending") },
+    { value: "dealer_official_offer", label: t("adminCatalog.dealerOfficial") },
+    { value: "expired_offer", label: t("adminCatalog.expired") },
+    { value: "conflict", label: t("adminCatalog.conflict") },
+    { value: "price_unknown", label: t("adminCatalog.unknown") },
+    { value: "not_available", label: t("adminCatalog.unavailable") },
+  ];
+
+  const SOURCE_TYPE_OPTIONS = [
+    { value: "catalog", label: t("adminCatalog.catalogSourceLabel") },
+    { value: "estimate", label: t("adminCatalog.estimate") },
+    { value: "official_dealer", label: t("adminCatalog.officialDealerSource") },
+    { value: "partner", label: t("adminCatalog.partnerSource") },
+    { value: "zolaq_manual", label: t("adminCatalog.zolaqManual") },
+    { value: "imported", label: t("adminCatalog.importSource") },
+  ];
+
+  const VERIFICATION_STATUS_OPTIONS = [
+    { value: "verified", label: t("adminCatalog.verified") },
+    { value: "unverified", label: t("adminCatalog.unverified") },
+    { value: "pending", label: t("adminCatalog.pending") },
+    { value: "conflict", label: t("adminCatalog.conflict") },
+    { value: "outdated", label: t("adminCatalog.outdated") },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Qiymətlər və təkliflər</h1>
+      <h1 className="text-xl font-semibold">{t("adminCatalog.pricesAndOffers")}</h1>
 
       <form
         action="/api/internal/prices"
@@ -49,15 +52,15 @@ export default function AdminPricesPage() {
       >
         <Select
           name="trim_id"
-          label="Komplektasiya"
+          label={t("adminCatalog.trimsTitle")}
           required
-          options={trims.map((t) => ({ value: t.trim_id, label: t.display_name }))}
-          placeholderOption="Trim seç"
+          options={trims.map((tr) => ({ value: tr.trim_id, label: tr.display_name }))}
+          placeholderOption={t("adminCatalog.selectTrim")}
         />
-        <Input name="amount" label="Məbləğ" type="number" step="0.01" required />
+        <Input name="amount" label={t("adminCatalog.amount")} type="number" step="0.01" required />
         <Select
           name="currency"
-          label="Valyuta"
+          label={t("adminCatalog.currency")}
           defaultValue="AZN"
           options={[
             { value: "AZN", label: "AZN" },
@@ -65,44 +68,61 @@ export default function AdminPricesPage() {
             { value: "CNY", label: "CNY" },
           ]}
         />
-        <Select name="status" label="Status" required options={PRICE_STATUS_OPTIONS} defaultValue="catalog_price" />
-        <Select name="source_type" label="Mənbə tipi" required options={SOURCE_TYPE_OPTIONS} defaultValue="catalog" />
-        <Input name="source_name" label="Mənbə adı" required defaultValue="Zolaq kataloqu" />
+        <Select
+          name="status"
+          label={t("adminCatalog.status")}
+          required
+          options={PRICE_STATUS_OPTIONS}
+          defaultValue="catalog_price"
+        />
+        <Select
+          name="source_type"
+          label={t("adminCatalog.sourceType")}
+          required
+          options={SOURCE_TYPE_OPTIONS}
+          defaultValue="catalog"
+        />
+        <Input
+          name="source_name"
+          label={t("adminCatalog.sourceName")}
+          required
+          defaultValue={t("adminCatalog.zolaqCatalogDefault")}
+        />
         <Select
           name="verification_status"
-          label="Təsdiq"
+          label={t("adminCatalog.verification")}
           options={VERIFICATION_STATUS_OPTIONS}
           defaultValue="verified"
         />
         <Select
           name="dealer_id"
-          label="Diler (opsional)"
-          placeholderOption="Yoxdur (kataloq qiyməti)"
+          label={t("adminCatalog.dealerOptional")}
+          placeholderOption={t("adminCatalog.noDealerCatalog")}
           options={dealers.map((d) => ({ value: d.dealer_id, label: d.display_name }))}
         />
-        <Input name="valid_until" label="Etibarlıdır" type="date" />
+        <Input name="valid_until" label={t("adminCatalog.validUntil")} type="date" />
         <div className="flex items-end md:col-span-3">
-          <Button type="submit">Qiymət əlavə et</Button>
+          <Button type="submit">{t("adminCatalog.addPrice")}</Button>
         </div>
       </form>
 
       <AdminTable
         rows={prices}
         rowKey={(p) => p.price_id}
-        empty="Qiymət yoxdur."
+        empty={t("adminCatalog.emptyPrices")}
         columns={[
           {
             key: "trim",
-            header: "Komplektasiya",
+            header: t("adminCatalog.trimsTitle"),
             cell: (p) => (
               <Link href={`/admin/catalog/prices/${p.price_id}`} className="font-medium hover:underline">
-                {trims.find((t) => t.trim_id === p.trim_id)?.display_name ?? p.trim_id}
+                {trims.find((tr) => tr.trim_id === p.trim_id)?.display_name ?? p.trim_id}
               </Link>
             ),
           },
           {
             key: "amount",
-            header: "Məbləğ",
+            header: t("adminCatalog.amount"),
             cell: (p) =>
               p.status === "price_unknown" || p.status === "not_available"
                 ? "—"
@@ -110,7 +130,7 @@ export default function AdminPricesPage() {
           },
           {
             key: "dealer",
-            header: "Diler",
+            header: t("adminCatalog.dealer"),
             cell: (p) =>
               p.dealer_id
                 ? dealers.find((d) => d.dealer_id === p.dealer_id)?.display_name ?? p.dealer_id
@@ -118,10 +138,14 @@ export default function AdminPricesPage() {
           },
           {
             key: "offer_status",
-            header: "Təklif",
+            header: t("adminCatalog.offerCol"),
             cell: (p) => (p.offer_status ? <StatusBadge status={p.offer_status} /> : "—"),
           },
-          { key: "verification", header: "Təsdiq", cell: (p) => p.verification_status },
+          {
+            key: "verification",
+            header: t("adminCatalog.verification"),
+            cell: (p) => p.verification_status,
+          },
         ]}
       />
     </div>

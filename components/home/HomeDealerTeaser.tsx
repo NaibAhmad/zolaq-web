@@ -4,10 +4,13 @@ import { Card } from "@/components/ui/Card";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { BRANDS } from "@/lib/cars/seed";
 import { DEALERS } from "@/lib/dealers/seed";
-import { DEALER_VERIFICATION_LABEL_AZ } from "@/lib/dealers/labels";
+import { dealerVerificationLabel } from "@/lib/dealers/labels";
+import { getServerLocale, getServerT } from "@/lib/i18n/server";
 import { ROUTES } from "@/lib/routes";
 
-export function HomeDealerTeaser() {
+export async function HomeDealerTeaser() {
+  const t = await getServerT();
+  const locale = await getServerLocale();
   const brandLookup = new Map<string, string>();
   for (const b of BRANDS) brandLookup.set(b.brand_id, b.name);
   const active = DEALERS.filter((d) => d.status === "active").slice(0, 3);
@@ -15,10 +18,10 @@ export function HomeDealerTeaser() {
   return (
     <div className="flex flex-col gap-6">
       <SectionHeading
-        eyebrow="Dilerlər"
-        title="Rəsmi və təsdiqlənmiş tərəfdaşlar"
-        subtitle="Hər diler üçün təmsil etdiyi brendlər və cavab müddəti açıqdır."
-        action={{ label: "Bütün dilerlər", href: ROUTES.dealers }}
+        eyebrow={t("homeDealerTeaser.eyebrow")}
+        title={t("homeDealerTeaser.title")}
+        subtitle={t("homeDealerTeaser.subtitle")}
+        action={{ label: t("homeDealerTeaser.viewAll"), href: ROUTES.dealers }}
       />
       <ul className="grid gap-4 md:grid-cols-3">
         {active.map((d) => (
@@ -49,7 +52,7 @@ export function HomeDealerTeaser() {
                     }
                     size="sm"
                   >
-                    {DEALER_VERIFICATION_LABEL_AZ[d.verification_status]}
+                    {dealerVerificationLabel(d.verification_status, locale)}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -60,10 +63,13 @@ export function HomeDealerTeaser() {
                   ))}
                 </div>
                 <p className="text-xs text-foreground-muted">
-                  Cavab müddəti: ~{d.response_sla_hours} saat
+                  {t("homeDealerTeaser.responseLabel")}:{" "}
+                  {t("homeDealerTeaser.responseValue", {
+                    hours: d.response_sla_hours,
+                  })}
                 </p>
                 <p className="mt-auto pt-2 text-sm font-medium text-accent-blue">
-                  Profilə bax →
+                  {t("homeDealerTeaser.viewProfile")}
                 </p>
               </Card>
             </Link>

@@ -1,10 +1,14 @@
 // Unified profile activity timeline. Aggregates from existing stores plus
 // gamification (votes, badges, points). Reader only — no new event table.
 // Owner-visible; dealer and admin paths do not query this.
+// Sprint 10I-D: ActivityItem now carries a labelKey + labelParams so the
+// client can render in the user's locale. The legacy `label` field stays
+// populated with the AZ string for backward compatibility.
 
 import { trimSummaryFor } from "@/lib/cars/summary";
 import { getLocalizedText } from "@/lib/i18n/localized";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import type { TranslationKey, TranslationParams } from "@/lib/i18n/types";
 import {
   getTimelineForLead,
   listLeadsForUser,
@@ -16,6 +20,7 @@ import { BADGE_CATALOGUE, listUserBadges } from "./badges";
 import {
   listUserPointGrants,
   POINT_ACTION_LABEL_AZ,
+  POINT_ACTION_KEY_BY_ACTION,
   type PointAction,
 } from "./points";
 
@@ -34,6 +39,11 @@ export type ActivityItem = {
   label: string;
   detail?: string;
   at: number;
+  // Sprint 10I-D: translation hints for the client. `labelKey` is the
+  // dictionary key; `labelParams` carries interpolation values that are
+  // language-neutral (counts, proper-noun trim names, etc.).
+  labelKey?: TranslationKey;
+  labelParams?: TranslationParams;
 };
 
 const CONTENT_ACTIONS: ReadonlySet<PointAction> = new Set([
@@ -42,6 +52,29 @@ const CONTENT_ACTIONS: ReadonlySet<PointAction> = new Set([
 ]);
 
 const COMPARISON_ACTIONS: ReadonlySet<PointAction> = new Set(["comparison"]);
+
+const BADGE_NAME_KEY: Record<string, TranslationKey> = {
+  first_comparison: "badgesCatalog.firstComparisonName",
+  market_observer: "badgesCatalog.marketObserverName",
+  encyclopedia_reader: "badgesCatalog.encyclopediaReaderName",
+  qa_participant: "badgesCatalog.qaParticipantName",
+  official_offer_received: "badgesCatalog.officialOfferReceivedName",
+};
+
+const LEAD_STATE_KEY: Record<string, TranslationKey> = {
+  draft: "leadStates.draft",
+  submitted: "leadStates.submitted",
+  dealer_opened: "leadStates.dealerOpened",
+  official_offer: "leadStates.officialOffer",
+  test_drive_requested: "leadStates.testDriveRequested",
+  test_drive_confirmed: "leadStates.testDriveConfirmed",
+  whatsapp_handoff: "leadStates.whatsappHandoff",
+  expired: "leadStates.expired",
+  no_response: "leadStates.noResponse",
+  second_offer: "leadStates.secondOffer",
+  accepted: "leadStates.accepted",
+  closed: "leadStates.closed",
+};
 
 export function listProfileActivity(userId: string): ActivityItem[] {
   const out: ActivityItem[] = [];
@@ -61,17 +94,24 @@ export function listProfileActivity(userId: string): ActivityItem[] {
       label: "Bazar Nəbzində səs verdin",
       detail: questionLabel ? `${questionLabel} — ${optionLabel}` : optionLabel,
       at: v.created_at,
+      labelKey: "activity.voteCast",
     });
   }
 
   for (const b of listUserBadges(userId)) {
     const def = BADGE_CATALOGUE[b.badge_id];
+    const nameKey = BADGE_NAME_KEY[b.badge_id];
     out.push({
       id: `badge:${b.badge_grant_id}`,
       kind: "badge",
       label: `Nişan qazandın: ${def.name}`,
       detail: def.description,
       at: b.granted_at,
+      labelKey: "activity.badgeEarned",
+      // Render the badge name through its translation key on the client.
+      // The client will look up the name via nameKey instead of using the
+      // raw {name} param. We still pass a default AZ name for legacy.
+      labelParams: { name: def.name, nameKey: nameKey ?? "" },
     });
   }
 
@@ -88,6 +128,8 @@ export function listProfileActivity(userId: string): ActivityItem[] {
       label: POINT_ACTION_LABEL_AZ[p.action],
       detail: `+${p.points} bal`,
       at: p.granted_at,
+      labelKey: POINT_ACTION_KEY_BY_ACTION[p.action],
+      labelParams: { points: p.points },
     });
   }
 
@@ -99,6 +141,7 @@ export function listProfileActivity(userId: string): ActivityItem[] {
       label: "Maşın saxladın",
       detail: t.display_name,
       at: s.created_at,
+      labelKey: "activity.savedCar",
     });
   }
 
@@ -110,6 +153,7 @@ export function listProfileActivity(userId: string): ActivityItem[] {
       label: "Maşına baxdın",
       detail: t.display_name,
       at: v.viewed_at,
+      labelKey: "activity.viewedCar",
     });
   }
 
@@ -121,6 +165,7 @@ export function listProfileActivity(userId: string): ActivityItem[] {
       label: "Sorğu göndərdin",
       detail: trim.display_name,
       at: lead.created_at,
+      labelKey: "activity.leadSubmitted",
     });
     for (const event of getTimelineForLead(lead.lead_id)) {
       if (!event.to_state) continue;
@@ -132,6 +177,11 @@ export function listProfileActivity(userId: string): ActivityItem[] {
         label: `Sorğu vəziyyəti: ${LEAD_STATE_LABELS_AZ[event.to_state]}`,
         detail: trim.display_name,
         at: event.created_at,
+        labelKey: "activity.leadStatusChanged",
+        labelParams: {
+          state: LEAD_STATE_LABELS_AZ[event.to_state],
+          stateKey: LEAD_STATE_KEY[event.to_state] ?? "",
+        },
       });
     }
   }

@@ -9,6 +9,7 @@ import { Section } from "@/components/ui/Section";
 import { Badge } from "@/components/ui/Badge";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getSession } from "@/lib/auth/session";
+import { getServerT } from "@/lib/i18n/server";
 import { BRANDS } from "@/lib/cars/seed";
 import {
   getPricesForTrim,
@@ -56,6 +57,7 @@ export default async function ComparePage({
 }) {
   const { ids } = await searchParams;
   const requestedIds = parseIds(ids);
+  const t = await getServerT();
 
   if (requestedIds.length === 0) {
     return <CompareEmpty reason="no_ids" />;
@@ -97,13 +99,13 @@ export default async function ComparePage({
       <Section tone="muted" padding="sm">
         <Container>
           <SectionHeading
-            eyebrow="Müqayisə"
-            title="Yan-yana texniki və qiymət müqayisəsi"
-            subtitle="Hər kart üzrə güc, yürüş, enerji növü və ən yaxşı yoxlanmış qiymət göstərilir."
+            eyebrow={t("compareHero.eyebrow")}
+            title={t("compareHero.filledTitle")}
+            subtitle={t("compareHero.filledSubtitle")}
           />
           <div className="mt-4">
             <Badge tone="blue" size="md">
-              {entries.length} maşın
+              {t("compareHero.carsBadge", { count: entries.length })}
             </Badge>
           </div>
         </Container>

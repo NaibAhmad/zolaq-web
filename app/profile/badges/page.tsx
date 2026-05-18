@@ -12,6 +12,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
 import { formatDateAz } from "@/lib/format/date";
 import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES, otpHref } from "@/lib/routes";
 
 type BadgeRow = {
@@ -19,6 +20,9 @@ type BadgeRow = {
   name: string;
   description: string;
   trigger_hint: string;
+  name_key?: TranslationKey;
+  description_key?: TranslationKey;
+  hint_key?: TranslationKey;
   earned: boolean;
   granted_at: number | null;
 };
@@ -86,17 +90,23 @@ export default function ProfileBadgesPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Profil"
-            title="Nişanlarım"
-            subtitle="Yalnız sənin görə bildiyin nişanlar. Açıq profil və ya reytinq yoxdur."
-            action={{ label: "Tarixçə", href: ROUTES.profileHistory }}
+            eyebrow={t("nav.profile")}
+            title={t("profileBadges.title")}
+            subtitle={t("profileBadges.subtitle")}
+            action={{
+              label: t("profileBadgesExtra.historyLink"),
+              href: ROUTES.profileHistory,
+            }}
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Badge tone="blue" size="md">
-              {earned.length} / {data.badges.length} nişan
+              {t("profileBadgesExtra.ratioBadge", {
+                earned: earned.length,
+                total: data.badges.length,
+              })}
             </Badge>
             <Badge tone="orange" size="md">
-              {data.points} bal
+              {t("profileBadgesExtra.pointsBadge", { points: data.points })}
             </Badge>
           </div>
         </Container>
@@ -107,17 +117,19 @@ export default function ProfileBadgesPage() {
           {earned.length > 0 ? (
             <div className="space-y-3">
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
-                Qazandın
+                {t("profileBadgesExtra.earnedHeading")}
               </h2>
               <ul className="grid gap-3 sm:grid-cols-2">
                 {earned.map((b) => (
                   <li key={b.badge_id}>
                     <Card padding="md" tone="raised">
                       <p className="text-sm font-semibold text-foreground">
-                        {b.name}
+                        {b.name_key ? t(b.name_key) : b.name}
                       </p>
                       <p className="mt-1 text-xs text-foreground-muted">
-                        {b.description}
+                        {b.description_key
+                          ? t(b.description_key)
+                          : b.description}
                       </p>
                       {b.granted_at ? (
                         <p className="mt-2 text-[11px] text-foreground-muted">
@@ -134,20 +146,23 @@ export default function ProfileBadgesPage() {
           {locked.length > 0 ? (
             <div className="space-y-3">
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted">
-                Hələ açılmayıb
+                {t("profileBadgesExtra.lockedHeading")}
               </h2>
               <ul className="grid gap-3 sm:grid-cols-2">
                 {locked.map((b) => (
                   <li key={b.badge_id}>
                     <Card padding="md" tone="raised" className="opacity-80">
                       <p className="text-sm font-semibold text-foreground">
-                        {b.name}
+                        {b.name_key ? t(b.name_key) : b.name}
                       </p>
                       <p className="mt-1 text-xs text-foreground-muted">
-                        {b.description}
+                        {b.description_key
+                          ? t(b.description_key)
+                          : b.description}
                       </p>
                       <p className="mt-2 text-[11px] text-accent-blue">
-                        İpucu: {b.trigger_hint}
+                        {t("profileBadgesExtra.tipPrefix")}:{" "}
+                        {b.hint_key ? t(b.hint_key) : b.trigger_hint}
                       </p>
                     </Card>
                   </li>

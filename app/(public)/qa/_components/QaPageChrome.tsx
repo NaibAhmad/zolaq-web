@@ -2,7 +2,7 @@
 
 import { ContentList, type ContentListItem } from "@/components/content/ContentList";
 import { BazarTopicCard } from "@/components/market-pulse/BazarTopicCard";
-import type { QaTabKey } from "@/components/market-pulse/BazarTabBar";
+import type { QaTabKey } from "@/lib/market-pulse/qa-tabs";
 import { EmptyState } from "@/components/state/EmptyState";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";

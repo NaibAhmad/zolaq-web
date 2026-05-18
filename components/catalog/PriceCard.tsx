@@ -6,6 +6,8 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/cars/format";
 import { formatDateAz } from "@/lib/format/date";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
 import { ROUTES } from "@/lib/routes";
 import { trackEvent } from "@/lib/tracking/track";
 import type {
@@ -19,15 +21,15 @@ type Props = {
   price: PriceRecord;
 };
 
-const STATUS_LABEL: Record<PriceStatus, string> = {
-  estimated: "Təxmini qiymət",
-  catalog_price: "Kataloq qiyməti",
-  dealer_quote_pending: "Təklif gözlənilir",
-  dealer_official_offer: "Rəsmi diler təklifi",
-  expired_offer: "Təklif müddəti bitib",
-  conflict: "Qiymət mənbələrində fərq var",
-  price_unknown: "Qiymət soruş",
-  not_available: "Hazırda mövcud deyil",
+const STATUS_KEY: Record<PriceStatus, TranslationKey> = {
+  estimated: "catalogCard.statusEstimated",
+  catalog_price: "catalogCard.statusCatalog",
+  dealer_quote_pending: "catalogCard.statusPending",
+  dealer_official_offer: "catalogCard.statusOfficial",
+  expired_offer: "catalogCard.statusExpired",
+  conflict: "catalogCard.statusConflict",
+  price_unknown: "catalogCard.statusAsk",
+  not_available: "catalogCard.statusUnavailable",
 };
 
 const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
@@ -41,21 +43,21 @@ const STATUS_TONE: Record<PriceStatus, BadgeTone> = {
   not_available: "muted",
 };
 
-const SOURCE_LABEL: Record<SourceType, string> = {
-  official_dealer: "Rəsmi diler",
-  catalog: "Kataloq",
-  partner: "Tərəfdaş",
-  estimate: "Təxmin",
-  zolaq_manual: "Zolaq",
-  imported: "İdxal",
+const SOURCE_KEY: Record<SourceType, TranslationKey> = {
+  official_dealer: "catalogCard.sourceDealer",
+  catalog: "catalogCard.sourceCatalog",
+  partner: "catalogCard.sourcePartner",
+  estimate: "catalogCard.sourceEstimate",
+  zolaq_manual: "catalogCard.sourceZolaq",
+  imported: "catalogCard.sourceImport",
 };
 
-const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
-  unverified: "Yoxlanılmayıb",
-  verified: "Təsdiqlənib",
-  pending: "Yoxlanılır",
-  conflict: "Ziddiyyət",
-  outdated: "Köhnəlib",
+const VERIFICATION_KEY: Record<VerificationStatus, TranslationKey> = {
+  unverified: "catalogCard.verifyUnverified",
+  verified: "catalogCard.verifyVerified",
+  pending: "catalogCard.verifyPending",
+  conflict: "catalogCard.verifyConflict",
+  outdated: "catalogCard.verifyOutdated",
 };
 
 const VERIFICATION_TONE: Record<VerificationStatus, BadgeTone> = {
@@ -79,6 +81,7 @@ function hasRenderableAmount(status: PriceStatus): boolean {
 }
 
 export function PriceCard({ price }: Props) {
+  const t = useT();
   useEffect(() => {
     trackEvent("price_card_viewed", {
       trim_id: price.trim_id,
@@ -102,7 +105,7 @@ export function PriceCard({ price }: Props) {
     >
       <header className="flex items-start justify-between gap-3">
         <Badge tone={STATUS_TONE[price.status]} size="md">
-          {STATUS_LABEL[price.status]}
+          {t(STATUS_KEY[price.status])}
         </Badge>
         {showAmount ? (
           <span className="text-2xl font-semibold leading-tight text-foreground">
@@ -110,7 +113,9 @@ export function PriceCard({ price }: Props) {
           </span>
         ) : (
           <span className="text-sm font-medium text-foreground-muted">
-            {price.status === "not_available" ? "—" : "Məlum deyil"}
+            {price.status === "not_available"
+              ? "—"
+              : t("carDetail.missingData")}
           </span>
         )}
       </header>
@@ -118,7 +123,7 @@ export function PriceCard({ price }: Props) {
       <dl className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
         <div className="flex flex-col">
           <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-            Mənbə
+            {t("carDetail.source")}
           </dt>
           <dd className="font-medium text-foreground">
             {price.dealer_id ? (
@@ -132,23 +137,23 @@ export function PriceCard({ price }: Props) {
               price.source_name
             )}
             <span className="ml-1 text-xs text-foreground-muted">
-              ({SOURCE_LABEL[price.source_type]})
+              ({t(SOURCE_KEY[price.source_type])})
             </span>
           </dd>
         </div>
         <div className="flex flex-col">
           <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-            Yoxlama
+            {t("dealerTrust.source")}
           </dt>
           <dd>
             <Badge tone={VERIFICATION_TONE[price.verification_status]} size="sm">
-              {VERIFICATION_LABEL[price.verification_status]}
+              {t(VERIFICATION_KEY[price.verification_status])}
             </Badge>
           </dd>
         </div>
         <div className="flex flex-col">
           <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-            Yenilənib
+            {t("carDetail.updatedOn")}
           </dt>
           <dd className="font-medium text-foreground">
             {formatDateAz(price.last_updated)}
@@ -157,7 +162,7 @@ export function PriceCard({ price }: Props) {
         {showValidUntil && price.valid_until ? (
           <div className="flex flex-col">
             <dt className="text-xs uppercase tracking-wide text-foreground-muted">
-              Etibarlıdır
+              {t("carDetail.validUntil")}
             </dt>
             <dd className="font-medium text-foreground">
               {formatDateAz(price.valid_until)}
@@ -174,7 +179,7 @@ export function PriceCard({ price }: Props) {
           className="inline-flex w-fit items-center gap-2 rounded-[var(--radius)] border border-border bg-surface-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface"
         >
           <span aria-hidden>↧</span>
-          PDF təklif
+          {t("homeHero.verifiedOfferLabel")}
         </a>
       ) : null}
     </Card>

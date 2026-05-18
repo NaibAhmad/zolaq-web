@@ -1,12 +1,36 @@
+"use client";
+
 import { NextBestActionCard } from "./NextBestActionCard";
 import { Card } from "@/components/ui/Card";
-import type { ReadinessSummary } from "@/lib/decisions/types";
+import { useT } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/types";
+import type {
+  ReadinessFactorKey,
+  ReadinessSummary,
+} from "@/lib/decisions/types";
 
 type Props = {
   summary: ReadinessSummary;
 };
 
+const FACTOR_KEYS: Record<ReadinessFactorKey, TranslationKey> = {
+  profile_completeness: "readinessFactors.profileCompleteness",
+  research_activity: "readinessFactors.researchActivity",
+  compare_activity: "readinessFactors.compareActivity",
+  official_offers: "readinessFactors.officialOffers",
+  test_drive_stage: "readinessFactors.testDriveStage",
+  budget_match: "readinessFactors.budgetMatch",
+};
+
+function scoreKey(score: number): TranslationKey {
+  if (score >= 80) return "homeDecisionHelper.scoreReady";
+  if (score >= 50) return "homeDecisionHelper.scoreContinue";
+  if (score >= 20) return "homeDecisionHelper.scoreEarly";
+  return "homeDecisionHelper.scoreStart";
+}
+
 export function ReadinessCard({ summary }: Props) {
+  const t = useT();
   const score = Math.max(0, Math.min(100, summary.readiness_score));
   const ringStyle = {
     background: `conic-gradient(var(--accent-orange) ${score * 3.6}deg, var(--surface-muted) 0deg)`,
@@ -23,7 +47,7 @@ export function ReadinessCard({ summary }: Props) {
             aria-valuenow={score}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Qərar hazırlığı"
+            aria-label={t("homeDecisionHelper.ringAria")}
           >
             <div className="absolute inset-2 flex flex-col items-center justify-center rounded-full bg-surface">
               <span className="text-3xl font-semibold text-foreground">
@@ -34,10 +58,10 @@ export function ReadinessCard({ summary }: Props) {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-              Qərar hazırlığı
+              {t("homeDecisionHelper.progressLabel")}
             </p>
             <p className="mt-1 text-base font-medium text-foreground">
-              {scoreLabel(score)}
+              {t(scoreKey(score))}
             </p>
           </div>
         </div>
@@ -45,11 +69,12 @@ export function ReadinessCard({ summary }: Props) {
         <ul className="flex flex-col gap-3">
           {summary.score_breakdown.map((entry) => {
             const pct = Math.round(entry.achieved_pct * 100);
+            const factorLabel = t(FACTOR_KEYS[entry.key]);
             return (
               <li key={entry.key} className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">
-                    {entry.label_az}
+                    {factorLabel}
                   </span>
                   <span className="text-xs text-foreground-muted">
                     {entry.contribution} / {entry.weight_pct}
@@ -61,7 +86,7 @@ export function ReadinessCard({ summary }: Props) {
                   aria-valuenow={pct}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={entry.label_az}
+                  aria-label={factorLabel}
                 >
                   <div
                     className="h-full rounded-full bg-accent-orange"
@@ -79,11 +104,4 @@ export function ReadinessCard({ summary }: Props) {
       </div>
     </Card>
   );
-}
-
-function scoreLabel(score: number): string {
-  if (score >= 80) return "Demək olar hazırsan";
-  if (score >= 50) return "Davam et";
-  if (score >= 20) return "Başlanğıc mərhələdə";
-  return "Yenicə başlayır";
 }

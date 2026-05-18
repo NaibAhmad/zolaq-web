@@ -5,7 +5,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { listDealers } from "@/lib/admin";
 import { formatDateAz } from "@/lib/format/date";
 import { listInvoices } from "@/lib/invoices/store";
-import { INVOICE_STATUS_LABEL_AZ, type InvoiceStatus } from "@/lib/invoices/types";
+import type { InvoiceStatus } from "@/lib/invoices/types";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 const STATUS_TONE: Record<InvoiceStatus, "blue" | "warning" | "success" | "danger" | "muted"> = {
   pending: "muted",
@@ -16,30 +18,38 @@ const STATUS_TONE: Record<InvoiceStatus, "blue" | "warning" | "success" | "dange
   cancelled: "muted",
 };
 
-export default function AdminInvoicesPage() {
+const STATUS_KEY: Record<InvoiceStatus, TranslationKey> = {
+  pending: "adminCommercial.invoiceStatus_pending",
+  invoice_sent: "adminCommercial.invoiceStatus_invoice_sent",
+  payment_uploaded: "adminCommercial.invoiceStatus_payment_uploaded",
+  paid: "adminCommercial.invoiceStatus_paid",
+  overdue: "adminCommercial.invoiceStatus_overdue",
+  cancelled: "adminCommercial.invoiceStatus_cancelled",
+};
+
+export default async function AdminInvoicesPage() {
   const invoices = listInvoices();
   const dealers = new Map(
     listDealers().map((d) => [d.dealer_id, d.display_name]),
   );
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Fakturalar</h1>
-          <p className="mt-1 text-sm text-foreground-muted">
-            Reklam tələblərinə bağlı manual fakturalar və ödəniş statusları.
-          </p>
+          <h1 className="text-xl font-semibold">{t("adminCommercial.invoicesTitle")}</h1>
+          <p className="mt-1 text-sm text-foreground-muted">{t("adminCommercial.invoicesDescription")}</p>
         </div>
-        <ButtonLink href="/admin/invoices/new">Yeni faktura</ButtonLink>
+        <ButtonLink href="/admin/invoices/new">{t("adminCommercial.newInvoice")}</ButtonLink>
       </header>
       <AdminTable
         rows={invoices}
         rowKey={(r) => r.invoice_id}
-        empty="Hələ faktura yoxdur."
+        empty={t("adminCommercial.emptyInvoices")}
         columns={[
           {
             key: "number",
-            header: "Nömrə",
+            header: t("adminCommercial.number"),
             cell: (r) => (
               <Link
                 href={`/admin/invoices/${r.invoice_id}`}
@@ -51,28 +61,28 @@ export default function AdminInvoicesPage() {
           },
           {
             key: "dealer",
-            header: "Diler",
+            header: t("adminCommercial.dealer"),
             cell: (r) =>
-              r.dealer_id ? dealers.get(r.dealer_id) ?? r.dealer_id : "Daxili",
+              r.dealer_id ? dealers.get(r.dealer_id) ?? r.dealer_id : t("adminCommercial.internalDealer"),
           },
           {
             key: "amount",
-            header: "Məbləğ",
+            header: t("adminCommercial.amountLabel"),
             cell: (r) => `${r.amount.toLocaleString("az-AZ")} ${r.currency}`,
           },
-          { key: "due", header: "Son tarix", cell: (r) => r.due_at },
+          { key: "due", header: t("adminCommercial.dueDate"), cell: (r) => r.due_at },
           {
             key: "status",
-            header: "Status",
+            header: t("adminCommercial.statusCol"),
             cell: (r) => (
               <Badge tone={STATUS_TONE[r.status]} size="sm">
-                {INVOICE_STATUS_LABEL_AZ[r.status]}
+                {t(STATUS_KEY[r.status])}
               </Badge>
             ),
           },
           {
             key: "updated",
-            header: "Yenilənib",
+            header: t("adminCommercial.updatedCol"),
             cell: (r) => formatDateAz(r.updated_at),
           },
         ]}

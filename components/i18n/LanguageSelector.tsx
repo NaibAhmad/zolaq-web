@@ -3,7 +3,7 @@
 // Sprint 10D: AZ/RU/EN segmented selector. Compact button row that fits the
 // Header right-side cluster. Persists choice to localStorage via LocaleProvider.
 
-import { LOCALES, useLocale, type Locale } from "@/lib/i18n/client";
+import { LOCALES, useLocale, useT, type Locale } from "@/lib/i18n/client";
 import { FEATURE_I18N_BETA } from "@/lib/env";
 
 const LABEL: Record<Locale, string> = {
@@ -14,13 +14,14 @@ const LABEL: Record<Locale, string> = {
 
 export function LanguageSelector() {
   const { locale, setLocale, ready } = useLocale();
+  const t = useT();
 
   if (!FEATURE_I18N_BETA) return null;
 
   return (
     <div
       role="group"
-      aria-label="Dil seçimi"
+      aria-label={t("common.languageSelectorAria")}
       className="inline-flex h-9 items-center rounded-full border border-border bg-surface p-0.5 text-xs font-semibold"
     >
       {LOCALES.map((code) => {

@@ -11,9 +11,10 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ApiError, apiGet } from "@/lib/api";
-import { DECISION_HISTORY_EVENT_LABELS_AZ } from "@/lib/decisions/labels";
+import { decisionHistoryEventLabel } from "@/lib/decisions/labels";
 import { formatDateAz, formatTimeAz } from "@/lib/format/date";
-import { useT } from "@/lib/i18n/client";
+import { useCurrentLocale, useT } from "@/lib/i18n/client";
+import type { TranslationKey, TranslationParams } from "@/lib/i18n/types";
 import { ROUTES, otpHref } from "@/lib/routes";
 import type { DecisionHistoryEvent } from "@/lib/decisions/types";
 
@@ -23,6 +24,8 @@ type ActivityItem = {
   label: string;
   detail?: string;
   at: number;
+  labelKey?: TranslationKey;
+  labelParams?: TranslationParams;
 };
 
 type FetchState =
@@ -37,6 +40,7 @@ type FetchState =
 export default function ProfileHistoryPage() {
   const router = useRouter();
   const t = useT();
+  const locale = useCurrentLocale();
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -109,10 +113,14 @@ export default function ProfileHistoryPage() {
           />
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge tone="blue" size="md">
-              {state.events.length} qərar hadisəsi
+              {t("profileHistoryExtra.decisionEventsBadge", {
+                count: state.events.length,
+              })}
             </Badge>
             <Badge tone="orange" size="md">
-              {state.activity.length} Bazar Nəbzi / nişan
+              {t("profileHistoryExtra.pulseBadge", {
+                count: state.activity.length,
+              })}
             </Badge>
           </div>
         </Container>
@@ -122,7 +130,7 @@ export default function ProfileHistoryPage() {
         <Section tone="light" padding="md">
           <Container size="narrow" className="space-y-4">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
-              Bazar Nəbzi və nişan fəaliyyəti
+              {t("profileHistoryExtra.activitySectionHeading")}
             </h2>
             <Card padding="none" tone="raised" as="ul">
               {state.activity.map((item, i) => (
@@ -134,7 +142,7 @@ export default function ProfileHistoryPage() {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
-                      {item.label}
+                      {renderActivityLabel(item, t)}
                     </p>
                     {item.detail ? (
                       <p className="mt-0.5 text-xs text-foreground-muted">
@@ -172,7 +180,7 @@ export default function ProfileHistoryPage() {
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">
-                        {DECISION_HISTORY_EVENT_LABELS_AZ[event.type]}
+                        {decisionHistoryEventLabel(event.type, locale)}
                       </p>
                       <p className="mt-0.5 text-xs text-foreground-muted">
                         {[event.trim_id, event.lead_id, event.offer_id]
@@ -202,6 +210,30 @@ type Group = {
   label: string;
   events: DecisionHistoryEvent[];
 };
+
+function renderActivityLabel(
+  item: ActivityItem,
+  t: (key: TranslationKey, params?: TranslationParams) => string,
+): string {
+  if (!item.labelKey) return item.label;
+  const params: TranslationParams = {};
+  if (item.labelParams) {
+    for (const [k, v] of Object.entries(item.labelParams)) {
+      // Some params are meta keys that should be looked up via t() and
+      // re-injected as their localized value (e.g. badge name, lead state).
+      if (k === "nameKey" && typeof v === "string" && v.length > 0) {
+        params.name = t(v as TranslationKey);
+        continue;
+      }
+      if (k === "stateKey" && typeof v === "string" && v.length > 0) {
+        params.state = t(v as TranslationKey);
+        continue;
+      }
+      params[k] = v;
+    }
+  }
+  return t(item.labelKey, params);
+}
 
 function groupByDate(events: DecisionHistoryEvent[]): Group[] {
   const map = new Map<string, Group>();

@@ -1,8 +1,11 @@
+"use client";
+
 // Renders three forms posting to approve/reject/request-revision endpoints.
 // Used on /admin/offers/[offerId] and /admin/dealers/[dealerId] (for dealer
 // profile submissions). Server-side endpoints write audit log entries.
 
 import { Button } from "@/components/ui/Button";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
   approveAction: string;
@@ -17,11 +20,12 @@ export function ApprovalActions({
   revisionAction,
   disabled,
 }: Props) {
+  const t = useT();
   return (
     <div className="flex flex-wrap items-end gap-3">
       <form action={approveAction} method="post">
         <Button type="submit" variant="primary" disabled={disabled}>
-          Təsdiqlə
+          {t("adminApproval.approve")}
         </Button>
       </form>
       <form
@@ -30,17 +34,17 @@ export function ApprovalActions({
         className="flex flex-wrap items-end gap-2"
       >
         <label className="flex flex-col gap-1 text-xs text-foreground-muted">
-          <span>Düzəliş qeydi</span>
+          <span>{t("adminApproval.revisionNote")}</span>
           <input
             name="note"
             type="text"
             className="h-9 w-64 rounded-[var(--radius)] border border-border bg-surface px-3 text-sm"
-            placeholder="Dilerə qeyd"
+            placeholder={t("adminApproval.noteToDealer")}
             required
           />
         </label>
         <Button type="submit" variant="secondary" disabled={disabled}>
-          Düzəliş tələb et
+          {t("adminApproval.requestRevision")}
         </Button>
       </form>
       <form
@@ -49,17 +53,17 @@ export function ApprovalActions({
         className="flex flex-wrap items-end gap-2"
       >
         <label className="flex flex-col gap-1 text-xs text-foreground-muted">
-          <span>Rədd səbəbi</span>
+          <span>{t("adminApproval.rejectReason")}</span>
           <input
             name="note"
             type="text"
             className="h-9 w-64 rounded-[var(--radius)] border border-border bg-surface px-3 text-sm"
-            placeholder="Səbəb"
+            placeholder={t("adminApproval.rejectReasonPlaceholder")}
             required
           />
         </label>
         <Button type="submit" variant="danger" disabled={disabled}>
-          Rədd et
+          {t("adminApproval.reject")}
         </Button>
       </form>
     </div>

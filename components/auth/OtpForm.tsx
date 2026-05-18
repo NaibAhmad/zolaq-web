@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/Container";
 import { Input } from "@/components/ui/Input";
 import { Section } from "@/components/ui/Section";
 import { OTP, isOtpPurpose, type OtpPurpose } from "@/lib/auth/constants";
+import { useT } from "@/lib/i18n/client";
 import { ROUTES } from "@/lib/routes";
 
 type Status =
@@ -66,6 +67,7 @@ async function postJson<T>(url: string, body: unknown): Promise<{
 }
 
 export function OtpForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
 
@@ -116,14 +118,14 @@ export function OtpForm() {
           status: "locked",
           lockReason: "rate_limited",
           retryAfterSeconds: retry,
-          message: data.error?.message ?? "Saatlıq OTP limiti aşılıb.",
+          message: data.error?.message ?? t("auth.hourlyLimitExceeded"),
         }));
         return;
       }
       setState((s) => ({
         ...s,
         status: "idle",
-        message: data.error?.message ?? "Sorğu uğursuz oldu.",
+        message: data.error?.message ?? t("auth.requestFailed"),
       }));
       return;
     }
@@ -155,7 +157,7 @@ export function OtpForm() {
     });
 
     if (ok && data.verified) {
-      setState((s) => ({ ...s, status: "verified", message: "Təsdiqləndi" }));
+      setState((s) => ({ ...s, status: "verified", message: t("auth.verifiedShort") }));
       router.replace(nextUrl);
       return;
     }
@@ -166,7 +168,7 @@ export function OtpForm() {
         ...s,
         status: "error",
         attemptsRemaining: remaining,
-        message: `Kod yanlışdır — qalan cəhd: ${remaining}`,
+        message: t("auth.codeInvalidRemaining", { remaining }),
         code: "",
       }));
       return;
@@ -184,7 +186,7 @@ export function OtpForm() {
         ...s,
         status: "locked",
         lockReason: reason,
-        message: data.error?.message ?? "Sessiya bağlandı.",
+        message: data.error?.message ?? t("auth.sessionClosed"),
       }));
       return;
     }
@@ -192,7 +194,7 @@ export function OtpForm() {
     setState((s) => ({
       ...s,
       status: "error",
-      message: data.error?.message ?? "Yoxlama uğursuz oldu.",
+      message: data.error?.message ?? t("auth.verificationFailed"),
     }));
   }
 
@@ -211,20 +213,20 @@ export function OtpForm() {
 
   const purposeCopy =
     purpose === "lead_submit"
-      ? "Sorğunu tamamlamaq üçün telefon nömrəni təsdiqlə."
+      ? t("auth.purposeLeadSubmit")
       : purpose === "whatsapp_handoff"
-        ? "WhatsApp keçidini davam etdirmək üçün təsdiq."
-        : "Profilə daxil olmaq üçün təsdiq.";
+        ? t("auth.purposeWhatsapp")
+        : t("auth.purposeProfile");
 
   return (
     <Section tone="light" padding="lg">
       <Container className="max-w-md">
         <Card padding="lg" tone="raised">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-orange">
-            Zolaq OTP
+            {t("auth.zolaqOtpEyebrow")}
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-foreground">
-            Telefon təsdiqi
+            {t("auth.phoneConfirmation")}
           </h1>
           <p className="mt-2 text-sm text-foreground-muted">{purposeCopy}</p>
 
@@ -240,7 +242,7 @@ export function OtpForm() {
             >
               <Input
                 id="otp-phone"
-                label="Telefon nömrəsi"
+                label={t("auth.phoneLabel")}
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
@@ -262,7 +264,7 @@ export function OtpForm() {
                 fullWidth
                 disabled={state.status === "requesting" || !state.phone.trim()}
               >
-                {state.status === "requesting" ? "Kod göndərilir…" : "Kod göndər"}
+                {state.status === "requesting" ? t("auth.sendingCode") : t("auth.sendCode")}
               </Button>
               {state.message ? (
                 <p className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
@@ -284,13 +286,13 @@ export function OtpForm() {
               }}
             >
               <p className="text-sm text-foreground-muted">
-                Kod göndərildi:{" "}
+                {t("auth.codeSentTo")}{" "}
                 <span className="font-medium text-foreground">{state.phone}</span>
               </p>
               <Input
                 id="otp-code"
                 ref={codeInputRef}
-                label="6 rəqəmli kod"
+                label={t("auth.codeLengthLabel")}
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
@@ -320,7 +322,7 @@ export function OtpForm() {
                   state.code.length !== OTP.CODE_LENGTH
                 }
               >
-                {state.status === "verifying" ? "Yoxlanılır…" : "Təsdiqlə"}
+                {state.status === "verifying" ? t("auth.verifying") : t("auth.verify")}
               </Button>
               <div className="flex items-center justify-between text-sm">
                 <button
@@ -330,15 +332,15 @@ export function OtpForm() {
                   className="text-accent-blue underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-foreground-muted disabled:no-underline"
                 >
                   {state.resendCountdown > 0
-                    ? `Yenidən göndər (${state.resendCountdown}s)`
-                    : "Kodu yenidən göndər"}
+                    ? t("auth.resendCountdown", { seconds: state.resendCountdown })
+                    : t("auth.resendCode")}
                 </button>
                 <button
                   type="button"
                   onClick={reset}
                   className="text-foreground-muted hover:text-foreground"
                 >
-                  Telefonu dəyiş
+                  {t("auth.changePhone")}
                 </button>
               </div>
               {state.message ? (
@@ -358,7 +360,7 @@ export function OtpForm() {
 
           {state.status === "verified" && (
             <div className="mt-6 rounded-[var(--radius)] border border-success/30 bg-success/10 px-4 py-3 text-success">
-              Təsdiqləndi — yönləndirilirsiniz…
+              {t("auth.verifiedRedirecting")}
             </div>
           )}
 
@@ -368,19 +370,18 @@ export function OtpForm() {
                 role="alert"
                 className="rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger"
               >
-                {state.lockReason === "expired" && "Kodun müddəti bitdi."}
-                {state.lockReason === "max_attempts" &&
-                  "Maksimum cəhd sayına çatdınız."}
+                {state.lockReason === "expired" && t("auth.lockedExpired")}
+                {state.lockReason === "max_attempts" && t("auth.lockedMaxAttempts")}
                 {state.lockReason === "rate_limited" &&
-                  `Saatlıq limit aşılıb${
-                    state.retryAfterSeconds
-                      ? ` — ${state.retryAfterSeconds} saniyə sonra yenidən cəhd edin.`
-                      : "."
-                  }`}
-                {state.lockReason === "session_lost" && "Sessiya tapılmadı."}
+                  (state.retryAfterSeconds
+                    ? t("auth.lockedRateLimitedRetry", {
+                        seconds: state.retryAfterSeconds,
+                      })
+                    : t("auth.lockedRateLimitedHourly"))}
+                {state.lockReason === "session_lost" && t("auth.lockedSessionLost")}
               </div>
               <Button variant="secondary" fullWidth onClick={reset}>
-                Yenidən başla
+                {t("auth.restart")}
               </Button>
             </div>
           )}

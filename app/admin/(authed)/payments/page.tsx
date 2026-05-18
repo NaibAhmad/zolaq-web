@@ -5,10 +5,9 @@ import { listDealers } from "@/lib/admin";
 import { formatDateTimeAz } from "@/lib/format/date";
 import { getInvoice } from "@/lib/invoices/store";
 import { listPaymentProofs } from "@/lib/payments/store";
-import {
-  PAYMENT_PROOF_STATUS_LABEL_AZ,
-  type PaymentProofStatus,
-} from "@/lib/payments/types";
+import type { PaymentProofStatus } from "@/lib/payments/types";
+import { getServerT } from "@/lib/i18n/server";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 const TONE: Record<PaymentProofStatus, "warning" | "success" | "danger"> = {
   pending_review: "warning",
@@ -16,28 +15,34 @@ const TONE: Record<PaymentProofStatus, "warning" | "success" | "danger"> = {
   rejected: "danger",
 };
 
-export default function AdminPaymentsPage() {
+const STATUS_KEY: Record<PaymentProofStatus, TranslationKey> = {
+  pending_review: "adminCommercial.paymentStatus_pending_review",
+  approved: "adminCommercial.paymentStatus_approved",
+  rejected: "adminCommercial.paymentStatus_rejected",
+};
+
+export default async function AdminPaymentsPage() {
   const proofs = listPaymentProofs();
   const dealers = new Map(
     listDealers().map((d) => [d.dealer_id, d.display_name]),
   );
+  const t = await getServerT();
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-xl font-semibold">Ödəniş təsdiqləri</h1>
+        <h1 className="text-xl font-semibold">{t("adminCommercial.paymentsTitleHead")}</h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Dilerlərin yüklədiyi ödəniş qəbzləri. Təsdiq edilmiş ödəniş fakturanı
-          {" "}<code>paid</code> statusuna keçirir və kampaniyanı aktivləşdirməyə imkan verir.
+          {t("adminCommercial.paymentsDescriptionDetail", { code: "`paid`" })}
         </p>
       </header>
       <AdminTable
         rows={proofs}
         rowKey={(p) => p.payment_proof_id}
-        empty="Hələ təsdiqə göndərilmiş ödəniş yoxdur."
+        empty={t("adminCommercial.emptyPaymentsList")}
         columns={[
           {
             key: "ref",
-            header: "Referans",
+            header: t("adminCommercial.referenceCol"),
             cell: (p) => (
               <Link
                 href={`/admin/payments/${p.payment_proof_id}`}
@@ -49,12 +54,12 @@ export default function AdminPaymentsPage() {
           },
           {
             key: "dealer",
-            header: "Diler",
+            header: t("adminCommercial.dealer"),
             cell: (p) => dealers.get(p.dealer_id) ?? p.dealer_id,
           },
           {
             key: "invoice",
-            header: "Faktura",
+            header: t("adminCommercial.invoiceCol"),
             cell: (p) => {
               const inv = getInvoice(p.invoice_id);
               if (!inv) return p.invoice_id;
@@ -70,15 +75,15 @@ export default function AdminPaymentsPage() {
           },
           {
             key: "uploaded",
-            header: "Yüklənib",
+            header: t("adminCommercial.uploadedCol"),
             cell: (p) => formatDateTimeAz(p.uploaded_at),
           },
           {
             key: "status",
-            header: "Status",
+            header: t("adminCommercial.statusCol"),
             cell: (p) => (
               <Badge tone={TONE[p.status]} size="sm">
-                {PAYMENT_PROOF_STATUS_LABEL_AZ[p.status]}
+                {t(STATUS_KEY[p.status])}
               </Badge>
             ),
           },

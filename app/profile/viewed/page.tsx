@@ -87,13 +87,13 @@ export default function ProfileViewedPage() {
       <Section tone="muted" padding="sm">
         <Container size="narrow">
           <SectionHeading
-            eyebrow="Profil"
-            title="Son baxılan maşınlar"
-            subtitle="Son baxdığın maşınlar — yenidən qayıt və ya saxla."
+            eyebrow={t("nav.profile")}
+            title={t("profileViewed.title")}
+            subtitle={t("profileViewed.subtitle")}
           />
           <div className="mt-4">
             <Badge tone="blue" size="md">
-              {state.viewed.length} maşın
+              {t("profileViewedExtra.carsBadge", { count: state.viewed.length })}
             </Badge>
           </div>
         </Container>

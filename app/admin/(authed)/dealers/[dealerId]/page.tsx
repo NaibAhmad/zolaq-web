@@ -9,6 +9,7 @@ import { getDealer, listBrands, listPrices } from "@/lib/admin";
 import { listSubmissions } from "@/lib/dealer/submissions/store";
 import { DEALER_VERIFICATION_STATUSES } from "@/lib/dealers/types";
 import { formatDateTimeAz } from "@/lib/format/date";
+import { getServerT } from "@/lib/i18n/server";
 
 const SERVICE_OPTIONS = ["test_drive", "trade_in", "financing", "delivery", "warranty"] as const;
 
@@ -23,6 +24,7 @@ export default async function AdminDealerEditPage({
   const brands = listBrands();
   const offers = listPrices({ dealer_id: dealerId, offers_only: true });
   const submissions = listSubmissions({ dealer_id: dealerId });
+  const t = await getServerT();
 
   return (
     <div className="flex flex-col gap-6">
@@ -37,58 +39,60 @@ export default async function AdminDealerEditPage({
         className="grid gap-3 rounded-[var(--radius-lg)] border border-border bg-surface p-4 md:grid-cols-2"
       >
         <input type="hidden" name="_method" value="patch" />
-        <Input name="legal_name" label="Hüquqi ad" defaultValue={dealer.legal_name} />
-        <Input name="display_name" label="Görünən ad" defaultValue={dealer.display_name} />
-        <Input name="city" label="Şəhər" defaultValue={dealer.city} />
-        <Input name="address" label="Ünvan" defaultValue={dealer.address} />
+        <Input name="legal_name" label={t("adminDealers.legalName")} defaultValue={dealer.legal_name} />
+        <Input name="display_name" label={t("adminDealers.displayName")} defaultValue={dealer.display_name} />
+        <Input name="city" label={t("adminDealers.city")} defaultValue={dealer.city} />
+        <Input name="address" label={t("adminDealers.address")} defaultValue={dealer.address} />
         <Input
           name="response_sla_hours"
-          label="SLA (saat)"
+          label={t("adminDealers.slaHours")}
           type="number"
           defaultValue={dealer.response_sla_hours}
         />
         <Select
           name="verification_status"
-          label="Təsdiq statusu"
+          label={t("adminDealers.approvalStatus")}
           defaultValue={dealer.verification_status}
           options={DEALER_VERIFICATION_STATUSES.map((v) => ({ value: v, label: v }))}
         />
         <Select
           name="status"
-          label="Status"
+          label={t("adminDealers.status")}
           defaultValue={dealer.status}
           options={[
-            { value: "active", label: "Aktiv" },
-            { value: "inactive", label: "Deaktiv" },
+            { value: "active", label: t("adminCatalog.statusActive") },
+            { value: "inactive", label: t("adminCatalog.statusInactive") },
           ]}
         />
         <Textarea
           name="represented_brands"
-          label="Təmsil edilən markalar (vergüllə)"
+          label={t("adminDealers.brandsLabel")}
           defaultValue={dealer.represented_brands.join(", ")}
-          helpText={`Movcud: ${brands.map((b) => b.brand_id).join(", ")}`}
+          helpText={t("adminDealers.brandsHelpAvailable", { brands: brands.map((b) => b.brand_id).join(", ") })}
         />
         <Textarea
           name="services"
-          label="Xidmətlər (vergüllə)"
+          label={t("adminDealers.servicesLabel")}
           defaultValue={dealer.services.join(", ")}
           helpText={SERVICE_OPTIONS.join(", ")}
         />
         <Textarea
           name="working_hours_json"
-          label="İş saatları (JSON)"
+          label={t("adminDealers.hoursJson")}
           defaultValue={JSON.stringify(dealer.working_hours)}
-          helpText='[{"days":"Be-Cü","open":"09:00","close":"19:00"}]'
+          helpText={t("adminDealers.hoursJsonExample")}
         />
         <div className="flex items-end md:col-span-2">
-          <Button type="submit">Yadda saxla</Button>
+          <Button type="submit">{t("buttons.save")}</Button>
         </div>
       </form>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Diler təklifləri ({offers.length})</h2>
+        <h2 className="mb-3 text-sm font-semibold">
+          {t("adminDealers.offersTitle", { count: offers.length })}
+        </h2>
         {offers.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Bu dilerin təklifi yoxdur.</p>
+          <p className="text-sm text-foreground-muted">{t("adminDealers.offersEmpty")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {offers.map((o) => (
@@ -102,9 +106,11 @@ export default async function AdminDealerEditPage({
       </Card>
 
       <Card padding="md">
-        <h2 className="mb-3 text-sm font-semibold">Müraciətlər ({submissions.length})</h2>
+        <h2 className="mb-3 text-sm font-semibold">
+          {t("adminDealers.submissionsTitle", { count: submissions.length })}
+        </h2>
         {submissions.length === 0 ? (
-          <p className="text-sm text-foreground-muted">Müraciət yoxdur.</p>
+          <p className="text-sm text-foreground-muted">{t("adminDealers.submissionsEmpty")}</p>
         ) : (
           <ul className="flex flex-col gap-2 text-sm">
             {submissions.map((s) => (
