@@ -2,12 +2,18 @@
 
 **Status:** Scope & guardrails only. No AI runtime, no provider integration, no
 UI in 10I. Flag: `NEXT_PUBLIC_FEATURE_AI_ASSISTANT_BETA`.
+**Priority:** **P0-lite** scope definition only; advanced compare reasoning is P1.
 
 ## Goal
 
 Define the Zolaq AI Assistant as a **source-bound decision helper** — an
 assistant that explains Zolaq data to support a car decision — explicitly **not**
 an open-ended chatbot.
+
+**Locked decision:** the open-ended chatbot is **delayed**. The AI Assistant is
+enabled only as a source-bound decision helper, and only **after the data
+foundation (price/interest/confidence) is ready**. Sprint 10I defines a
+**P0-lite** scope; advanced AI compare explanation is **P1**.
 
 ## What this is NOT
 
@@ -27,18 +33,21 @@ Decide*.
 
 ## Supported use cases
 
-### P0
+### P0-lite (only after the data foundation is ready)
 - **Car selection help** — narrow choices from catalog data and stated needs.
-- **Compare explanation** — explain differences between trims already in a
-  comparison (no invented specs).
+- **Basic compare explanation** — state the key differences between trims
+  already in a comparison (no invented specs). *Deeper, multi-factor compare
+  reasoning is P1 (see below).*
 - **Trim / package explanation** — explain what a trim/package includes from
   catalog data.
 - **Q&A summarization** — summarize existing `/qa` threads tied to a model.
 
 ### P1
+- **Advanced AI compare explanation** — deeper, multi-factor comparison
+  reasoning and trade-off explanation across trims.
 - **Price movement explanation** — explain an observed `PriceMovement` /
   Price Rise Signal in plain language, within `PRICE_RISE_SIGNAL_RULES.md`
-  wording.
+  wording. (Price Rise Signal itself is P1.)
 - **VIN report explanation** — explain a server-produced VIN report summary
   (`VIN_REPORT_SUMMARY_ARCHITECTURE.md`); never the raw report.
 - **Next best action** — suggest the next decision step (compare, request

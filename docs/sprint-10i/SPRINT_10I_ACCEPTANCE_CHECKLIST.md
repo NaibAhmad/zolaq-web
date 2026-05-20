@@ -83,28 +83,59 @@
 
 Full text in `DATA_CONFIDENCE_AND_DISCLAIMER_RULES.md` → *Security / privacy*.
 
-## 7. Sprint 10J implementation recommendation
+## 7. Locked scope, data-model order & Sprint 10J recommendation
 
-Recommended build order (each behind its flag, default off):
+### 7.0 Locked P0 / P1 scope (PO/CTO)
 
-1. **Data foundations (P0):** `PriceSnapshot` storage + the three confidence
-   enums; `InterestScore`/`InterestRankingSnapshot` aggregation from existing
-   events. No UI yet.
+**P0:** Market Intelligence foundation · Weekly Interest Ranking · Basic Price
+Movement · Data Confidence layer · VIN Report Text Summary architecture/prep ·
+AI Assistant **P0-lite** scope definition.
+
+**P1:** Price Rise Signal · Saved car price alerts · Advanced AI compare
+explanation · VIN Voice Analysis (paid pilot).
+
+Open-ended chatbot is delayed; AI Assistant is a source-bound helper enabled only
+after the data foundation is ready. VIN Voice is not P0.
+
+### 7.1 First data-model definition order (locked)
+
+The data models are defined/built in this exact sequence:
+
+1. `PriceSnapshot`
+2. `InterestScore` / `InterestRankingSnapshot`
+3. `DataConfidence`
+4. `MarketSignal`
+5. AI Assistant context model
+6. VIN Report Summary model
+7. VIN Voice Analysis model
+
+### 7.2 Sprint 10J build recommendation (each behind its flag, default off)
+
+Feature delivery follows the data-model order in §7.1:
+
+1. **Data foundation (P0):** `PriceSnapshot` → `InterestScore`/
+   `InterestRankingSnapshot` → `DataConfidence` → `MarketSignal`, built from
+   existing events. No UI yet.
 2. **Market intelligence read surfaces (P0):** weekly ranking + price-movement
    chip on car detail / saved cars, behind
    `NEXT_PUBLIC_FEATURE_MARKET_INTELLIGENCE_BETA`. Confidence/source/last-updated
-   wired; price-rise signal chip (no homepage block).
-3. **VIN report summary (P0):** server-side ingestion + summary + risk flags +
+   wired. (Price Rise Signal chip is **P1**, not part of this P0 step.)
+3. **AI Assistant context model + P0-lite helper (P0-lite):** source-bound
+   context assembly + banned-wording guard, behind
+   `NEXT_PUBLIC_FEATURE_AI_ASSISTANT_BETA`, enabled only after the data
+   foundation; basic compare/trim/Q&A explanation; "data insufficient" fallback.
+   *Advanced compare explanation is P1.*
+4. **VIN Report Summary (P0):** server-side ingestion + summary + risk flags +
    disclaimer + audit log; raw report never sent to client.
-4. **AI assistant (P1):** source-bound context assembly + banned-wording guard,
-   behind `NEXT_PUBLIC_FEATURE_AI_ASSISTANT_BETA`; explain compare/detail/price/
-   VIN-summary; "data insufficient" fallback.
-5. **VIN voice pilot (P1):** only after legal/privacy/payment/support/refund are
+5. **P1 features (after P0 lands):** Price Rise Signal, saved-car price alerts,
+   advanced AI compare explanation.
+6. **VIN Voice pilot (P1):** only after legal/privacy/payment/support/refund are
    in place, behind `NEXT_PUBLIC_FEATURE_VIN_VOICE_BETA`.
 
 Each step ships with: confidence labelling, disclaimer copy (i18n governance per
 `docs/sprint-10/I18N_GOVERNANCE_AND_NO_HARDCODED_COPY.md`), empty/loading/
-missing-data states, and a QA pass.
+missing-data states, and a QA pass. Rollout follows the locked six-step order in
+`FEATURE_FLAGS_AND_ROLLOUT_PLAN.md`.
 
 ## 8. Open questions
 

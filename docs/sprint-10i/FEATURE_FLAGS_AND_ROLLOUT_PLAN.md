@@ -39,20 +39,25 @@ export const FEATURE_VIN_VOICE_BETA =
   (process.env.NEXT_PUBLIC_FEATURE_VIN_VOICE_BETA ?? "false") === "true";
 ```
 
-## Rollout phases
+## Rollout order (locked)
 
-Each flag rolls out independently; all start dark in production.
+All flags start dark in production. Every flag advances through the same locked
+six-step rollout order; no flag skips a step:
 
-| Phase | Audience | Flags on (env) | Gate |
-| --- | --- | --- | --- |
-| **0 — Internal** | founder/team, local & staging | per-flag, local only | docs PASS (this sprint) |
-| **1 — Closed beta** | First-100 cohort, staging/limited prod | `MARKET_INTELLIGENCE_BETA` first | data labelled `beta_signal`; confidence rules enforced |
-| **2 — AI beta** | subset of closed beta | `AI_ASSISTANT_BETA` | source-binding + banned-wording guard verified |
-| **3 — VIN voice pilot** | opt-in paid pilot | `VIN_VOICE_BETA` | legal/privacy/payment/support/refund all in place |
-| **4 — Wider** | general | per-flag promotion | per-module QA + trust review |
+| Step | Stage | Gate to advance |
+| --- | --- | --- |
+| **1** | Local internal beta | flag on locally only; per-module sanity check |
+| **2** | Founder review | founder sign-off on behaviour and copy |
+| **3** | Staging beta | confidence/source/disclaimer wired; QA on staging |
+| **4** | Closed beta users | First-100 cohort; data labelled `beta_signal`; trust review |
+| **5** | Public beta — only after QA | full QA pass per module |
+| **6** | Gradual production rollout | staged enablement, monitored |
 
-Ordering rationale: market intelligence (read-only, lowest risk) → AI (needs
-guard verification) → VIN voice (needs legal/payment, highest bar).
+Per-flag ordering across the layer (which feature enters the rollout first):
+market intelligence (read-only, lowest risk) → AI Assistant P0-lite (needs the
+data foundation + source-binding/banned-wording guard) → VIN Voice (P1 paid
+pilot, needs legal/privacy/payment/support/refund; highest bar). Each flag still
+walks the full six-step order above.
 
 ## Kill-switch behavior
 

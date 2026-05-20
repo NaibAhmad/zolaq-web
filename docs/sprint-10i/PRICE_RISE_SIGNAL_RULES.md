@@ -2,6 +2,8 @@
 
 **Status:** Wording & placement rules only. No UI in 10I. Data model in
 `PRICE_MOVEMENT_ARCHITECTURE.md`.
+**Priority:** **P1 feature** (architecture documented in 10I; not a P0
+deliverable). Saved-car price alerts that build on this signal are also P1.
 
 ## Goal
 

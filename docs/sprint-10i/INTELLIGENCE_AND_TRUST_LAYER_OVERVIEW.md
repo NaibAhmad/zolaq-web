@@ -75,14 +75,37 @@ module in this layer:
 | Market interest subsystem | `MARKET_INTELLIGENCE_ARCHITECTURE.md` | P0 arch |
 | InterestScore data model | `INTEREST_SCORE_MODEL.md` | P0 arch |
 | Price movement subsystem | `PRICE_MOVEMENT_ARCHITECTURE.md` | P0 arch |
-| Price-rise signal rules | `PRICE_RISE_SIGNAL_RULES.md` | P0 arch |
-| AI assistant scope | `AI_ASSISTANT_SCOPE.md` | P0/P1 arch |
+| Price-rise signal rules | `PRICE_RISE_SIGNAL_RULES.md` | **P1** (arch in 10I) |
+| AI assistant scope | `AI_ASSISTANT_SCOPE.md` | **P0-lite / P1** arch |
 | VIN report text summary | `VIN_REPORT_SUMMARY_ARCHITECTURE.md` | P0 arch |
 | VIN voice analysis | `VIN_VOICE_ANALYSIS_SCOPE.md` | P1 paid pilot |
 | Confidence & disclaimer | `DATA_CONFIDENCE_AND_DISCLAIMER_RULES.md` | P0 arch |
 | Feature flags & rollout | `FEATURE_FLAGS_AND_ROLLOUT_PLAN.md` | P0 arch |
 | UX placement rules | `UX_PLACEMENT_RULES.md` | P0 arch |
 | Acceptance checklist | `SPRINT_10I_ACCEPTANCE_CHECKLIST.md` | gate |
+
+## Locked scope — P0 vs P1 (PO/CTO decision)
+
+**P0 (Sprint 10I architecture):**
+- Market Intelligence foundation
+- Weekly Interest Ranking
+- Basic Price Movement
+- Data Confidence layer
+- VIN Report Text Summary architecture / prep
+- AI Assistant **P0-lite** scope definition (source-bound, *after* the data
+  foundation is ready)
+
+**P1:**
+- Price Rise Signal
+- Saved car price alerts
+- Advanced AI compare explanation
+- VIN Voice Analysis (paid pilot)
+
+The open-ended chatbot is **delayed**: the AI Assistant is only a source-bound
+decision helper, enabled after the data foundation lands. VIN Voice is **not
+P0** — it stays a P1 paid pilot, gated behind legal/privacy/payment/report-
+handling/support rules. Data-model definition order and rollout order are in
+`SPRINT_10I_ACCEPTANCE_CHECKLIST.md` and `FEATURE_FLAGS_AND_ROLLOUT_PLAN.md`.
 
 ## Feature flags (documented only — see `FEATURE_FLAGS_AND_ROLLOUT_PLAN.md`)
 
