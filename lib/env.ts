@@ -41,3 +41,13 @@ export const FEATURE_BETA_INVITE =
   (process.env.NEXT_PUBLIC_FEATURE_BETA_INVITE ?? "false") === "true";
 
 export const BETA_WAITLIST_URL = process.env.NEXT_PUBLIC_BETA_WAITLIST_URL ?? "";
+
+// Sprint 10J: Market Intelligence beta gate. Sprint 10J ships the data/types/
+// utilities foundation only (see lib/market-intelligence/) — there is NO public
+// UI behind this flag yet. It exists so later slices can opt a labelled
+// "Zolaq beta siqnalı" preview in without touching production defaults. Default
+// false — production stays dark; local/internal dev opts in via .env.local.
+// AI Assistant and VIN Voice flags are intentionally NOT wired in runtime this
+// sprint; they remain documented in docs/sprint-10i/FEATURE_FLAGS_AND_ROLLOUT_PLAN.md.
+export const FEATURE_MARKET_INTELLIGENCE_BETA =
+  (process.env.NEXT_PUBLIC_FEATURE_MARKET_INTELLIGENCE_BETA ?? "false") === "true";

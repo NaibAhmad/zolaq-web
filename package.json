@@ -16,7 +16,8 @@
     "env:verify-staging": "node scripts/verify-staging-env.mjs",
     "beta:validate-seed": "node scripts/validate-beta-seed.mjs",
     "beta:smoke": "node scripts/closed-beta-smoke.mjs",
-    "i18n:audit": "node scripts/audit-i18n-hardcoded.mjs"
+    "i18n:audit": "node scripts/audit-i18n-hardcoded.mjs",
+    "mi:validate": "tsx scripts/market-intelligence-validate.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
